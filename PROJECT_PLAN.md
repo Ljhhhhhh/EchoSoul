@@ -258,4 +258,6 @@ export async function buildDailySummaryChain(cfg) {
 
 ---
 
-> 如需根据本方案生成项目骨架或补充实现代码，请在终端告诉我！
+## 项目初始化流程
+
+TODO:
