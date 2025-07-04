@@ -13,6 +13,9 @@ export class ChatlogService {
   private chatlogPath: string;
   private isInitialized = false;
 
+  // TODO: wechatKey 是固定不变的，应该长期存储
+  private wechatKey: string = ''; // 存储获取到的微信密钥
+
   constructor() {
     // 根据平台选择对应的chatlog可执行文件
     const platform = process.platform;
@@ -84,17 +87,38 @@ export class ChatlogService {
   }
 
   /**
-   * 获取微信数据目录
-   * 在macOS上，微信数据通常存储在用户的Library目录中
+   * 获取chatlog解密后的数据目录
+   * 我们将数据解密到固定的目录：~/Documents/EchoSoul/chatlog_data
    */
-  private getWeChatDataDir(): string {
+  private getChatlogDataDir(): string {
+    const os = require('os');
+    const homeDir = os.homedir();
+
+    // TODO: 需要更新为可选的目录
+    // 使用固定的解密数据目录
+    const dataDir = path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data');
+
+    // 确保目录存在
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+      logger.info(`Created chatlog data directory: ${dataDir}`);
+    }
+
+    return dataDir;
+  }
+
+  /**
+   * 获取微信原始数据目录（用于key命令）
+   */
+  private getWeChatSourceDir(): string {
     const os = require('os');
     const homeDir = os.homedir();
 
     // macOS微信数据目录
     if (process.platform === 'darwin') {
-      console.log(homeDir, 'homeDir');
-      // return '/Users/pipilu/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/48db8a3406267b90444b51abe056016c';
+      // ! 这个是成功的
+      // return '/Users/pipilu/Library/Containers/com.tencent.xinWeChat/Data/Library/Application\ Support/com.tencent.xinWeChat/2.0b4.0.9/48db8a3406267b90444b51abe056016c';
+      // ! 这里缺少一些信息，可以让augment code 读取项目源码来获取缺少的路径
       return path.join(
         homeDir,
         'Library',
@@ -103,9 +127,7 @@ export class ChatlogService {
         'Data',
         'Library',
         'Application Support',
-        'com.tencent.xinWeChat',
-        '2.0b4.0.9',
-        '48db8a3406267b90444b51abe056016c'
+        'com.tencent.xinWeChat'
       );
     }
 
@@ -149,14 +171,14 @@ export class ChatlogService {
     try {
       logger.info(`Starting chatlog server by ${this.chatlogPath}`);
 
-      // 获取微信数据目录
-      const wechatDataDir = this.getWeChatDataDir();
-      logger.info(`Using WeChat data directory: ${wechatDataDir}`);
+      // 获取解密后的数据目录
+      const dataDir = this.getChatlogDataDir();
+      logger.info(`Using chatlog data directory: ${dataDir}`);
 
       // 启动chatlog server命令，需要指定work-dir参数
       this.chatlogProcess = spawn(
         this.chatlogPath,
-        ['server', '--work-dir', wechatDataDir, '--addr', '127.0.0.1:5030'],
+        ['server', '--work-dir', dataDir, '--addr', '127.0.0.1:5030'],
         {
           stdio: ['pipe', 'pipe', 'pipe'],
           detached: false,
@@ -227,17 +249,9 @@ export class ChatlogService {
     return new Promise(resolve => {
       logger.info('Getting WeChat key...');
 
-      // 获取微信数据目录
-      const wechatDataDir = this.getWeChatDataDir();
-      logger.info(`Using WeChat data directory for key: ${wechatDataDir}`);
-
-      const process = spawn(
-        this.chatlogPath,
-        ['key', '--work-dir', wechatDataDir],
-        {
-          stdio: ['pipe', 'pipe', 'pipe'],
-        }
-      );
+      const process = spawn(this.chatlogPath, ['key'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
 
       let output = '';
       let errorOutput = '';
@@ -251,8 +265,11 @@ export class ChatlogService {
       });
 
       process.on('close', code => {
+        logger.info(`Get key process exited with code ${code}`);
         if (code === 0) {
-          logger.info('WeChat key obtained successfully');
+          logger.info(`WeChat key obtained successfully: ${output.trim()}`);
+          // 存储获取到的密钥
+          this.wechatKey = output.trim();
           resolve({ success: true, message: output.trim() });
         } else {
           logger.error('Failed to get WeChat key:', errorOutput);
@@ -278,16 +295,36 @@ export class ChatlogService {
       return { success: false, message: 'ChatlogService not initialized' };
     }
 
+    if (!this.wechatKey) {
+      return {
+        success: false,
+        message: 'WeChat key not obtained. Please get key first.',
+      };
+    }
+
     return new Promise(resolve => {
       logger.info('Decrypting database...');
 
-      // 获取微信数据目录
-      const wechatDataDir = this.getWeChatDataDir();
-      logger.info(`Using WeChat data directory for decrypt: ${wechatDataDir}`);
+      // 获取微信原始数据目录和解密后的数据目录
+      const wechatSourceDir = this.getWeChatSourceDir();
+      const workDir = this.getChatlogDataDir();
+      logger.info(
+        `Using WeChat source directory (data-dir): ${wechatSourceDir}`
+      );
+      logger.info(`Decrypting to work directory (work-dir): ${workDir}`);
+      logger.info(`Using key: ${this.wechatKey.substring(0, 10)}...`); // 只显示前10个字符
 
       const process = spawn(
         this.chatlogPath,
-        ['decrypt', '--work-dir', wechatDataDir],
+        [
+          'decrypt',
+          '--data-dir',
+          wechatSourceDir, // 微信原始数据目录
+          '--work-dir',
+          workDir, // 解密后数据存放目录
+          '--key',
+          this.wechatKey,
+        ],
         {
           stdio: ['pipe', 'pipe', 'pipe'],
         }
