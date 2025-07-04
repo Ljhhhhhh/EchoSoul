@@ -1,10 +1,10 @@
-import type { 
-  UserSettings, 
-  ReportMeta, 
-  AnalysisConfig, 
-  TaskStatus, 
+import type {
+  UserSettings,
+  ReportMeta,
+  AnalysisConfig,
+  TaskStatus,
   Contact,
-  ChatlogStatus 
+  ChatlogStatus,
 } from '@echosoul/common';
 
 declare global {
@@ -21,7 +21,15 @@ declare global {
       chatlog: {
         status: () => Promise<ChatlogStatus>;
         start: () => Promise<boolean>;
+        stop: () => Promise<void>;
         getContacts: () => Promise<Contact[]>;
+        getWechatKey: () => Promise<{ success: boolean; message: string }>;
+        decryptDatabase: () => Promise<{ success: boolean; message: string }>;
+        checkInitialization: () => Promise<{
+          keyObtained: boolean;
+          databaseDecrypted: boolean;
+          canStartServer: boolean;
+        }>;
       };
 
       // 报告管理

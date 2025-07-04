@@ -1,11 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { 
-  UserSettings, 
-  ReportMeta, 
-  AnalysisConfig, 
-  TaskStatus, 
+import type {
+  UserSettings,
+  ReportMeta,
+  AnalysisConfig,
+  TaskStatus,
   Contact,
-  ChatlogStatus 
+  ChatlogStatus,
 } from '@echosoul/common';
 
 // IPC API定义
@@ -13,9 +13,9 @@ const electronAPI = {
   // 配置管理
   config: {
     get: (): Promise<UserSettings> => ipcRenderer.invoke('config:get'),
-    set: (settings: Partial<UserSettings>): Promise<void> => 
+    set: (settings: Partial<UserSettings>): Promise<void> =>
       ipcRenderer.invoke('config:set', settings),
-    testApi: (provider: string, apiKey: string): Promise<boolean> => 
+    testApi: (provider: string, apiKey: string): Promise<boolean> =>
       ipcRenderer.invoke('config:test-api', provider, apiKey),
   },
 
@@ -23,22 +23,33 @@ const electronAPI = {
   chatlog: {
     status: (): Promise<ChatlogStatus> => ipcRenderer.invoke('chatlog:status'),
     start: (): Promise<boolean> => ipcRenderer.invoke('chatlog:start'),
-    getContacts: (): Promise<Contact[]> => ipcRenderer.invoke('chatlog:get-contacts'),
+    stop: (): Promise<void> => ipcRenderer.invoke('chatlog:stop'),
+    getContacts: (): Promise<Contact[]> =>
+      ipcRenderer.invoke('chatlog:get-contacts'),
+    getWechatKey: (): Promise<{ success: boolean; message: string }> =>
+      ipcRenderer.invoke('chatlog:get-wechat-key'),
+    decryptDatabase: (): Promise<{ success: boolean; message: string }> =>
+      ipcRenderer.invoke('chatlog:decrypt-database'),
+    checkInitialization: (): Promise<{
+      keyObtained: boolean;
+      databaseDecrypted: boolean;
+      canStartServer: boolean;
+    }> => ipcRenderer.invoke('chatlog:check-initialization'),
   },
 
   // 报告管理
   report: {
     list: (): Promise<ReportMeta[]> => ipcRenderer.invoke('report:list'),
     get: (id: string): Promise<string> => ipcRenderer.invoke('report:get', id),
-    generateCustom: (config: AnalysisConfig): Promise<string> => 
+    generateCustom: (config: AnalysisConfig): Promise<string> =>
       ipcRenderer.invoke('report:generate-custom', config),
   },
 
   // 任务状态
   task: {
-    status: (taskId: string): Promise<TaskStatus> => 
+    status: (taskId: string): Promise<TaskStatus> =>
       ipcRenderer.invoke('task:status', taskId),
-    cancel: (taskId: string): Promise<void> => 
+    cancel: (taskId: string): Promise<void> =>
       ipcRenderer.invoke('task:cancel', taskId),
   },
 
@@ -52,7 +63,7 @@ const electronAPI = {
   },
 
   // 通用调用
-  invoke: (channel: string, ...args: any[]): Promise<any> => 
+  invoke: (channel: string, ...args: any[]): Promise<any> =>
     ipcRenderer.invoke(channel, ...args),
 };
 

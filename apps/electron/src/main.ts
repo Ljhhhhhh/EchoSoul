@@ -38,13 +38,32 @@ class EchoSoulApp {
         preload: path.join(__dirname, '../preload/index.js'),
       },
       titleBarStyle: 'hiddenInset',
-      show: false,
+      show: true,
     });
 
     // 开发环境加载本地服务器，生产环境加载打包文件
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) {
-      await this.mainWindow.loadURL('http://localhost:5173');
+      // 尝试多个端口，因为Vite可能会使用不同的端口
+      const ports = [5173, 5174, 5175, 5176];
+      let loaded = false;
+
+      for (const port of ports) {
+        try {
+          await this.mainWindow.loadURL(`http://localhost:${port}`);
+          logger.info(`Successfully loaded renderer from port ${port}`);
+          loaded = true;
+          break;
+        } catch (error) {
+          logger.debug(`Failed to load from port ${port}:`, error);
+        }
+      }
+
+      if (!loaded) {
+        logger.error('Failed to load renderer from any port');
+        throw new Error('Could not connect to development server');
+      }
+
       this.mainWindow.webContents.openDevTools();
     } else {
       // electron-vite构建后的路径
@@ -55,7 +74,19 @@ class EchoSoulApp {
 
     this.mainWindow.once('ready-to-show', () => {
       this.mainWindow?.show();
+      this.mainWindow?.focus();
+      logger.info('Main window shown and focused');
     });
+
+    // 强制显示窗口（调试用）
+    setTimeout(() => {
+      if (this.mainWindow) {
+        this.mainWindow.show();
+        this.mainWindow.focus();
+        this.mainWindow.moveTop();
+        logger.info('Force showing main window');
+      }
+    }, 2000);
 
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;

@@ -18,23 +18,29 @@ export function setupIpcHandlers(services: AppServices) {
     }
   });
 
-  ipcMain.handle('config:set', async (_, settings: Partial<UserSettings>): Promise<void> => {
-    try {
-      await services.config.set(settings);
-    } catch (error) {
-      logger.error('Failed to set config:', error);
-      throw error;
+  ipcMain.handle(
+    'config:set',
+    async (_, settings: Partial<UserSettings>): Promise<void> => {
+      try {
+        await services.config.set(settings);
+      } catch (error) {
+        logger.error('Failed to set config:', error);
+        throw error;
+      }
     }
-  });
+  );
 
-  ipcMain.handle('config:test-api', async (_, provider: string, apiKey: string): Promise<boolean> => {
-    try {
-      return await services.config.testApiKey(provider, apiKey);
-    } catch (error) {
-      logger.error('Failed to test API key:', error);
-      return false;
+  ipcMain.handle(
+    'config:test-api',
+    async (_, provider: string, apiKey: string): Promise<boolean> => {
+      try {
+        return await services.config.testApiKey(provider, apiKey);
+      } catch (error) {
+        logger.error('Failed to test API key:', error);
+        return false;
+      }
     }
-  });
+  );
 
   // chatlog服务
   ipcMain.handle('chatlog:status', async () => {
@@ -55,12 +61,57 @@ export function setupIpcHandlers(services: AppServices) {
     }
   });
 
+  ipcMain.handle('chatlog:stop', async (): Promise<void> => {
+    try {
+      await services.chatlog.stopService();
+    } catch (error) {
+      logger.error('Failed to stop chatlog service:', error);
+    }
+  });
+
   ipcMain.handle('chatlog:get-contacts', async () => {
     try {
       return await services.chatlog.getContacts();
     } catch (error) {
       logger.error('Failed to get contacts:', error);
       return [];
+    }
+  });
+
+  ipcMain.handle('chatlog:get-wechat-key', async () => {
+    try {
+      return await services.chatlog.getWechatKey();
+    } catch (error) {
+      logger.error('Failed to get WeChat key:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  });
+
+  ipcMain.handle('chatlog:decrypt-database', async () => {
+    try {
+      return await services.chatlog.decryptDatabase();
+    } catch (error) {
+      logger.error('Failed to decrypt database:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  });
+
+  ipcMain.handle('chatlog:check-initialization', async () => {
+    try {
+      return await services.chatlog.checkInitialization();
+    } catch (error) {
+      logger.error('Failed to check chatlog initialization:', error);
+      return {
+        keyObtained: false,
+        databaseDecrypted: false,
+        canStartServer: false,
+      };
     }
   });
 
@@ -74,23 +125,29 @@ export function setupIpcHandlers(services: AppServices) {
     }
   });
 
-  ipcMain.handle('report:get', async (_, id: string): Promise<string | null> => {
-    try {
-      return await services.report.getReportContent(id);
-    } catch (error) {
-      logger.error('Failed to get report content:', error);
-      return null;
+  ipcMain.handle(
+    'report:get',
+    async (_, id: string): Promise<string | null> => {
+      try {
+        return await services.report.getReportContent(id);
+      } catch (error) {
+        logger.error('Failed to get report content:', error);
+        return null;
+      }
     }
-  });
+  );
 
-  ipcMain.handle('report:generate-custom', async (_, config: AnalysisConfig): Promise<string> => {
-    try {
-      return await services.report.generateCustomReport(config);
-    } catch (error) {
-      logger.error('Failed to generate custom report:', error);
-      throw error;
+  ipcMain.handle(
+    'report:generate-custom',
+    async (_, config: AnalysisConfig): Promise<string> => {
+      try {
+        return await services.report.generateCustomReport(config);
+      } catch (error) {
+        logger.error('Failed to generate custom report:', error);
+        throw error;
+      }
     }
-  });
+  );
 
   // 任务状态
   ipcMain.handle('task:status', async (_, taskId: string) => {

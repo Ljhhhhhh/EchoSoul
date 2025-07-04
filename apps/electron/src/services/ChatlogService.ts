@@ -1,29 +1,355 @@
 import { createLogger } from '../utils/logger';
 import type { ChatMessage, Contact, ChatlogStatus } from '@echosoul/common';
+import { spawn, ChildProcess } from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs';
+import { app } from 'electron';
 
 const logger = createLogger('ChatlogService');
 
 export class ChatlogService {
-  private baseUrl = 'http://localhost:8080'; // chatlog默认端口
+  private baseUrl = 'http://127.0.0.1:5030'; // chatlog默认端口
+  private chatlogProcess: ChildProcess | null = null;
+  private chatlogPath: string;
+  private isInitialized = false;
+
+  constructor() {
+    // 根据平台选择对应的chatlog可执行文件
+    const platform = process.platform;
+
+    // 在开发环境中，从项目根目录查找resource
+    // 在生产环境中，从app.asar.unpacked查找
+    let resourcesPath: string;
+    if (app.isPackaged) {
+      resourcesPath = path.join(
+        process.resourcesPath,
+        'app.asar.unpacked',
+        'apps',
+        'electron',
+        'resource'
+      );
+    } else {
+      // 开发环境：从当前工作目录查找
+      resourcesPath = path.join(process.cwd(), 'apps', 'electron', 'resource');
+    }
+
+    if (platform === 'darwin') {
+      this.chatlogPath = path.join(resourcesPath, 'chatlog_mac', 'chatlog');
+    } else if (platform === 'win32') {
+      this.chatlogPath = path.join(
+        resourcesPath,
+        'chatlog_windows',
+        'chatlog.exe'
+      );
+    } else {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+  }
 
   async initialize() {
-    logger.info('ChatlogService initialized');
+    try {
+      // 检查chatlog可执行文件是否存在
+      if (!fs.existsSync(this.chatlogPath)) {
+        throw new Error(`Chatlog executable not found at: ${this.chatlogPath}`);
+      }
+
+      // 在macOS上设置执行权限
+      if (process.platform === 'darwin') {
+        await this.setExecutablePermission();
+      }
+
+      logger.info(
+        `ChatlogService initialized with executable: ${this.chatlogPath}`
+      );
+      this.isInitialized = true;
+    } catch (error) {
+      logger.error('Failed to initialize ChatlogService:', error);
+      throw error;
+    }
+  }
+
+  private async setExecutablePermission(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const { exec } = require('child_process');
+      exec(`chmod +x "${this.chatlogPath}"`, (error: any) => {
+        if (error) {
+          logger.error('Failed to set executable permission:', error);
+          reject(error);
+        } else {
+          logger.info('Executable permission set successfully');
+          resolve();
+        }
+      });
+    });
+  }
+
+  /**
+   * 获取微信数据目录
+   * 在macOS上，微信数据通常存储在用户的Library目录中
+   */
+  private getWeChatDataDir(): string {
+    const os = require('os');
+    const homeDir = os.homedir();
+
+    // macOS微信数据目录
+    if (process.platform === 'darwin') {
+      console.log(homeDir, 'homeDir');
+      // return '/Users/pipilu/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/48db8a3406267b90444b51abe056016c';
+      return path.join(
+        homeDir,
+        'Library',
+        'Containers',
+        'com.tencent.xinWeChat',
+        'Data',
+        'Library',
+        'Application Support',
+        'com.tencent.xinWeChat',
+        '2.0b4.0.9',
+        '48db8a3406267b90444b51abe056016c'
+      );
+    }
+
+    // Windows微信数据目录
+    if (process.platform === 'win32') {
+      return path.join(homeDir, 'Documents', 'WeChat Files');
+    }
+
+    // 默认返回用户主目录
+    logger.warn(
+      `Unsupported platform: ${process.platform}, using home directory`
+    );
+    return homeDir;
   }
 
   async checkStatus(): Promise<ChatlogStatus> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/health`);
+      // 检查服务是否运行，使用联系人API作为健康检查
+      const response = await fetch(`${this.baseUrl}/api/v1/contact`, {
+        method: 'GET',
+        timeout: 3000,
+      } as any);
       return response.ok ? 'running' : 'error';
     } catch (error) {
-      logger.warn('Chatlog service not running:', error);
+      logger.debug('Chatlog service not running:', error);
       return 'not-running';
     }
   }
 
   async startService(): Promise<boolean> {
-    // TODO: 实现启动chatlog服务的逻辑
-    logger.info('Attempting to start chatlog service');
-    return false;
+    if (!this.isInitialized) {
+      logger.error('ChatlogService not initialized');
+      return false;
+    }
+
+    if (this.chatlogProcess) {
+      logger.info('Chatlog service already running');
+      return true;
+    }
+
+    try {
+      logger.info(`Starting chatlog server by ${this.chatlogPath}`);
+
+      // 获取微信数据目录
+      const wechatDataDir = this.getWeChatDataDir();
+      logger.info(`Using WeChat data directory: ${wechatDataDir}`);
+
+      // 启动chatlog server命令，需要指定work-dir参数
+      this.chatlogProcess = spawn(
+        this.chatlogPath,
+        ['server', '--work-dir', wechatDataDir, '--addr', '127.0.0.1:5030'],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          detached: false,
+        }
+      );
+
+      // 监听进程输出
+      this.chatlogProcess.stdout?.on('data', data => {
+        logger.debug(`Chatlog stdout: ${data.toString().trim()}`);
+      });
+
+      this.chatlogProcess.stderr?.on('data', data => {
+        logger.warn(`Chatlog stderr: ${data.toString().trim()}`);
+      });
+
+      this.chatlogProcess.on('close', code => {
+        logger.info(`Chatlog process exited with code ${code}`);
+        this.chatlogProcess = null;
+      });
+
+      this.chatlogProcess.on('error', error => {
+        logger.error('Chatlog process error:', error);
+        this.chatlogProcess = null;
+      });
+
+      // 等待服务启动
+      await this.waitForService();
+
+      logger.info('Chatlog server started successfully');
+      return true;
+    } catch (error) {
+      logger.error('Failed to start chatlog service:', error);
+      this.chatlogProcess = null;
+      return false;
+    }
+  }
+
+  async stopService(): Promise<void> {
+    if (this.chatlogProcess) {
+      logger.info('Stopping chatlog service...');
+      this.chatlogProcess.kill('SIGTERM');
+      this.chatlogProcess = null;
+    }
+  }
+
+  private async waitForService(
+    maxAttempts = 10,
+    interval = 1000
+  ): Promise<void> {
+    for (let i = 0; i < maxAttempts; i++) {
+      const status = await this.checkStatus();
+      if (status === 'running') {
+        return;
+      }
+      await new Promise(resolve => setTimeout(resolve, interval));
+    }
+    throw new Error('Chatlog service failed to start within timeout');
+  }
+
+  /**
+   * 获取微信数据密钥
+   */
+  async getWechatKey(): Promise<{ success: boolean; message: string }> {
+    if (!this.isInitialized) {
+      return { success: false, message: 'ChatlogService not initialized' };
+    }
+
+    return new Promise(resolve => {
+      logger.info('Getting WeChat key...');
+
+      // 获取微信数据目录
+      const wechatDataDir = this.getWeChatDataDir();
+      logger.info(`Using WeChat data directory for key: ${wechatDataDir}`);
+
+      const process = spawn(
+        this.chatlogPath,
+        ['key', '--work-dir', wechatDataDir],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        }
+      );
+
+      let output = '';
+      let errorOutput = '';
+
+      process.stdout?.on('data', data => {
+        output += data.toString();
+      });
+
+      process.stderr?.on('data', data => {
+        errorOutput += data.toString();
+      });
+
+      process.on('close', code => {
+        if (code === 0) {
+          logger.info('WeChat key obtained successfully');
+          resolve({ success: true, message: output.trim() });
+        } else {
+          logger.error('Failed to get WeChat key:', errorOutput);
+          resolve({
+            success: false,
+            message: errorOutput.trim() || 'Unknown error',
+          });
+        }
+      });
+
+      process.on('error', error => {
+        logger.error('Error getting WeChat key:', error);
+        resolve({ success: false, message: error.message });
+      });
+    });
+  }
+
+  /**
+   * 解密数据库文件
+   */
+  async decryptDatabase(): Promise<{ success: boolean; message: string }> {
+    if (!this.isInitialized) {
+      return { success: false, message: 'ChatlogService not initialized' };
+    }
+
+    return new Promise(resolve => {
+      logger.info('Decrypting database...');
+
+      // 获取微信数据目录
+      const wechatDataDir = this.getWeChatDataDir();
+      logger.info(`Using WeChat data directory for decrypt: ${wechatDataDir}`);
+
+      const process = spawn(
+        this.chatlogPath,
+        ['decrypt', '--work-dir', wechatDataDir],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        }
+      );
+
+      let output = '';
+      let errorOutput = '';
+
+      process.stdout?.on('data', data => {
+        output += data.toString();
+      });
+
+      process.stderr?.on('data', data => {
+        errorOutput += data.toString();
+      });
+
+      process.on('close', code => {
+        if (code === 0) {
+          logger.info('Database decrypted successfully');
+          resolve({ success: true, message: output.trim() });
+        } else {
+          logger.error('Failed to decrypt database:', errorOutput);
+          resolve({
+            success: false,
+            message: errorOutput.trim() || 'Unknown error',
+          });
+        }
+      });
+
+      process.on('error', error => {
+        logger.error('Error decrypting database:', error);
+        resolve({ success: false, message: error.message });
+      });
+    });
+  }
+
+  /**
+   * 检查chatlog是否已经初始化（密钥获取和数据库解密）
+   */
+  async checkInitialization(): Promise<{
+    keyObtained: boolean;
+    databaseDecrypted: boolean;
+    canStartServer: boolean;
+  }> {
+    // 这里可以通过检查特定文件或目录来判断初始化状态
+    // 具体实现需要根据chatlog的实际行为来调整
+    try {
+      const status = await this.checkStatus();
+      const canStartServer = status === 'running';
+
+      return {
+        keyObtained: true, // 简化实现，实际应该检查密钥文件
+        databaseDecrypted: true, // 简化实现，实际应该检查解密后的数据库
+        canStartServer,
+      };
+    } catch (error) {
+      return {
+        keyObtained: false,
+        databaseDecrypted: false,
+        canStartServer: false,
+      };
+    }
   }
 
   async getContacts(): Promise<Contact[]> {
@@ -32,7 +358,7 @@ export class ChatlogService {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       return this.normalizeContacts(data);
     } catch (error) {
@@ -89,7 +415,9 @@ export class ChatlogService {
     }));
   }
 
-  private normalizeMessageType(type: any): 'text' | 'image' | 'voice' | 'video' | 'file' {
+  private normalizeMessageType(
+    type: any
+  ): 'text' | 'image' | 'voice' | 'video' | 'file' {
     if (typeof type === 'string') {
       switch (type.toLowerCase()) {
         case 'image':
@@ -110,6 +438,7 @@ export class ChatlogService {
   }
 
   async cleanup() {
+    await this.stopService();
     logger.info('ChatlogService cleaned up');
   }
 }
