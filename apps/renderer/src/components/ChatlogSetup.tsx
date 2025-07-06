@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Loader2, Play, Square } from 'lucide-react';
@@ -15,9 +9,7 @@ interface ChatlogSetupProps {
 }
 
 export function ChatlogSetup({ onComplete }: ChatlogSetupProps) {
-  const [status, setStatus] = useState<'running' | 'not-running' | 'error'>(
-    'not-running'
-  );
+  const [status, setStatus] = useState<'running' | 'not-running' | 'error'>('not-running');
   const [initialization, setInitialization] = useState({
     keyObtained: false,
     databaseDecrypted: false,
@@ -29,9 +21,7 @@ export function ChatlogSetup({ onComplete }: ChatlogSetupProps) {
     start: false,
     stop: false,
   });
-  const [messages, setMessages] = useState<
-    { type: 'success' | 'error'; text: string }[]
-  >([]);
+  const [messages, setMessages] = useState<{ type: 'success' | 'error'; text: string }[]>([]);
 
   useEffect(() => {
     checkStatus();
@@ -84,7 +74,7 @@ export function ChatlogSetup({ onComplete }: ChatlogSetupProps) {
       const result = await window.electronAPI.chatlog.decryptDatabase();
       if (result.success) {
         addMessage('success', '数据库解密成功');
-        // await checkInitialization();
+        await checkInitialization();
       } else {
         addMessage('error', `数据库解密失败: ${result.message}`);
       }
@@ -168,12 +158,16 @@ export function ChatlogSetup({ onComplete }: ChatlogSetupProps) {
             {getStatusIcon()}
             Chatlog 服务设置
           </CardTitle>
-          <CardDescription>配置和管理微信聊天记录分析服务</CardDescription>
+          <CardDescription>
+            配置和管理微信聊天记录分析服务
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">服务状态</span>
-            <Badge variant={getStatusVariant()}>{getStatusText()}</Badge>
+            <Badge variant={getStatusVariant()}>
+              {getStatusText()}
+            </Badge>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -188,9 +182,7 @@ export function ChatlogSetup({ onComplete }: ChatlogSetupProps) {
                 size="sm"
                 variant="outline"
               >
-                {loading.key && (
-                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                )}
+                {loading.key && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
                 获取密钥
               </Button>
             </div>
@@ -206,9 +198,7 @@ export function ChatlogSetup({ onComplete }: ChatlogSetupProps) {
                 size="sm"
                 variant="outline"
               >
-                {loading.decrypt && (
-                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                )}
+                {loading.decrypt && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
                 解密数据库
               </Button>
             </div>
