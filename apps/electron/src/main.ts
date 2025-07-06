@@ -44,20 +44,11 @@ class EchoSoulApp {
     // 开发环境加载本地服务器，生产环境加载打包文件
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) {
-      // 尝试多个端口，因为Vite可能会使用不同的端口
-      const ports = [5173, 5174, 5175, 5176];
       let loaded = false;
 
-      for (const port of ports) {
-        try {
-          await this.mainWindow.loadURL(`http://localhost:${port}`);
-          logger.info(`Successfully loaded renderer from port ${port}`);
-          loaded = true;
-          break;
-        } catch (error) {
-          logger.debug(`Failed to load from port ${port}:`, error);
-        }
-      }
+      await this.mainWindow.loadURL(`http://localhost:5173`);
+      logger.info(`Successfully loaded renderer from port 5173`);
+      loaded = true;
 
       if (!loaded) {
         logger.error('Failed to load renderer from any port');
