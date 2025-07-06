@@ -5,19 +5,51 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { app } from 'electron';
 import { setExecutablePermission } from '../utils';
+import { ChatlogHttpClient } from './ChatlogHttpClient';
+import Store from 'electron-store';
 
 const logger = createLogger('ChatlogService');
+
+interface ChatlogConfig {
+  wechatKey?: string;
+  workDir?: string;
+  baseUrl?: string;
+}
 
 export class ChatlogService {
   private baseUrl = 'http://127.0.0.1:5030'; // chatlog默认端口
   private chatlogProcess: ChildProcess | null = null;
   private chatlogPath: string;
   private isInitialized = false;
+  private httpClient: ChatlogHttpClient;
+  private store: Store<ChatlogConfig>;
 
-  // TODO: wechatKey 是固定不变的，应该长期存储
-  private wechatKey: string = ''; // 存储获取到的微信密钥
+  // 从配置中加载的微信密钥
+  private wechatKey: string = '';
 
   constructor() {
+    // 初始化配置存储
+    this.store = new Store<ChatlogConfig>({
+      name: 'chatlog-config',
+      defaults: {
+        baseUrl: this.baseUrl,
+      },
+    });
+
+    // 从配置中加载设置
+    const savedBaseUrl = this.store.get('baseUrl');
+    if (savedBaseUrl) {
+      this.baseUrl = savedBaseUrl;
+    }
+
+    const savedKey = this.store.get('wechatKey');
+    if (savedKey) {
+      this.wechatKey = savedKey;
+    }
+
+    // 初始化 HTTP 客户端
+    this.httpClient = new ChatlogHttpClient(this.baseUrl);
+
     // 根据平台选择对应的chatlog可执行文件
     const platform = process.platform;
 
@@ -74,15 +106,17 @@ export class ChatlogService {
 
   /**
    * 获取chatlog解密后的数据目录
-   * 我们将数据解密到固定的目录：~/Documents/EchoSoul/chatlog_data
+   * 优先使用用户选择的目录，否则使用默认目录
    */
   private getChatlogWorkDir(): string {
     const os = require('os');
     const homeDir = os.homedir();
 
-    // TODO: 需要更新为可选的目录
-    // 使用固定的解密数据目录
-    const workDir = path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data');
+    // 优先使用用户配置的工作目录
+    const savedWorkDir = this.store.get('workDir');
+    const workDir =
+      savedWorkDir ||
+      path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data');
 
     // 确保目录存在
     if (!fs.existsSync(workDir)) {
@@ -91,6 +125,21 @@ export class ChatlogService {
     }
 
     return workDir;
+  }
+
+  /**
+   * 设置工作目录
+   */
+  setWorkDir(workDir: string): void {
+    this.store.set('workDir', workDir);
+    logger.info(`Work directory set to: ${workDir}`);
+  }
+
+  /**
+   * 获取当前工作目录
+   */
+  getWorkDir(): string {
+    return this.getChatlogWorkDir();
   }
 
   /**
@@ -289,16 +338,23 @@ export class ChatlogService {
 
   async checkStatus(): Promise<ChatlogStatus> {
     try {
-      // 检查服务是否运行，使用联系人API作为健康检查
-      const response = await fetch(`${this.baseUrl}/api/v1/contact`, {
-        method: 'GET',
-        timeout: 3000,
-      } as any);
-
-      logger.info(JSON.stringify(response, null, 2), 'response');
-      return response.ok ? 'running' : 'error';
+      // 使用 HTTP 客户端检查服务状态
+      const isRunning = await this.httpClient.checkServiceStatus();
+      return isRunning ? 'running' : 'not-running';
     } catch (error) {
       logger.debug('Chatlog service not running:', error);
+      return 'not-running';
+    }
+  }
+
+  /**
+   * 安全地检查服务状态，不会抛出异常
+   */
+  async checkStatusSafely(): Promise<ChatlogStatus> {
+    try {
+      return await this.checkStatus();
+    } catch (error) {
+      logger.debug('Safe status check failed:', error);
       return 'not-running';
     }
   }
@@ -416,6 +472,7 @@ export class ChatlogService {
           logger.info(`WeChat key obtained successfully: ${output.trim()}`);
           // 存储获取到的密钥
           this.wechatKey = output.trim();
+          this.store.set('wechatKey', this.wechatKey);
           resolve({ success: true, message: output.trim() });
         } else {
           logger.error('Failed to get WeChat key:', errorOutput);
@@ -599,15 +656,19 @@ export class ChatlogService {
     canStartServer: boolean;
   }> {
     try {
-      const status = await this.checkStatus();
-      const canStartServer = status === 'running';
-
       // 检查是否有密钥
       const keyObtained = !!this.wechatKey;
 
       // 检查是否有解密后的数据
       const workDir = this.getChatlogWorkDir();
       const databaseDecrypted = await this.checkDecryptedData(workDir);
+
+      // 只有在有解密数据的情况下才检查服务状态
+      let canStartServer = false;
+      if (databaseDecrypted) {
+        const status = await this.checkStatus();
+        canStartServer = status === 'running';
+      }
 
       return {
         keyObtained,
@@ -617,7 +678,7 @@ export class ChatlogService {
     } catch (error) {
       logger.debug('Error checking initialization:', error);
       return {
-        keyObtained: false,
+        keyObtained: !!this.wechatKey,
         databaseDecrypted: false,
         canStartServer: false,
       };
@@ -626,13 +687,7 @@ export class ChatlogService {
 
   async getContacts(): Promise<Contact[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/v1/contact`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return this.normalizeContacts(data);
+      return await this.httpClient.getContacts();
     } catch (error) {
       logger.error('Failed to get contacts:', error);
       return [];
@@ -645,68 +700,44 @@ export class ChatlogService {
     talker?: string;
   }): Promise<ChatMessage[]> {
     try {
-      const url = new URL(`${this.baseUrl}/api/v1/chatlog`);
-      url.searchParams.set('time', `${params.startDate}~${params.endDate}`);
-      if (params.talker) {
-        url.searchParams.set('talker', params.talker);
-      }
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return this.normalizeMessages(data);
+      return await this.httpClient.getMessages(params);
     } catch (error) {
       logger.error('Failed to get messages:', error);
       return [];
     }
   }
 
-  private normalizeContacts(data: any[]): Contact[] {
-    return data.map(item => ({
-      id: item.id || item.wxid,
-      name: item.name || item.nickname,
-      type: item.type === 'chatroom' ? 'group' : 'individual',
-      avatar: item.avatar,
-      lastMessageTime: item.lastMessageTime,
-    }));
-  }
-
-  private normalizeMessages(data: any[]): ChatMessage[] {
-    return data.map(item => ({
-      id: item.id || `${item.timestamp}-${item.sender}`,
-      sender: item.sender || item.from,
-      recipient: item.recipient || item.to,
-      timestamp: item.timestamp,
-      content: item.content || item.message,
-      type: this.normalizeMessageType(item.type),
-      isGroupChat: item.isGroupChat || false,
-      groupName: item.groupName,
-    }));
-  }
-
-  private normalizeMessageType(
-    type: any
-  ): 'text' | 'image' | 'voice' | 'video' | 'file' {
-    if (typeof type === 'string') {
-      switch (type.toLowerCase()) {
-        case 'image':
-        case 'img':
-          return 'image';
-        case 'voice':
-        case 'audio':
-          return 'voice';
-        case 'video':
-          return 'video';
-        case 'file':
-          return 'file';
-        default:
-          return 'text';
-      }
+  /**
+   * 获取群聊信息
+   */
+  async getChatroomInfo(chatroomId: string) {
+    try {
+      return await this.httpClient.getChatroomInfo(chatroomId);
+    } catch (error) {
+      logger.error(`Failed to get chatroom info for ${chatroomId}:`, error);
+      return null;
     }
-    return 'text';
+  }
+
+  /**
+   * 获取会话列表
+   */
+  async getSessions() {
+    try {
+      return await this.httpClient.getSessions();
+    } catch (error) {
+      logger.error('Failed to get sessions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 更新 Chatlog 服务地址
+   */
+  updateServiceUrl(newUrl: string) {
+    this.baseUrl = newUrl;
+    this.httpClient.updateBaseUrl(newUrl);
+    logger.info(`Chatlog service URL updated to: ${newUrl}`);
   }
 
   async cleanup() {

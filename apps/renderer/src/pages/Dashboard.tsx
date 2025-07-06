@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 export function Dashboard() {
-  const [chatlogStatus, setChatlogStatus] = useState<'running' | 'not-running' | 'error'>('not-running');
+  const [chatlogStatus, setChatlogStatus] = useState<
+    'running' | 'not-running' | 'error'
+  >('not-running');
   const [isLoading, setIsLoading] = useState(false);
 
   const checkChatlogStatus = async () => {
@@ -75,16 +83,16 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <Badge variant={getStatusVariant()}>
-                {getStatusText()}
-              </Badge>
+              <Badge variant={getStatusVariant()}>{getStatusText()}</Badge>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={checkChatlogStatus}
                 disabled={isLoading}
               >
-                <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`}
+                />
               </Button>
             </div>
           </CardContent>
@@ -96,9 +104,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              暂无今日报告
-            </p>
+            <p className="text-xs text-muted-foreground">暂无今日报告</p>
           </CardContent>
         </Card>
 
@@ -108,9 +114,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              历史报告总数
-            </p>
+            <p className="text-xs text-muted-foreground">历史报告总数</p>
           </CardContent>
         </Card>
 
@@ -120,9 +124,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">明日 2:00</div>
-            <p className="text-xs text-muted-foreground">
-              自动生成时间
-            </p>
+            <p className="text-xs text-muted-foreground">自动生成时间</p>
           </CardContent>
         </Card>
       </div>
@@ -131,9 +133,7 @@ export function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>快速开始</CardTitle>
-            <CardDescription>
-              开始使用 EchoSoul 的基本步骤
-            </CardDescription>
+            <CardDescription>开始使用 EchoSoul 的基本步骤</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -160,9 +160,7 @@ export function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>系统状态</CardTitle>
-            <CardDescription>
-              当前系统运行状态概览
-            </CardDescription>
+            <CardDescription>当前系统运行状态概览</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
