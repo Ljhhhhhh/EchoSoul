@@ -5,6 +5,8 @@ import type {
   TaskStatus,
   Contact,
   ChatlogStatus,
+  InitializationState,
+  InitializationStep,
 } from '@echosoul/common';
 
 declare global {
@@ -43,6 +45,13 @@ declare global {
       task: {
         status: (taskId: string) => Promise<TaskStatus>;
         cancel: (taskId: string) => Promise<void>;
+      };
+
+      // 初始化管理
+      initialization: {
+        getState: () => Promise<InitializationState>;
+        needsInitialization: () => Promise<boolean>;
+        start: () => Promise<void>;
       };
 
       // 事件监听

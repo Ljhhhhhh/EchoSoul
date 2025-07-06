@@ -6,6 +6,8 @@ import type {
   TaskStatus,
   Contact,
   ChatlogStatus,
+  InitializationState,
+  InitializationStep,
 } from '@echosoul/common';
 
 // IPC API定义
@@ -51,6 +53,15 @@ const electronAPI = {
       ipcRenderer.invoke('task:status', taskId),
     cancel: (taskId: string): Promise<void> =>
       ipcRenderer.invoke('task:cancel', taskId),
+  },
+
+  // 初始化管理
+  initialization: {
+    getState: (): Promise<InitializationState> =>
+      ipcRenderer.invoke('initialization:get-state'),
+    needsInitialization: (): Promise<boolean> =>
+      ipcRenderer.invoke('initialization:needs-initialization'),
+    start: (): Promise<void> => ipcRenderer.invoke('initialization:start'),
   },
 
   // 事件监听

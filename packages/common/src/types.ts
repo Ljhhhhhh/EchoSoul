@@ -2,7 +2,13 @@ import { z } from 'zod';
 
 // 用户配置
 export const UserSettingsSchema = z.object({
-  llmProvider: z.enum(['openai', 'anthropic', 'gemini', 'openrouter', 'deepseek']),
+  llmProvider: z.enum([
+    'openai',
+    'anthropic',
+    'gemini',
+    'openrouter',
+    'deepseek',
+  ]),
   apiKeyEncrypted: z.string(),
   cronTime: z.string().default('02:00'),
   reportPrefs: z.object({
@@ -11,6 +17,9 @@ export const UserSettingsSchema = z.object({
     includeTopics: z.boolean().default(true),
     includeSocial: z.boolean().default(true),
   }),
+  // 初始化相关配置
+  initializationCompleted: z.boolean().default(false),
+  chatlogWorkDir: z.string().optional(),
 });
 
 export type UserSettings = z.infer<typeof UserSettingsSchema>;
@@ -70,10 +79,12 @@ export const TaskStatusSchema = z.object({
   status: z.enum(['pending', 'running', 'completed', 'failed']),
   progress: z.number().min(0).max(100),
   errorMessage: z.string().optional(),
-  result: z.object({
-    reportId: z.string(),
-    filePath: z.string(),
-  }).optional(),
+  result: z
+    .object({
+      reportId: z.string(),
+      filePath: z.string(),
+    })
+    .optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -100,9 +111,48 @@ export interface Contact {
 // chatlog状态
 export type ChatlogStatus = 'running' | 'not-running' | 'error';
 
+// 初始化步骤
+export enum InitializationStep {
+  CHECKING_WECHAT = 'checking_wechat',
+  GETTING_KEY = 'getting_key',
+  SELECTING_WORKDIR = 'selecting_workdir',
+  DECRYPTING_DATABASE = 'decrypting_database',
+  STARTING_SERVICE = 'starting_service',
+  COMPLETED = 'completed',
+}
+
+// 初始化状态
+export interface InitializationState {
+  currentStep: InitializationStep;
+  isCompleted: boolean;
+  error?: string;
+  stepData?: {
+    wechatRunning?: boolean;
+    keyObtained?: boolean;
+    workDir?: string;
+    databaseDecrypted?: boolean;
+    serviceStarted?: boolean;
+  };
+}
+
+// 初始化步骤信息
+export interface InitializationStepInfo {
+  step: InitializationStep;
+  title: string;
+  description: string;
+  isActive: boolean;
+  isCompleted: boolean;
+  hasError: boolean;
+  errorMessage?: string;
+}
+
 // IPC事件类型
 export interface IPCEvents {
   'task:progress': (taskId: string, progress: number, message: string) => void;
   'report:generated': (reportId: string) => void;
-  'notification': (title: string, message: string) => void;
+  notification: (title: string, message: string) => void;
+  'initialization:step-update': (
+    step: InitializationStep,
+    error?: string
+  ) => void;
 }

@@ -18,6 +18,7 @@ export class ChatlogService {
 
   // TODO: wechatKey 是固定不变的，应该长期存储
   private wechatKey: string = ''; // 存储获取到的微信密钥
+  private customWorkDir: string | null = null; // 用户自定义的工作目录
 
   constructor() {
     // 初始化 HTTP 客户端
@@ -78,16 +79,27 @@ export class ChatlogService {
   }
 
   /**
+   * 设置自定义工作目录
+   */
+  setWorkDirectory(workDir: string): void {
+    this.customWorkDir = workDir;
+    logger.info(`Custom work directory set: ${workDir}`);
+  }
+
+  /**
    * 获取chatlog解密后的数据目录
-   * 我们将数据解密到固定的目录：~/Documents/EchoSoul/chatlog_data
+   * 优先使用用户自定义目录，否则使用默认目录
    */
   private getChatlogWorkDir(): string {
-    const os = require('os');
-    const homeDir = os.homedir();
+    let workDir: string;
 
-    // TODO: 需要更新为可选的目录
-    // 使用固定的解密数据目录
-    const workDir = path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data');
+    if (this.customWorkDir) {
+      workDir = this.customWorkDir;
+    } else {
+      const os = require('os');
+      const homeDir = os.homedir();
+      workDir = path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data');
+    }
 
     // 确保目录存在
     if (!fs.existsSync(workDir)) {

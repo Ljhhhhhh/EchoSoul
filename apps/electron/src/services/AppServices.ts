@@ -4,6 +4,7 @@ import { AnalysisService } from './AnalysisService';
 import { ReportService } from './ReportService';
 import { SchedulerService } from './SchedulerService';
 import { DatabaseService } from './DatabaseService';
+import { InitializationService } from './InitializationService';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AppServices');
@@ -15,6 +16,7 @@ export class AppServices {
   private _analysis: AnalysisService;
   private _report: ReportService;
   private _scheduler: SchedulerService;
+  private _initialization: InitializationService;
 
   constructor() {
     // 初始化服务实例
@@ -24,6 +26,10 @@ export class AppServices {
     this._analysis = new AnalysisService();
     this._report = new ReportService(this._database, this._analysis);
     this._scheduler = new SchedulerService(this._chatlog, this._report);
+    this._initialization = new InitializationService(
+      this._chatlog,
+      this._config
+    );
   }
 
   async initialize() {
@@ -86,5 +92,9 @@ export class AppServices {
 
   get scheduler() {
     return this._scheduler;
+  }
+
+  get initialization() {
+    return this._initialization;
   }
 }

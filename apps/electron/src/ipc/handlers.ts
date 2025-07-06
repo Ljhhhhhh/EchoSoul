@@ -1,7 +1,11 @@
 import { ipcMain } from 'electron';
 import { AppServices } from '../services/AppServices';
 import { createLogger } from '../utils/logger';
-import type { UserSettings, AnalysisConfig } from '@echosoul/common';
+import type {
+  UserSettings,
+  AnalysisConfig,
+  InitializationState,
+} from '@echosoul/common';
 
 const logger = createLogger('IPC');
 
@@ -165,6 +169,40 @@ export function setupIpcHandlers(services: AppServices) {
       logger.info(`Cancelling task: ${taskId}`);
     } catch (error) {
       logger.error('Failed to cancel task:', error);
+      throw error;
+    }
+  });
+
+  // 初始化管理
+  ipcMain.handle(
+    'initialization:get-state',
+    async (): Promise<InitializationState> => {
+      try {
+        return services.initialization.getCurrentState();
+      } catch (error) {
+        logger.error('Failed to get initialization state:', error);
+        throw error;
+      }
+    }
+  );
+
+  ipcMain.handle(
+    'initialization:needs-initialization',
+    async (): Promise<boolean> => {
+      try {
+        return await services.initialization.needsInitialization();
+      } catch (error) {
+        logger.error('Failed to check initialization needs:', error);
+        return true;
+      }
+    }
+  );
+
+  ipcMain.handle('initialization:start', async (): Promise<void> => {
+    try {
+      await services.initialization.startInitialization();
+    } catch (error) {
+      logger.error('Failed to start initialization:', error);
       throw error;
     }
   });

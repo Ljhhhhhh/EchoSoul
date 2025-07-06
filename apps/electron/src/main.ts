@@ -23,6 +23,11 @@ class EchoSoulApp {
     // 创建主窗口
     await this.createMainWindow();
 
+    // 设置InitializationService的主窗口引用
+    if (this.mainWindow && this.services) {
+      this.services.initialization.setMainWindow(this.mainWindow);
+    }
+
     logger.info('EchoSoul application initialized successfully');
   }
 
@@ -37,7 +42,7 @@ class EchoSoulApp {
         contextIsolation: true,
         preload: path.join(__dirname, '../preload/index.js'),
       },
-      titleBarStyle: 'hiddenInset',
+      // titleBarStyle: 'hiddenInset',
       show: true,
     });
 

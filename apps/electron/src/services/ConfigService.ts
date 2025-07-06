@@ -16,6 +16,7 @@ export class ConfigService {
       includeTopics: true,
       includeSocial: true,
     },
+    initializationCompleted: false,
   };
 
   constructor() {
