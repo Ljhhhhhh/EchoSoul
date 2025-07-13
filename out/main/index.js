@@ -107,7 +107,7 @@ class ConfigService {
     logger$a.info("Settings updated");
   }
   async testApiKey(provider, apiKey) {
-    logger$a.info(`Testing API key for provider: ${provider}`);
+    logger$a.info(`Testing API key for provider: ${provider}：${apiKey}`);
     return true;
   }
   async cleanup() {

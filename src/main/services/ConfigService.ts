@@ -42,7 +42,7 @@ export class ConfigService {
 
   async testApiKey(provider: string, apiKey: string): Promise<boolean> {
     // TODO: 实现API Key测试逻辑
-    logger.info(`Testing API key for provider: ${provider}`)
+    logger.info(`Testing API key for provider: ${provider}：${apiKey}`)
     return true
   }
 
