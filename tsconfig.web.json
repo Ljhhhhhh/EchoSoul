@@ -12,7 +12,10 @@
     "paths": {
       "@renderer/*": [
         "src/renderer/src/*"
-      ]
-    }
+      ],
+      "@types/*": ["src/types/*"]
+    },
+    "noImplicitAny": false,
+    "noImplicitReturns": false
   }
 }

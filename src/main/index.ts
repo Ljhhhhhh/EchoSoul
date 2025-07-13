@@ -1,7 +1,18 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import { createLogger } from './utils/logger'
+
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { AppServices } from './services/AppServices'
 import icon from '../../resources/icon.png?asset'
+
+import { setupIpcHandlers } from './ipc/handlers'
+import { registerInitializationHandlers, cleanupInitializationManager } from './ipc/initialization'
+
+const logger = createLogger('main')
+
+// 初始化服务
+const appServices = new AppServices()
 
 function createWindow(): void {
   // Create the browser window.
@@ -38,9 +49,19 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.echosoul')
+
+  logger.info('Initializing EchoSoul application')
+
+  await appServices.initialize()
+
+  // 设置IPC处理器
+  setupIpcHandlers(appServices)
+
+  // 注册初始化处理器
+  registerInitializationHandlers()
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -68,6 +89,17 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('before-quit', async () => {
+  logger.info('Application is quitting, cleaning up...')
+  // 清理资源
+  if (appServices) {
+    await appServices.cleanup()
+  }
+
+  // 清理初始化管理器
+  cleanupInitializationManager()
 })
 
 // In this file you can include the rest of your app's specific main process
