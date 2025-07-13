@@ -89,14 +89,17 @@ export class InitializationManager extends EventEmitter {
 
       // 检查是否已经完成过初始化
       const savedConfig = this.store.store
+      logger.info('Saved co11nfig:', savedConfig.wechatKey)
       if (savedConfig.wechatKey && savedConfig.workDir) {
-        logger.info('Found existing configuration, checking if service can start')
+        logger.info('Fo111und existing configuration, checking if service can start')
 
         // 尝试直接启动服务
         if (await this.tryStartService()) {
           this.completeInitialization()
           return
         }
+      } else {
+        logger.info('No existing configuration found, starting new initialization')
       }
 
       // 执行完整的初始化流程

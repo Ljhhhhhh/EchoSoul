@@ -178,12 +178,85 @@ class ChatlogService {
     return dataDir;
   }
   /**
+   * 从微信进程获取数据路径
+   */
+  async getWeChatDataPathFromProcess(pid) {
+    try {
+      const { stdout } = await execa.execa("lsof", ["-p", pid.toString(), "-F", "n"]);
+      const files = stdout.split("\n").filter((line) => line.startsWith("n")).map((line) => line.substring(1));
+      for (const filePath of files) {
+        if (filePath.includes("Message/msg_0.db") || filePath.includes("db_storage/session/session.db")) {
+          const pathParts = filePath.split(path__namespace.sep);
+          if (filePath.includes("Message/msg_0.db")) {
+            const dataDir = pathParts.slice(0, -2).join(path__namespace.sep);
+            logger$9.info(`Detected WeChat v3 data directory: ${dataDir}`);
+            return dataDir;
+          } else if (filePath.includes("db_storage/session/session.db")) {
+            const dataDir = pathParts.slice(0, -3).join(path__namespace.sep);
+            logger$9.info(`Detected WeChat v4 data directory: ${dataDir}`);
+            return dataDir;
+          }
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+  /**
+   * 查找微信进程PID
+   */
+  async findWeChatProcesses() {
+    try {
+      const { stdout } = await execa.execa("pgrep", ["-f", "WeChat|Weixin"]);
+      const pids = stdout.trim().split("\n").filter((line) => line.trim()).map((pid) => parseInt(pid.trim())).filter((pid) => !isNaN(pid));
+      return pids;
+    } catch (error) {
+      return [];
+    }
+  }
+  /**
+   * 动态检测微信数据目录
+   * 基于chatlog源码的实现，通过lsof命令检测微信进程打开的文件
+   */
+  async detectWeChatDataPath() {
+    if (process.platform !== "darwin") {
+      return null;
+    }
+    try {
+      const wechatPids = await this.findWeChatProcesses();
+      if (wechatPids.length === 0) {
+        logger$9.warn("No WeChat process found");
+        return null;
+      }
+      for (const pid of wechatPids) {
+        const dataPath = await this.getWeChatDataPathFromProcess(pid);
+        if (dataPath) {
+          return dataPath;
+        }
+      }
+      return null;
+    } catch (error) {
+      logger$9.error("Error detecting WeChat data path:", error);
+      return null;
+    }
+  }
+  /**
    * 获取微信原始数据目录（用于key命令）
    */
-  getWeChatSourceDir() {
+  async getWeChatSourceDir() {
     const homeDir = os__namespace.homedir();
     if (process.platform === "darwin") {
-      return path__namespace.join(
+      try {
+        const dynamicPath = await this.detectWeChatDataPath();
+        if (dynamicPath) {
+          logger$9.info(`Detected WeChat data path: ${dynamicPath}`);
+          return dynamicPath;
+        }
+      } catch (error) {
+        logger$9.warn("Failed to detect WeChat data path dynamically:", error);
+      }
+      const fallbackPath = path__namespace.join(
         homeDir,
         "Library",
         "Containers",
@@ -191,8 +264,12 @@ class ChatlogService {
         "Data",
         "Library",
         "Application Support",
-        "com.tencent.xinWeChat"
+        "com.tencent.xinWeChat",
+        "2.0b4.0.9",
+        "48db8a3406267b90444b51abe056016c"
       );
+      logger$9.info(`Using fallback WeChat data path: ${fallbackPath}`);
+      return fallbackPath;
     }
     if (process.platform === "win32") {
       return path__namespace.join(homeDir, "Documents", "WeChat Files");
@@ -274,6 +351,34 @@ class ChatlogService {
     throw new Error("Chatlog service failed to start within timeout");
   }
   /**
+   * 检测微信版本
+   */
+  async detectWeChatVersion(dataPath) {
+    try {
+      const v4Indicators = ["db_storage/session/session.db", "db_storage"];
+      for (const indicator of v4Indicators) {
+        const indicatorPath = path__namespace.join(dataPath, indicator);
+        if (fs__namespace.existsSync(indicatorPath)) {
+          logger$9.info("Detected WeChat v4 based on file structure");
+          return 4;
+        }
+      }
+      const v3Indicators = ["Message/msg_0.db", "Message"];
+      for (const indicator of v3Indicators) {
+        const indicatorPath = path__namespace.join(dataPath, indicator);
+        if (fs__namespace.existsSync(indicatorPath)) {
+          logger$9.info("Detected WeChat v3 based on file structure");
+          return 3;
+        }
+      }
+      logger$9.warn("Could not detect WeChat version, defaulting to v3");
+      return 3;
+    } catch (error) {
+      logger$9.warn("Error detecting WeChat version:", error);
+      return 3;
+    }
+  }
+  /**
    * 获取微信数据密钥
    */
   async getWechatKey() {
@@ -326,55 +431,93 @@ class ChatlogService {
         message: "WeChat key not obtained. Please get key first."
       };
     }
-    return new Promise((resolve) => {
-      logger$9.info("Decrypting database...");
-      const wechatSourceDir = this.getWeChatSourceDir();
+    try {
+      const wechatSourceDir = await this.getWeChatSourceDir();
       const workDir = this.getChatlogDataDir();
-      logger$9.info(`Using WeChat source directory (data-dir): ${wechatSourceDir}`);
-      logger$9.info(`Decrypting to work directory (work-dir): ${workDir}`);
-      logger$9.info(`Using key: ${this.wechatKey.substring(0, 10)}...`);
-      const process2 = child_process.spawn(
-        this.chatlogPath,
-        [
-          "decrypt",
-          "--data-dir",
-          wechatSourceDir,
-          // 微信原始数据目录
-          "--work-dir",
-          workDir,
-          // 解密后数据存放目录
-          "--key",
-          this.wechatKey
-        ],
-        {
-          stdio: ["pipe", "pipe", "pipe"]
-        }
-      );
-      let output = "";
-      let errorOutput = "";
-      process2.stdout?.on("data", (data) => {
-        output += data.toString();
-      });
-      process2.stderr?.on("data", (data) => {
-        errorOutput += data.toString();
-      });
-      process2.on("close", (code) => {
-        if (code === 0) {
-          logger$9.info("Database decrypted successfully");
-          resolve({ success: true, message: output.trim() });
-        } else {
-          logger$9.error("Failed to decrypt database:", errorOutput);
+      if (!fs__namespace.existsSync(wechatSourceDir)) {
+        return {
+          success: false,
+          message: `WeChat data directory not found: ${wechatSourceDir}`
+        };
+      }
+      logger$9.info("Starting database decryption...");
+      logger$9.info(`Source directory (data-dir): ${wechatSourceDir}`);
+      logger$9.info(`Target directory (work-dir): ${workDir}`);
+      logger$9.info(`Key: ${this.wechatKey.substring(0, 10)}...`);
+      const wechatVersion = await this.detectWeChatVersion(wechatSourceDir);
+      logger$9.info(`Detected WeChat version: v${wechatVersion}`);
+      return new Promise((resolve) => {
+        const childProcess = child_process.spawn(
+          this.chatlogPath,
+          [
+            "decrypt",
+            "--data-dir",
+            wechatSourceDir,
+            // 微信原始数据目录
+            "--work-dir",
+            workDir,
+            "--key",
+            this.wechatKey
+          ],
+          {
+            stdio: ["pipe", "pipe", "pipe"]
+          }
+        );
+        let output = "";
+        let errorOutput = "";
+        childProcess.stdout?.on("data", (data) => {
+          output += data.toString();
+        });
+        childProcess.stderr?.on("data", (data) => {
+          const text = data.toString().trim();
+          errorOutput += text;
+          if (text !== "incorrect decryption key") {
+            logger$9.warn(`Decrypt stderr: ${text}`);
+          }
+        });
+        childProcess.on("close", (code) => {
+          if (code === 0) {
+            resolve({
+              success: true,
+              message: "Database decryption completed successfully"
+            });
+          } else {
+            logger$9.error("Database decryption failed");
+            resolve({
+              success: false,
+              message: errorOutput
+            });
+          }
+        });
+        childProcess.on("error", (error) => {
+          logger$9.error("Error starting decrypt process:", error);
           resolve({
             success: false,
-            message: errorOutput.trim() || "Unknown error"
+            message: `Failed to start decryption process: ${error.message}`
           });
-        }
+        });
+        const timeout = setTimeout(
+          () => {
+            logger$9.warn("Decryption process timeout, killing process...");
+            childProcess.kill("SIGTERM");
+            resolve({
+              success: false,
+              message: "Decryption process timed out after 5 minutes"
+            });
+          },
+          5 * 60 * 1e3
+        );
+        childProcess.on("close", () => {
+          clearTimeout(timeout);
+        });
       });
-      process2.on("error", (error) => {
-        logger$9.error("Error decrypting database:", error);
-        resolve({ success: false, message: error.message });
-      });
-    });
+    } catch (error) {
+      logger$9.error("Error in decryptDatabase:", error);
+      return {
+        success: false,
+        message: `Decryption failed: ${error.message}`
+      };
+    }
   }
   /**
    * 检查chatlog是否已经初始化（密钥获取和数据库解密）
@@ -1267,12 +1410,15 @@ class InitializationManager extends events.EventEmitter {
     try {
       await this.chatlogService.initialize();
       const savedConfig = this.store.store;
+      logger$2.info("Saved co11nfig:", savedConfig.wechatKey);
       if (savedConfig.wechatKey && savedConfig.workDir) {
-        logger$2.info("Found existing configuration, checking if service can start");
+        logger$2.info("Fo111und existing configuration, checking if service can start");
         if (await this.tryStartService()) {
           this.completeInitialization();
           return;
         }
+      } else {
+        logger$2.info("No existing configuration found, starting new initialization");
       }
       await this.runInitializationSteps();
     } catch (error) {
