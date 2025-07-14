@@ -2,23 +2,56 @@ import { createLogger } from '../utils/logger'
 import type { ChatMessage, Contact, ChatlogStatus } from '@types'
 import { spawn, ChildProcess } from 'child_process'
 import * as path from 'path'
-import { execa } from 'execa'
 import * as fs from 'fs'
 import * as os from 'os'
 import { app } from 'electron'
+import { setExecutablePermission } from '../utils'
+import { ChatlogHttpClient } from './ChatlogHttpClient'
+import Store from 'electron-store'
+import { execa } from 'execa'
 
 const logger = createLogger('ChatlogService')
+
+interface ChatlogConfig {
+  wechatKey?: string
+  workDir?: string
+  baseUrl?: string
+}
 
 export class ChatlogService {
   private baseUrl = 'http://127.0.0.1:5030' // chatlog默认端口
   private chatlogProcess: ChildProcess | null = null
   private chatlogPath: string
   private isInitialized = false
+  private httpClient: ChatlogHttpClient
+  private store: Store<ChatlogConfig>
 
-  // TODO: wechatKey 是固定不变的，应该长期存储
-  private wechatKey: string = '' // 存储获取到的微信密钥
+  // 从配置中加载的微信密钥
+  private wechatKey: string = ''
 
   constructor() {
+    // 初始化配置存储
+    this.store = new Store<ChatlogConfig>({
+      name: 'chatlog-config',
+      defaults: {
+        baseUrl: this.baseUrl
+      }
+    })
+
+    // 从配置中加载设置
+    const savedBaseUrl = this.store.get('baseUrl')
+    if (savedBaseUrl) {
+      this.baseUrl = savedBaseUrl
+    }
+
+    const savedKey = this.store.get('wechatKey')
+    if (savedKey) {
+      this.wechatKey = savedKey
+    }
+
+    // 初始化 HTTP 客户端
+    this.httpClient = new ChatlogHttpClient(this.baseUrl)
+
     // 根据平台选择对应的chatlog可执行文件
     const platform = process.platform
 
@@ -50,7 +83,7 @@ export class ChatlogService {
 
       // 在macOS上设置执行权限
       if (process.platform === 'darwin') {
-        await this.setExecutablePermission()
+        await setExecutablePermission(this.chatlogPath)
       }
 
       logger.info(`ChatlogService initialized with executable: ${this.chatlogPath}`)
@@ -61,34 +94,90 @@ export class ChatlogService {
     }
   }
 
-  private async setExecutablePermission(): Promise<void> {
+  /**
+   * 获取chatlog解密后的数据目录
+   * 优先使用用户选择的目录，否则使用默认目录
+   */
+  private getChatlogWorkDir(): string {
+    const homeDir = os.homedir()
+
+    // 优先使用用户配置的工作目录
+    const savedWorkDir = this.store.get('workDir')
+    const workDir = savedWorkDir || path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data')
+
+    // 确保目录存在
+    if (!fs.existsSync(workDir)) {
+      fs.mkdirSync(workDir, { recursive: true })
+      logger.info(`Created chatlog data directory: ${workDir}`)
+    }
+
+    return workDir
+  }
+
+  /**
+   * 设置工作目录
+   */
+  setWorkDir(workDir: string): void {
+    this.store.set('workDir', workDir)
+    logger.info(`Work directory set to: ${workDir}`)
+  }
+
+  /**
+   * 获取当前工作目录
+   */
+  getWorkDir(): string {
+    return this.getChatlogWorkDir()
+  }
+
+  /**
+   * 动态检测微信数据目录
+   * 基于chatlog源码的实现，通过lsof命令检测微信进程打开的文件
+   */
+  private async detectWeChatDataPath(): Promise<string | null> {
+    if (process.platform !== 'darwin') {
+      return null
+    }
+
     try {
-      await execa('chmod', ['+x', this.chatlogPath])
-      logger.info('Executable permission set successfully')
+      // 查找微信进程
+      const wechatPids = await this.findWeChatProcesses()
+      if (wechatPids.length === 0) {
+        logger.warn('No WeChat process found')
+        return null
+      }
+
+      // 对每个微信进程，使用lsof获取打开的文件
+      for (const pid of wechatPids) {
+        const dataPath = await this.getWeChatDataPathFromProcess(pid)
+        if (dataPath) {
+          return dataPath
+        }
+      }
+
+      return null
     } catch (error) {
-      logger.error('Failed to set executable permission:', error)
-      throw error
+      logger.error('Error detecting WeChat data path:', error)
+      return null
     }
   }
 
   /**
-   * 获取chatlog解密后的数据目录
-   * 我们将数据解密到固定的目录：~/Documents/EchoSoul/chatlog_data
+   * 查找微信进程PID
    */
-  private getChatlogDataDir(): string {
-    const homeDir = os.homedir()
-
-    // TODO: 需要更新为可选的目录
-    // 使用固定的解密数据目录
-    const dataDir = path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data')
-
-    // 确保目录存在
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true })
-      logger.info(`Created chatlog data directory: ${dataDir}`)
+  private async findWeChatProcesses(): Promise<number[]> {
+    try {
+      const { stdout } = await execa('pgrep', ['-f', 'WeChat|Weixin'])
+      const pids = stdout
+        .trim()
+        .split('\n')
+        .filter((line) => line.trim())
+        .map((pid) => parseInt(pid.trim()))
+        .filter((pid) => !isNaN(pid))
+      return pids
+    } catch (error) {
+      // pgrep没找到进程时会返回错误，这是正常的
+      return []
     }
-
-    return dataDir
   }
 
   /**
@@ -96,7 +185,6 @@ export class ChatlogService {
    */
   private async getWeChatDataPathFromProcess(pid: number): Promise<string | null> {
     try {
-      // 使用lsof获取进程打开的文件
       const { stdout } = await execa('lsof', ['-p', pid.toString(), '-F', 'n'])
 
       const files = stdout
@@ -134,56 +222,38 @@ export class ChatlogService {
   }
 
   /**
-   * 查找微信进程PID
+   * 检测微信版本
    */
-  private async findWeChatProcesses(): Promise<number[]> {
+  private async detectWeChatVersion(dataPath: string): Promise<number> {
     try {
-      // 查找WeChat和Weixin进程
-      const { stdout } = await execa('pgrep', ['-f', 'WeChat|Weixin'])
+      // 检查是否存在v4版本的特征文件
+      const v4Indicators = ['db_storage/session/session.db', 'db_storage']
 
-      const pids = stdout
-        .trim()
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((pid) => parseInt(pid.trim()))
-        .filter((pid) => !isNaN(pid))
-
-      return pids
-    } catch (error) {
-      // pgrep没找到进程时会返回错误，这是正常的
-      return []
-    }
-  }
-
-  /**
-   * 动态检测微信数据目录
-   * 基于chatlog源码的实现，通过lsof命令检测微信进程打开的文件
-   */
-  private async detectWeChatDataPath(): Promise<string | null> {
-    if (process.platform !== 'darwin') {
-      return null
-    }
-
-    try {
-      // 查找微信进程
-      const wechatPids = await this.findWeChatProcesses()
-      if (wechatPids.length === 0) {
-        logger.warn('No WeChat process found')
-        return null
-      }
-
-      // 对每个微信进程，使用lsof获取打开的文件
-      for (const pid of wechatPids) {
-        const dataPath = await this.getWeChatDataPathFromProcess(pid)
-        if (dataPath) {
-          return dataPath
+      for (const indicator of v4Indicators) {
+        const indicatorPath = path.join(dataPath, indicator)
+        if (fs.existsSync(indicatorPath)) {
+          logger.info('Detected WeChat v4 based on file structure')
+          return 4
         }
       }
 
-      return null
+      // 检查是否存在v3版本的特征文件
+      const v3Indicators = ['Message/msg_0.db', 'Message']
+
+      for (const indicator of v3Indicators) {
+        const indicatorPath = path.join(dataPath, indicator)
+        if (fs.existsSync(indicatorPath)) {
+          logger.info('Detected WeChat v3 based on file structure')
+          return 3
+        }
+      }
+
+      // 默认返回v3
+      logger.warn('Could not detect WeChat version, defaulting to v3')
+      return 3
     } catch (error) {
-      logger.error('Error detecting WeChat data path:', error)
-      return null
+      logger.warn('Error detecting WeChat version:', error)
+      return 3
     }
   }
 
@@ -234,14 +304,23 @@ export class ChatlogService {
 
   async checkStatus(): Promise<ChatlogStatus> {
     try {
-      // 检查服务是否运行，使用联系人API作为健康检查
-      const response = await fetch(`${this.baseUrl}/api/v1/contact`, {
-        method: 'GET',
-        timeout: 3000
-      } as any)
-      return response.ok ? 'running' : 'error'
+      // 使用 HTTP 客户端检查服务状态
+      const isRunning = await this.httpClient.checkServiceStatus()
+      return isRunning ? 'running' : 'not-running'
     } catch (error) {
       logger.debug('Chatlog service not running:', error)
+      return 'not-running'
+    }
+  }
+
+  /**
+   * 安全地检查服务状态，不会抛出异常
+   */
+  async checkStatusSafely(): Promise<ChatlogStatus> {
+    try {
+      return await this.checkStatus()
+    } catch (error) {
+      logger.debug('Safe status check failed:', error)
       return 'not-running'
     }
   }
@@ -261,7 +340,7 @@ export class ChatlogService {
       logger.info(`Starting chatlog server by ${this.chatlogPath}`)
 
       // 获取解密后的数据目录
-      const dataDir = this.getChatlogDataDir()
+      const dataDir = this.getChatlogWorkDir()
       logger.info(`Using chatlog data directory: ${dataDir}`)
 
       // 启动chatlog server命令，需要指定work-dir参数
@@ -325,42 +404,6 @@ export class ChatlogService {
   }
 
   /**
-   * 检测微信版本
-   */
-  private async detectWeChatVersion(dataPath: string): Promise<number> {
-    try {
-      // 检查是否存在v4版本的特征文件
-      const v4Indicators = ['db_storage/session/session.db', 'db_storage']
-
-      for (const indicator of v4Indicators) {
-        const indicatorPath = path.join(dataPath, indicator)
-        if (fs.existsSync(indicatorPath)) {
-          logger.info('Detected WeChat v4 based on file structure')
-          return 4
-        }
-      }
-
-      // 检查是否存在v3版本的特征文件
-      const v3Indicators = ['Message/msg_0.db', 'Message']
-
-      for (const indicator of v3Indicators) {
-        const indicatorPath = path.join(dataPath, indicator)
-        if (fs.existsSync(indicatorPath)) {
-          logger.info('Detected WeChat v3 based on file structure')
-          return 3
-        }
-      }
-
-      // 默认返回v3
-      logger.warn('Could not detect WeChat version, defaulting to v3')
-      return 3
-    } catch (error) {
-      logger.warn('Error detecting WeChat version:', error)
-      return 3
-    }
-  }
-
-  /**
    * 获取微信数据密钥
    */
   async getWechatKey(): Promise<{ success: boolean; message: string }> {
@@ -392,6 +435,7 @@ export class ChatlogService {
           logger.info(`WeChat key obtained successfully: ${output.trim()}`)
           // 存储获取到的密钥
           this.wechatKey = output.trim()
+          this.store.set('wechatKey', this.wechatKey)
           resolve({ success: true, message: output.trim() })
         } else {
           logger.error('Failed to get WeChat key:', errorOutput)
@@ -411,6 +455,7 @@ export class ChatlogService {
 
   /**
    * 解密数据库文件
+   * 基于chatlog源码的解密逻辑重新实现，提供更好的错误处理和状态反馈
    */
   async decryptDatabase(): Promise<{ success: boolean; message: string }> {
     if (!this.isInitialized) {
@@ -427,7 +472,7 @@ export class ChatlogService {
     try {
       // 获取微信原始数据目录和解密后的数据目录
       const wechatSourceDir = await this.getWeChatSourceDir()
-      const workDir = this.getChatlogDataDir()
+      const workDir = this.getChatlogWorkDir()
 
       // 验证源目录是否存在
       if (!fs.existsSync(wechatSourceDir)) {
@@ -529,6 +574,43 @@ export class ChatlogService {
   }
 
   /**
+   * 检查是否已有解密后的数据
+   */
+  private async checkDecryptedData(workDir: string): Promise<boolean> {
+    try {
+      // 检查工作目录是否存在且包含数据库文件
+      if (!fs.existsSync(workDir)) {
+        return false
+      }
+
+      // 递归查找.db文件
+      const findDbFiles = (dir: string): string[] => {
+        const files: string[] = []
+        try {
+          const entries = fs.readdirSync(dir, { withFileTypes: true })
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name)
+            if (entry.isDirectory()) {
+              files.push(...findDbFiles(fullPath))
+            } else if (entry.name.endsWith('.db')) {
+              files.push(fullPath)
+            }
+          }
+        } catch (error) {
+          logger.debug(`Error reading directory ${dir}:`, error)
+        }
+        return files
+      }
+
+      const dbFiles = findDbFiles(workDir)
+      return dbFiles.length > 0
+    } catch (error) {
+      logger.debug('Error checking decrypted data:', error)
+      return false
+    }
+  }
+
+  /**
    * 检查chatlog是否已经初始化（密钥获取和数据库解密）
    */
   async checkInitialization(): Promise<{
@@ -536,20 +618,30 @@ export class ChatlogService {
     databaseDecrypted: boolean
     canStartServer: boolean
   }> {
-    // 这里可以通过检查特定文件或目录来判断初始化状态
-    // 具体实现需要根据chatlog的实际行为来调整
     try {
-      const status = await this.checkStatus()
-      const canStartServer = status === 'running'
+      // 检查是否有密钥
+      const keyObtained = !!this.wechatKey
+
+      // 检查是否有解密后的数据
+      const workDir = this.getChatlogWorkDir()
+      const databaseDecrypted = await this.checkDecryptedData(workDir)
+
+      // 只有在有解密数据的情况下才检查服务状态
+      let canStartServer = false
+      if (databaseDecrypted) {
+        const status = await this.checkStatus()
+        canStartServer = status === 'running'
+      }
 
       return {
-        keyObtained: true, // 简化实现，实际应该检查密钥文件
-        databaseDecrypted: true, // 简化实现，实际应该检查解密后的数据库
+        keyObtained,
+        databaseDecrypted,
         canStartServer
       }
     } catch (error) {
+      logger.debug('Error checking initialization:', error)
       return {
-        keyObtained: false,
+        keyObtained: !!this.wechatKey,
         databaseDecrypted: false,
         canStartServer: false
       }
@@ -558,13 +650,7 @@ export class ChatlogService {
 
   async getContacts(): Promise<Contact[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/v1/contact`)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return this.normalizeContacts(data)
+      return await this.httpClient.getContacts()
     } catch (error) {
       logger.error('Failed to get contacts:', error)
       return []
@@ -577,66 +663,44 @@ export class ChatlogService {
     talker?: string
   }): Promise<ChatMessage[]> {
     try {
-      const url = new URL(`${this.baseUrl}/api/v1/chatlog`)
-      url.searchParams.set('time', `${params.startDate}~${params.endDate}`)
-      if (params.talker) {
-        url.searchParams.set('talker', params.talker)
-      }
-
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      return this.normalizeMessages(data)
+      return await this.httpClient.getMessages(params)
     } catch (error) {
       logger.error('Failed to get messages:', error)
       return []
     }
   }
 
-  private normalizeContacts(data: any[]): Contact[] {
-    return data.map((item) => ({
-      id: item.id || item.wxid,
-      name: item.name || item.nickname,
-      type: item.type === 'chatroom' ? 'group' : 'individual',
-      avatar: item.avatar,
-      lastMessageTime: item.lastMessageTime
-    }))
-  }
-
-  private normalizeMessages(data: any[]): ChatMessage[] {
-    return data.map((item) => ({
-      id: item.id || `${item.timestamp}-${item.sender}`,
-      sender: item.sender || item.from,
-      recipient: item.recipient || item.to,
-      timestamp: item.timestamp,
-      content: item.content || item.message,
-      type: this.normalizeMessageType(item.type),
-      isGroupChat: item.isGroupChat || false,
-      groupName: item.groupName
-    }))
-  }
-
-  private normalizeMessageType(type: any): 'text' | 'image' | 'voice' | 'video' | 'file' {
-    if (typeof type === 'string') {
-      switch (type.toLowerCase()) {
-        case 'image':
-        case 'img':
-          return 'image'
-        case 'voice':
-        case 'audio':
-          return 'voice'
-        case 'video':
-          return 'video'
-        case 'file':
-          return 'file'
-        default:
-          return 'text'
-      }
+  /**
+   * 获取群聊信息
+   */
+  async getChatroomInfo(chatroomId: string) {
+    try {
+      return await this.httpClient.getChatroomInfo(chatroomId)
+    } catch (error) {
+      logger.error(`Failed to get chatroom info for ${chatroomId}:`, error)
+      return null
     }
-    return 'text'
+  }
+
+  /**
+   * 获取会话列表
+   */
+  async getSessions() {
+    try {
+      return await this.httpClient.getSessions()
+    } catch (error) {
+      logger.error('Failed to get sessions:', error)
+      return []
+    }
+  }
+
+  /**
+   * 更新 Chatlog 服务地址
+   */
+  updateServiceUrl(newUrl: string) {
+    this.baseUrl = newUrl
+    this.httpClient.updateBaseUrl(newUrl)
+    logger.info(`Chatlog service URL updated to: ${newUrl}`)
   }
 
   async cleanup() {
