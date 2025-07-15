@@ -22,7 +22,7 @@ export class AppServices {
     this._config = new ConfigService()
     this._chatlog = new ChatlogService()
     this._analysis = new AnalysisService()
-    this._report = new ReportService(this._database, this._analysis)
+    this._report = new ReportService(this._database)
     this._scheduler = new SchedulerService(this._chatlog, this._report)
   }
 

@@ -3,7 +3,7 @@ import * as path from 'path'
 import { app } from 'electron'
 import { createLogger } from '../utils/logger'
 import { DatabaseService } from './DatabaseService'
-import { AnalysisService } from './AnalysisService'
+// import { AnalysisService } from './AnalysisService'
 import type { ReportMeta, AnalysisConfig, TaskStatus } from '@types'
 
 const logger = createLogger('ReportService')
@@ -13,7 +13,7 @@ export class ReportService {
 
   // 工具函数
   private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
   }
 
   private formatDate(date: Date): string {
@@ -21,8 +21,9 @@ export class ReportService {
   }
 
   constructor(
-    private database: DatabaseService,
-    private analysis: AnalysisService
+    private database: DatabaseService
+    // TODO: 将来会使用 AnalysisService 进行报告生成
+    // private analysis: AnalysisService
   ) {
     const userDataPath = app.getPath('userData')
     this.reportsDir = path.join(userDataPath, 'reports')

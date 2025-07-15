@@ -4,8 +4,8 @@ import { createLogger } from '../utils/logger'
 import { InitializationManager } from '../services/InitializationManager'
 import {
   InitializationState,
-  InitializationStep,
-  InitializationConfig
+  InitializationStep
+  // InitializationConfig - 暂未使用
 } from '../types/initialization'
 
 const logger = createLogger('InitializationIPC')

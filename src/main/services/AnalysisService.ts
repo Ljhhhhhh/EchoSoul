@@ -65,13 +65,14 @@ export class AnalysisService {
     }
   }
 
-  private async analyzeMessages(messages: ChatMessage[], stats: BasicStats) {
+  private async analyzeMessages(_messages: ChatMessage[], _stats: BasicStats) {
     // TODO: 实现真正的AI分析
     // 这里先返回模拟数据
     logger.info('Performing AI analysis (mock implementation)')
 
     // 智能采样消息
-    const sampledMessages = this.sampleMessages(messages, 100)
+    // const sampledMessages = this.sampleMessages(messages, 100)
+    // TODO: 使用采样消息进行AI分析
 
     return {
       emotion: {
@@ -133,6 +134,8 @@ ${analysis.summary}
 `
   }
 
+  // TODO: 将来用于智能采样消息
+  /*
   private sampleMessages<T>(messages: T[], maxCount: number = 100): T[] {
     if (messages.length <= maxCount) {
       return messages
@@ -147,6 +150,7 @@ ${analysis.summary}
 
     return sampled.slice(0, maxCount)
   }
+  */
 
   async cleanup() {
     logger.info('AnalysisService cleaned up')
