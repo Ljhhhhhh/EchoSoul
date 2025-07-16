@@ -1,51 +1,114 @@
+@import './design-tokens.css';
+@import './base.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* EchoSoul 深海智慧蓝 (Deep Ocean Wisdom Blue) - 主色系 */
+    --primary-50: #f7fbff;
+    --primary-100: #e8f4ff;
+    --primary-200: #c7e4ff;
+    --primary-300: #96ceff;
+    --primary-400: #5db4ff;
+    --primary-500: #2e96ff;
+    --primary-600: #1a7ae6;
+    --primary-700: #155fb3;
+    --primary-800: #0f4580;
+    --primary-900: #0a2e4d;
+    --primary-foreground: #ffffff;
+
+    /* EchoSoul 紫罗兰洞察 (Violet Insight) - 辅助色系 */
+    --secondary-50: #faf7ff;
+    --secondary-100: #ede5ff;
+    --secondary-200: #d6c7ff;
+    --secondary-300: #b8a0ff;
+    --secondary-400: #9575ff;
+    --secondary-500: #7048e8;
+    --secondary-600: #5a2fc2;
+    --secondary-700: #44239c;
+    --secondary-800: #2e1876;
+    --secondary-900: #1a0e50;
+    --secondary-foreground: #ffffff;
+
+    /* 语义色彩 - 精致美观版 */
+    --success: #3d8b40;
+    --success-foreground: #ffffff;
+    --warning: #f59e0b;
+    --warning-foreground: #ffffff;
+    --error: #dc2626;
+    --error-foreground: #ffffff;
+    --info: #2e96ff;
+    --info-foreground: #ffffff;
+
+    /* 温暖中性色系 */
+    --background: #fdfcfb;
+    --foreground: #2b2622;
+    --card: #ffffff;
+    --card-foreground: #2b2622;
+    --popover: #ffffff;
+    --popover-foreground: #2b2622;
+    --muted: #f7f6f4;
+    --muted-foreground: #6b6560;
+    --accent: #f7f6f4;
+    --accent-foreground: #2b2622;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #ebe9e7;
+    --input: #ebe9e7;
+    --ring: #2e96ff;
+    --radius: 12px;
+
+    /* 数据可视化色彩系列 */
+    --chart-1: #2e96ff; /* 深海智慧蓝 */
+    --chart-2: #44239c; /* 紫罗兰洞察 */
+    --chart-3: #3d8b40; /* 森林成长绿 */
+    --chart-4: #f97316; /* 日落温暖橙 */
+    --chart-5: #0891b2; /* 海洋清新青 */
+    --chart-6: #e879f9; /* 玫瑰优雅粉 */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    /* 深色模式色彩优化 - 保持美观性 */
+
+    /* 主色系调整 - 更亮更柔和 */
+    --primary-500: #5db4ff;
+    --primary-600: #3da5ff;
+    --primary-700: #1e96ff;
+    --primary-foreground: #1a1815;
+
+    /* 辅助色系调整 */
+    --secondary-500: #9575ff;
+    --secondary-600: #7c5cff;
+    --secondary-700: #6344ff;
+    --secondary-foreground: #1a1815;
+
+    /* 深色模式背景色系 - 深邃而温暖 */
+    --background: #1a1815;
+    --foreground: #f4f3f1;
+    --card: #211e1a;
+    --card-foreground: #f4f3f1;
+    --popover: #211e1a;
+    --popover-foreground: #f4f3f1;
+    --muted: #2e2a25;
+    --muted-foreground: #c0bbb5;
+    --accent: #2e2a25;
+    --accent-foreground: #f4f3f1;
+    --destructive: #dc2626;
+    --destructive-foreground: #f4f3f1;
+    --border: #403c36;
+    --input: #2e2a25;
+    --ring: #5db4ff;
+
+    /* 深色模式图表色彩 */
+    --chart-1: #5db4ff; /* 更亮的深海智慧蓝 */
+    --chart-2: #9575ff; /* 更亮的紫罗兰洞察 */
+    --chart-3: #4ade80; /* 更亮的森林成长绿 */
+    --chart-4: #fb923c; /* 更亮的日落温暖橙 */
+    --chart-5: #22d3ee; /* 更亮的海洋清新青 */
+    --chart-6: #f0abfc; /* 更亮的玫瑰优雅粉 */
   }
 }
 
@@ -53,8 +116,159 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 滚动条样式 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground;
+  }
+}
+
+@layer components {
+  /* Material Design 按钮样式 */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground;
+    @apply px-6 py-2 rounded-sm font-medium;
+    @apply transition-all duration-fast ease-material-standard shadow-elevation-2 hover:shadow-elevation-4;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--primary-600);
+  }
+
+  .btn-secondary {
+    @apply border border-primary text-primary;
+    @apply px-6 py-2 rounded-sm font-medium;
+    @apply transition-all duration-fast ease-material-standard;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--primary-50);
+  }
+
+  .btn-text {
+    @apply text-primary;
+    @apply px-4 py-2 rounded-sm font-medium;
+    @apply transition-all duration-fast ease-material-standard;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .btn-text:hover {
+    background-color: var(--primary-50);
+  }
+
+  /* Material Design 卡片样式 */
+  .card-elevated {
+    @apply bg-card text-card-foreground rounded-md shadow-elevation-2;
+    @apply hover:shadow-elevation-4 transition-shadow duration-medium ease-material-standard;
+  }
+
+  .card-outlined {
+    @apply bg-card text-card-foreground rounded-md border border-border;
+  }
+
+  .card-filled {
+    @apply bg-muted text-muted-foreground rounded-md;
+  }
+
+  /* Material Design 输入框样式 */
+  .input-outlined {
+    @apply border border-input bg-background px-4 py-3 rounded-sm;
+    @apply focus:border-primary focus:ring-1 focus:ring-primary;
+    @apply transition-all duration-fast ease-material-standard placeholder:text-muted-foreground;
+  }
+
+  /* 数据可视化容器 */
+  .chart-container {
+    @apply bg-card rounded-md p-6 shadow-elevation-1;
+  }
+
+  /* 状态指示器 */
+  .status-success {
+    @apply bg-success text-success-foreground;
+  }
+
+  .status-warning {
+    @apply bg-warning text-warning-foreground;
+  }
+
+  .status-error {
+    @apply bg-error text-error-foreground;
+  }
+
+  .status-info {
+    @apply bg-info text-info-foreground;
+  }
+}
+
+@layer utilities {
+  /* 自定义动画工具类 - 不与Tailwind配置冲突 */
+  .animate-fade-in {
+    animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-slide-up {
+    animation: slideUp 300ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* 关键帧动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -62,4 +276,5 @@
 #app {
   width: 100%;
   height: 100vh;
+  @apply bg-background text-foreground;
 }

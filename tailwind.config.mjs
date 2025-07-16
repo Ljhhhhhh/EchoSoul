@@ -6,153 +6,200 @@ export default {
   content: ['./src/renderer/index.html', './src/renderer/src/**/*.{vue,js,ts,jsx,tsx}'],
   prefix: '',
   theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-      screens: {
-        '2xl': '1400px'
-      }
-    },
     extend: {
+      // EchoSoul 色彩系统 - 基于Material Design 3
       colors: {
-        // EchoSoul 品牌色彩系统
+        // 深海智慧蓝 (Deep Ocean Wisdom Blue) - 主色系
         primary: {
-          50: '#f0f7ff',
-          100: '#e0efff',
-          200: '#bae0ff',
-          300: '#7cc7ff',
-          400: '#36a9ff',
-          500: '#0084ff', // 主品牌色 - 内省蓝
-          600: '#0066cc',
-          700: '#004d99',
-          800: '#003366',
-          900: '#001a33',
-          DEFAULT: '#0084ff',
-          foreground: '#ffffff'
+          50: 'var(--primary-50)',
+          100: 'var(--primary-100)',
+          200: 'var(--primary-200)',
+          300: 'var(--primary-300)',
+          400: 'var(--primary-400)',
+          500: 'var(--primary-500)',
+          600: 'var(--primary-600)',
+          700: 'var(--primary-700)',
+          800: 'var(--primary-800)',
+          900: 'var(--primary-900)',
+          DEFAULT: 'var(--primary-500)',
+          foreground: 'var(--primary-foreground)'
         },
+        // 紫罗兰洞察 (Violet Insight) - 辅助色系
         secondary: {
-          50: '#f7f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6', // 辅助色 - 洞察紫
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
-          DEFAULT: '#8b5cf6',
-          foreground: '#ffffff'
+          50: 'var(--secondary-50)',
+          100: 'var(--secondary-100)',
+          200: 'var(--secondary-200)',
+          300: 'var(--secondary-300)',
+          400: 'var(--secondary-400)',
+          500: 'var(--secondary-500)',
+          600: 'var(--secondary-600)',
+          700: 'var(--secondary-700)',
+          800: 'var(--secondary-800)',
+          900: 'var(--secondary-900)',
+          DEFAULT: 'var(--secondary-700)',
+          foreground: 'var(--secondary-foreground)'
         },
-        // 功能色彩
+        // 语义色彩
         success: {
-          DEFAULT: '#10b981',
-          light: '#d1fae5',
-          dark: '#047857'
+          DEFAULT: 'var(--success)',
+          foreground: 'var(--success-foreground)'
         },
         warning: {
-          DEFAULT: '#f59e0b',
-          light: '#fef3c7',
-          dark: '#d97706'
+          DEFAULT: 'var(--warning)',
+          foreground: 'var(--warning-foreground)'
         },
         error: {
-          DEFAULT: '#ef4444',
-          light: '#fee2e2',
-          dark: '#dc2626'
+          DEFAULT: 'var(--error)',
+          foreground: 'var(--error-foreground)'
         },
         info: {
-          DEFAULT: '#06b6d4',
-          light: '#cffafe',
-          dark: '#0891b2'
+          DEFAULT: 'var(--info)',
+          foreground: 'var(--info-foreground)'
         },
-        // shadcn/ui 兼容色彩
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
+        // shadcn/vue 兼容色彩
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        card: {
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)'
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)'
         },
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
+        muted: {
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)'
+        },
+        accent: {
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)'
+        },
+        destructive: {
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)'
+        },
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+        // 图表色彩系列
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+          6: 'hsl(var(--chart-6))'
         }
       },
+      // Material Design 字体系统
+      fontSize: {
+        // Display 级别
+        'display-large': ['57px', { lineHeight: '64px', fontWeight: '400' }],
+        'display-medium': ['45px', { lineHeight: '52px', fontWeight: '400' }],
+        'display-small': ['36px', { lineHeight: '44px', fontWeight: '400' }],
+        // Headline 级别
+        'headline-large': ['32px', { lineHeight: '40px', fontWeight: '500' }],
+        'headline-medium': ['28px', { lineHeight: '36px', fontWeight: '500' }],
+        'headline-small': ['24px', { lineHeight: '32px', fontWeight: '500' }],
+        // Title 级别
+        'title-large': ['22px', { lineHeight: '28px', fontWeight: '500' }],
+        'title-medium': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'title-small': ['14px', { lineHeight: '20px', fontWeight: '600' }],
+        // Body 级别
+        'body-large': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-medium': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'body-small': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        // Label 级别
+        'label-large': ['14px', { lineHeight: '20px', fontWeight: '500' }],
+        'label-medium': ['12px', { lineHeight: '16px', fontWeight: '500' }],
+        'label-small': ['11px', { lineHeight: '16px', fontWeight: '500' }]
+      },
+      // 字体家族
       fontFamily: {
         sans: [
-          'Inter',
-          'SF Pro Display',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
+          'Noto Sans CJK SC',
           'PingFang SC',
           'Hiragino Sans GB',
           'Microsoft YaHei',
+          'WenQuanYi Micro Hei',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
           'sans-serif'
         ],
-        mono: ['SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'monospace']
+        mono: [
+          'Roboto Mono',
+          'SF Mono',
+          'Monaco',
+          'Consolas',
+          'Liberation Mono',
+          'Courier New',
+          'monospace'
+        ]
       },
+      // 间距系统 (基于8px网格)
       spacing: {
-        18: '4.5rem',
-        88: '22rem'
+        0.5: '2px',
+        1: '4px',
+        1.5: '6px',
+        2: '8px',
+        3: '12px',
+        4: '16px',
+        5: '20px',
+        6: '24px',
+        7: '28px',
+        8: '32px',
+        9: '36px',
+        10: '40px',
+        11: '44px',
+        12: '48px',
+        14: '56px',
+        16: '64px',
+        20: '80px',
+        24: '96px',
+        28: '112px',
+        32: '128px'
       },
+      // 圆角系统
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        xs: '4px',
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
+        '2xl': '32px',
+        DEFAULT: 'hsl(var(--radius))',
+        full: '9999px'
       },
+      // 阴影系统 (Material Design Elevation)
       boxShadow: {
-        soft: '0 2px 8px rgba(0, 0, 0, 0.06)',
-        medium: '0 4px 16px rgba(0, 0, 0, 0.08)',
-        strong: '0 8px 32px rgba(0, 0, 0, 0.12)'
+        'elevation-1': '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+        'elevation-2': '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',
+        'elevation-3': '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
+        'elevation-4': '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+        'elevation-5': '0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)'
       },
-      keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' }
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' }
-        },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' }
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' }
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.95)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' }
-        },
-        shimmer: {
-          '0%': { backgroundPosition: '-200px 0' },
-          '100%': { backgroundPosition: 'calc(200px + 100%) 0' }
-        }
+      // 动画时长
+      transitionDuration: {
+        fast: '150ms',
+        medium: '300ms',
+        slow: '500ms'
       },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
-        shimmer: 'shimmer 1.5s infinite'
+      // 动画缓动函数
+      transitionTimingFunction: {
+        'material-standard': 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+        'material-decelerate': 'cubic-bezier(0.0, 0.0, 0.2, 1)',
+        'material-accelerate': 'cubic-bezier(0.4, 0.0, 1, 1)'
+      },
+      // 断点系统
+      screens: {
+        xs: '480px',
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1280px',
+        '2xl': '1536px'
       }
     }
   },

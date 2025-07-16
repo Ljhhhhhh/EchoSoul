@@ -91,35 +91,7 @@
 - `husky` + `lint-staged` - 代码质量保证
 - `@types/sqlite3` - 类型支持
 
-### 3. 设计系统实现
-
-**品牌色彩集成：**
-
-```javascript
-// tailwind.config.js
-primary: {
-  500: '#0084ff', // 内省蓝
-  // ... 完整色阶
-},
-secondary: {
-  500: '#8b5cf6', // 洞察紫
-  // ... 完整色阶
-}
-```
-
-**字体系统：**
-
-- Inter 作为主字体
-- SF Mono 作为等宽字体
-- 中文字体优化
-
-**动画系统：**
-
-- fadeIn, slideUp, scaleIn 过渡动画
-- shimmer 加载动画
-- 自定义阴影系统
-
-### 4. 开发工具链
+### 3. 开发工具链
 
 **代码质量保证：**
 

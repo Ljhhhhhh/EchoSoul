@@ -5,11 +5,11 @@
 </template>
 
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
+import { cn } from '@renderer/lib/utils'
 </script>
 
 <script lang="ts">
 export default {
-  inheritAttrs: false,
+  inheritAttrs: false
 }
 </script>

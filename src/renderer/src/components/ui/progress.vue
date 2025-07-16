@@ -15,7 +15,7 @@ import { type HTMLAttributes } from 'vue'
 import { ProgressIndicator, ProgressRoot, useForwardProps } from 'radix-vue'
 import type { ProgressRootProps } from 'radix-vue'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@renderer/lib/utils'
 
 interface ProgressProps extends ProgressRootProps {
   class?: HTMLAttributes['class']

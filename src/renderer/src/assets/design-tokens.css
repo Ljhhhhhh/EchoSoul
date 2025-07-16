@@ -1,0 +1,258 @@
+/*
+ * EchoSoul Design Tokens
+ * 设计令牌文件 - 包含所有设计系统的常量定义
+ * 基于 Material Design 3 规范
+ */
+
+:root {
+  /* ========================================
+   * 色彩令牌 (Color Tokens)
+   * ======================================== */
+
+  /* 深海智慧蓝 (Deep Ocean Wisdom Blue) - 主色系 */
+  --echosoul-primary-50: 214 100% 98%;
+  --echosoul-primary-100: 214 95% 95%;
+  --echosoul-primary-200: 214 90% 88%;
+  --echosoul-primary-300: 214 85% 78%;
+  --echosoul-primary-400: 214 80% 68%;
+  --echosoul-primary-500: 214 75% 58%;
+  --echosoul-primary-600: 214 80% 48%;
+  --echosoul-primary-700: 214 85% 38%;
+  --echosoul-primary-800: 214 90% 28%;
+  --echosoul-primary-900: 214 95% 18%;
+
+  /* 紫罗兰洞察 (Violet Insight) - 辅助色系 */
+  --echosoul-secondary-50: 265 100% 98%;
+  --echosoul-secondary-100: 265 85% 95%;
+  --echosoul-secondary-200: 265 80% 88%;
+  --echosoul-secondary-300: 265 75% 80%;
+  --echosoul-secondary-400: 265 70% 70%;
+  --echosoul-secondary-500: 265 65% 60%;
+  --echosoul-secondary-600: 265 70% 50%;
+  --echosoul-secondary-700: 265 75% 40%;
+  --echosoul-secondary-800: 265 80% 30%;
+  --echosoul-secondary-900: 265 85% 20%;
+
+  /* 语义色彩 - 精致美观版 */
+  --echosoul-success: 145 50% 45%;
+  --echosoul-warning: 42 90% 60%;
+  --echosoul-error: 358 75% 55%;
+  --echosoul-info: 214 75% 58%;
+
+  /* 温暖中性色系 (Warm Neutral) */
+  --echosoul-neutral-0: 0 0% 100%;
+  --echosoul-neutral-50: 30 6% 98%;
+  --echosoul-neutral-100: 30 5% 96%;
+  --echosoul-neutral-200: 30 4% 92%;
+  --echosoul-neutral-300: 30 4% 85%;
+  --echosoul-neutral-400: 30 3% 70%;
+  --echosoul-neutral-500: 30 3% 55%;
+  --echosoul-neutral-600: 30 4% 40%;
+  --echosoul-neutral-700: 30 5% 25%;
+  --echosoul-neutral-800: 30 6% 15%;
+  --echosoul-neutral-900: 30 8% 8%;
+
+  /* 数据可视化色彩系列 (Data Visualization Colors) */
+  --echosoul-chart-1: 214 75% 58%; /* 深海智慧蓝 */
+  --echosoul-chart-2: 265 75% 40%; /* 紫罗兰洞察 */
+  --echosoul-chart-3: 145 50% 45%; /* 森林成长绿 */
+  --echosoul-chart-4: 28 85% 65%; /* 日落温暖橙 */
+  --echosoul-chart-5: 185 70% 55%; /* 海洋清新青 */
+  --echosoul-chart-6: 320 60% 70%; /* 玫瑰优雅粉 */
+
+  /* ========================================
+   * 间距令牌 (Spacing Tokens)
+   * ======================================== */
+
+  --echosoul-space-0: 0px;
+  --echosoul-space-1: 4px;
+  --echosoul-space-2: 8px;
+  --echosoul-space-3: 12px;
+  --echosoul-space-4: 16px;
+  --echosoul-space-5: 20px;
+  --echosoul-space-6: 24px;
+  --echosoul-space-8: 32px;
+  --echosoul-space-10: 40px;
+  --echosoul-space-12: 48px;
+  --echosoul-space-16: 64px;
+  --echosoul-space-20: 80px;
+  --echosoul-space-24: 96px;
+  --echosoul-space-32: 128px;
+
+  /* ========================================
+   * 字体令牌 (Typography Tokens)
+   * ======================================== */
+
+  /* 字体家族 */
+  --echosoul-font-family-sans:
+    'Noto Sans CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei',
+    'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+  --echosoul-font-family-mono:
+    'Roboto Mono', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+
+  /* 字体大小 */
+  --echosoul-font-size-display-large: 57px;
+  --echosoul-font-size-display-medium: 45px;
+  --echosoul-font-size-display-small: 36px;
+  --echosoul-font-size-headline-large: 32px;
+  --echosoul-font-size-headline-medium: 28px;
+  --echosoul-font-size-headline-small: 24px;
+  --echosoul-font-size-title-large: 22px;
+  --echosoul-font-size-title-medium: 16px;
+  --echosoul-font-size-title-small: 14px;
+  --echosoul-font-size-body-large: 16px;
+  --echosoul-font-size-body-medium: 14px;
+  --echosoul-font-size-body-small: 12px;
+  --echosoul-font-size-label-large: 14px;
+  --echosoul-font-size-label-medium: 12px;
+  --echosoul-font-size-label-small: 11px;
+
+  /* 行高 */
+  --echosoul-line-height-display-large: 64px;
+  --echosoul-line-height-display-medium: 52px;
+  --echosoul-line-height-display-small: 44px;
+  --echosoul-line-height-headline-large: 40px;
+  --echosoul-line-height-headline-medium: 36px;
+  --echosoul-line-height-headline-small: 32px;
+  --echosoul-line-height-title-large: 28px;
+  --echosoul-line-height-title-medium: 24px;
+  --echosoul-line-height-title-small: 20px;
+  --echosoul-line-height-body-large: 24px;
+  --echosoul-line-height-body-medium: 20px;
+  --echosoul-line-height-body-small: 16px;
+  --echosoul-line-height-label-large: 20px;
+  --echosoul-line-height-label-medium: 16px;
+  --echosoul-line-height-label-small: 16px;
+
+  /* 字重 */
+  --echosoul-font-weight-regular: 400;
+  --echosoul-font-weight-medium: 500;
+  --echosoul-font-weight-semibold: 600;
+  --echosoul-font-weight-bold: 700;
+
+  /* ========================================
+   * 圆角令牌 (Border Radius Tokens)
+   * ======================================== */
+
+  --echosoul-radius-none: 0px;
+  --echosoul-radius-xs: 4px;
+  --echosoul-radius-sm: 8px;
+  --echosoul-radius-md: 12px;
+  --echosoul-radius-lg: 16px;
+  --echosoul-radius-xl: 24px;
+  --echosoul-radius-2xl: 32px;
+  --echosoul-radius-full: 9999px;
+
+  /* ========================================
+   * 阴影令牌 (Shadow Tokens)
+   * ======================================== */
+
+  --echosoul-shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --echosoul-shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  --echosoul-shadow-elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  --echosoul-shadow-elevation-4: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  --echosoul-shadow-elevation-5: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+
+  /* ========================================
+   * 动画令牌 (Animation Tokens)
+   * ======================================== */
+
+  /* 动画时长 */
+  --echosoul-duration-instant: 0ms;
+  --echosoul-duration-fast: 150ms;
+  --echosoul-duration-medium: 300ms;
+  --echosoul-duration-slow: 500ms;
+  --echosoul-duration-slower: 700ms;
+
+  /* 缓动函数 */
+  --echosoul-easing-linear: linear;
+  --echosoul-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --echosoul-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --echosoul-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --echosoul-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ========================================
+   * 断点令牌 (Breakpoint Tokens)
+   * ======================================== */
+
+  --echosoul-breakpoint-xs: 480px;
+  --echosoul-breakpoint-sm: 640px;
+  --echosoul-breakpoint-md: 768px;
+  --echosoul-breakpoint-lg: 1024px;
+  --echosoul-breakpoint-xl: 1280px;
+  --echosoul-breakpoint-2xl: 1536px;
+
+  /* ========================================
+   * Z-Index 令牌 (Z-Index Tokens)
+   * ======================================== */
+
+  --echosoul-z-index-base: 0;
+  --echosoul-z-index-dropdown: 1000;
+  --echosoul-z-index-sticky: 1020;
+  --echosoul-z-index-fixed: 1030;
+  --echosoul-z-index-modal-backdrop: 1040;
+  --echosoul-z-index-modal: 1050;
+  --echosoul-z-index-popover: 1060;
+  --echosoul-z-index-tooltip: 1070;
+  --echosoul-z-index-toast: 1080;
+
+  /* ========================================
+   * 组件特定令牌 (Component Tokens)
+   * ======================================== */
+
+  /* 按钮 */
+  --echosoul-button-height-sm: 32px;
+  --echosoul-button-height-md: 40px;
+  --echosoul-button-height-lg: 48px;
+  --echosoul-button-padding-x-sm: 12px;
+  --echosoul-button-padding-x-md: 16px;
+  --echosoul-button-padding-x-lg: 24px;
+
+  /* 输入框 */
+  --echosoul-input-height-sm: 32px;
+  --echosoul-input-height-md: 40px;
+  --echosoul-input-height-lg: 48px;
+  --echosoul-input-padding-x: 12px;
+
+  /* 卡片 */
+  --echosoul-card-padding-sm: 16px;
+  --echosoul-card-padding-md: 24px;
+  --echosoul-card-padding-lg: 32px;
+
+  /* 导航 */
+  --echosoul-nav-height: 64px;
+  --echosoul-sidebar-width: 280px;
+  --echosoul-sidebar-width-collapsed: 72px;
+}
+
+/* ========================================
+ * 深色模式令牌覆盖
+ * ======================================== */
+
+.dark {
+  /* 深色模式色彩优化 - 保持美观性 */
+
+  /* 主色系调整 - 更亮更柔和 */
+  --echosoul-primary-500: 214 80% 70%;
+  --echosoul-primary-600: 214 75% 65%;
+  --echosoul-primary-700: 214 70% 60%;
+
+  /* 辅助色系调整 */
+  --echosoul-secondary-500: 265 70% 65%;
+  --echosoul-secondary-600: 265 65% 60%;
+  --echosoul-secondary-700: 265 60% 55%;
+
+  /* 中性色系调整 - 深邃而温暖 */
+  --echosoul-neutral-50: 30 8% 12%;
+  --echosoul-neutral-100: 30 6% 15%;
+  --echosoul-neutral-200: 30 5% 20%;
+  --echosoul-neutral-800: 30 5% 90%;
+  --echosoul-neutral-900: 30 6% 95%;
+
+  /* 阴影调整 - 更明显的层次 */
+  --echosoul-shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.48);
+  --echosoul-shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.32), 0 3px 6px rgba(0, 0, 0, 0.46);
+  --echosoul-shadow-elevation-3: 0 10px 20px rgba(0, 0, 0, 0.38), 0 6px 6px rgba(0, 0, 0, 0.46);
+  --echosoul-shadow-elevation-4: 0 14px 28px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.44);
+  --echosoul-shadow-elevation-5: 0 19px 38px rgba(0, 0, 0, 0.6), 0 15px 12px rgba(0, 0, 0, 0.44);
+}

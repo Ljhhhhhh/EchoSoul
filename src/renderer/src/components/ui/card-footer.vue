@@ -1,5 +1,5 @@
 <template>
-  <div :class="cn('rounded-lg border bg-card text-card-foreground shadow-sm', $attrs.class)">
+  <div :class="cn('flex items-center p-6 pt-0', $attrs.class)">
     <slot />
   </div>
 </template>

@@ -264,30 +264,6 @@ UI元素:
   - 生成跟踪: 进度条和状态更新
 ```
 
-## 📱 响应式适配策略
-
-### 不同屏幕尺寸的页面适配
-
-```yaml
-桌面端 (>1024px):
-  InitializationPage: 居中卡片，最大宽度2xl
-  ReportCenter: 三列网格布局，充分利用空间
-  ReportDetail: 左右分栏，固定侧边栏导航
-  CustomReport: 左右分栏，表单+预览
-
-平板端 (768px-1024px):
-  InitializationPage: 卡片宽度调整，保持居中
-  ReportCenter: 双列网格，侧边栏可折叠
-  ReportDetail: 可折叠侧边栏，主内容优先
-  CustomReport: 垂直布局，预览区域可收起
-
-移动端 (<768px):
-  InitializationPage: 全宽卡片，减少边距
-  ReportCenter: 单列布局，卡片堆叠
-  ReportDetail: 底部导航，章节抽屉式
-  CustomReport: 单步显示，步骤间滑动
-```
-
 ## 🔧 技术实现要点
 
 ### 路由配置
