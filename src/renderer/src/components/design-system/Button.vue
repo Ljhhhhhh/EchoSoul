@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { cn, getButtonVariantClasses, getComponentSizeClasses } from '@/utils/design-system'
+import { cn, getButtonVariantClasses, getComponentSizeClasses } from '@renderer/utils/design-system'
 import Icon from './Icon.vue'
 
 export interface ButtonProps {

@@ -10,14 +10,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { cn } from '@/utils/design-system'
-import type { ComponentSize } from '@/types/design-system'
+import { cn } from '@renderer/utils/design-system'
+import type { ComponentSize } from '@renderer/types/design-system'
 
 // 动态导入 lucide-vue-next 图标
 import {
   Home,
   Settings,
   User,
+  Users,
   Search,
   Plus,
   Edit,
@@ -51,9 +52,10 @@ import {
   Heart,
   Bookmark,
   Filter,
+  FilterX,
   SortAsc,
   SortDesc,
-  Refresh,
+  RefreshCw,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
@@ -66,7 +68,6 @@ import {
   Folder,
   FolderOpen,
   Save,
-  Print,
   Maximize,
   Minimize,
   Menu,
@@ -92,11 +93,24 @@ import {
   VolumeX,
   Play,
   Pause,
-  Stop,
   SkipBack,
   SkipForward,
   Repeat,
-  Shuffle
+  Shuffle,
+  MessageCircle,
+  Hash,
+  Lightbulb,
+  HelpCircle,
+  DollarSign,
+  Brain,
+  Globe,
+  Code,
+  HardDrive,
+  Minus,
+  Sun,
+  Moon,
+  Monitor,
+  Terminal
 } from 'lucide-vue-next'
 
 export interface IconProps {
@@ -118,6 +132,7 @@ const iconMap = {
   home: Home,
   settings: Settings,
   user: User,
+  users: Users,
   search: Search,
   menu: Menu,
 
@@ -130,8 +145,7 @@ const iconMap = {
   share: Share,
   copy: Copy,
   save: Save,
-  print: Print,
-  refresh: Refresh,
+  'refresh-cw': RefreshCw,
 
   // 状态类
   check: Check,
@@ -142,6 +156,7 @@ const iconMap = {
   'alert-triangle': AlertTriangle,
   'alert-circle': AlertCircle,
   'loader-2': Loader2,
+  'help-circle': HelpCircle,
 
   // 方向类
   'chevron-left': ChevronLeft,
@@ -169,14 +184,18 @@ const iconMap = {
   mail: Mail,
   phone: Phone,
   'map-pin': MapPin,
+  'message-circle': MessageCircle,
 
   // 收藏评分
   star: Star,
   heart: Heart,
   bookmark: Bookmark,
+  lightbulb: Lightbulb,
+  hash: Hash,
 
   // 排序筛选
   filter: Filter,
+  'filter-x': FilterX,
   'sort-asc': SortAsc,
   'sort-desc': SortDesc,
 
@@ -214,6 +233,10 @@ const iconMap = {
   database: Database,
   server: Server,
   cloud: Cloud,
+  'dollar-sign': DollarSign,
+  brain: Brain,
+  'hard-drive': HardDrive,
+  minus: Minus,
 
   // 连接类
   wifi: Wifi,
@@ -228,11 +251,18 @@ const iconMap = {
   // 媒体控制
   play: Play,
   pause: Pause,
-  stop: Stop,
   'skip-back': SkipBack,
   'skip-forward': SkipForward,
   repeat: Repeat,
-  shuffle: Shuffle
+  shuffle: Shuffle,
+
+  // 主题和界面
+  sun: Sun,
+  moon: Moon,
+  monitor: Monitor,
+  globe: Globe,
+  code: Code,
+  terminal: Terminal
 }
 
 const iconComponent = computed(() => {
