@@ -58,15 +58,143 @@
       </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="app-content">
-      <div class="content-container">
-        <!-- Page Transition Wrapper -->
-        <Transition name="page" mode="out-in" @enter="onPageEnter" @leave="onPageLeave">
-          <router-view v-slot="{ Component, route: currentRoute }">
-            <component :is="Component" :key="currentRoute.path" class="page-component" />
-          </router-view>
-        </Transition>
+    <!-- 主内容区域 -->
+    <main class="py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <div class="px-4 py-6 sm:px-0">
+        <!-- 欢迎卡片 -->
+        <div class="mb-6 overflow-hidden bg-white rounded-lg shadow">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <span class="text-3xl">🎉</span>
+              </div>
+              <div class="flex-1 w-0 ml-5">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">初始化完成</dt>
+                  <dd class="text-lg font-medium text-gray-900">
+                    欢迎使用 EchoSoul！您的聊天记录分析环境已准备就绪。
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 功能卡片网格 -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- 生成报告卡片 -->
+          <div class="overflow-hidden bg-white rounded-lg shadow">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <span class="text-2xl">📊</span>
+                </div>
+                <div class="flex-1 w-0 ml-5">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">分析报告</dt>
+                    <dd class="text-lg font-medium text-gray-900">生成聊天记录分析报告</dd>
+                  </dl>
+                </div>
+              </div>
+              <div class="mt-5">
+                <button
+                  class="w-full px-4 py-2 text-white transition-colors bg-indigo-600 rounded-md hover:bg-indigo-700"
+                >
+                  生成新报告
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 历史报告卡片 -->
+          <div class="overflow-hidden bg-white rounded-lg shadow">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <span class="text-2xl">📚</span>
+                </div>
+                <div class="flex-1 w-0 ml-5">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">历史报告</dt>
+                    <dd class="text-lg font-medium text-gray-900">查看已生成的报告</dd>
+                  </dl>
+                </div>
+              </div>
+              <div class="mt-5">
+                <button
+                  class="w-full px-4 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
+                >
+                  查看报告
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 设置卡片 -->
+          <div class="overflow-hidden bg-white rounded-lg shadow">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <span class="text-2xl">⚙️</span>
+                </div>
+                <div class="flex-1 w-0 ml-5">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">应用设置</dt>
+                    <dd class="text-lg font-medium text-gray-900">配置AI模型和分析参数</dd>
+                  </dl>
+                </div>
+              </div>
+              <div class="mt-5">
+                <button
+                  class="w-full px-4 py-2 text-white transition-colors bg-gray-600 rounded-md hover:bg-gray-700"
+                >
+                  打开设置
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 状态信息 -->
+        <div class="mt-6 overflow-hidden bg-white rounded-lg shadow">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="mb-4 text-lg font-medium leading-6 text-gray-900">系统状态</h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="flex items-center justify-between p-3 rounded-md bg-gray-50">
+                <span class="text-sm font-medium text-gray-500">微信连接状态</span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  已连接
+                </span>
+              </div>
+              <div class="flex items-center justify-between p-3 rounded-md bg-gray-50">
+                <span class="text-sm font-medium text-gray-500">数据库状态</span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  正常
+                </span>
+              </div>
+              <div class="flex items-center justify-between p-3 rounded-md bg-gray-50">
+                <span class="text-sm font-medium text-gray-500">AI服务状态</span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+                >
+                  未配置
+                </span>
+              </div>
+              <div class="flex items-center justify-between p-3 rounded-md bg-gray-50">
+                <span class="text-sm font-medium text-gray-500">定时任务</span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  已启用
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
