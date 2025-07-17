@@ -2,23 +2,6 @@
   <div class="custom-report">
     <!-- 主要内容区域 -->
     <div class="main-container">
-      <!-- 顶部操作栏 -->
-      <div class="top-actions">
-        <div class="actions-left">
-          <Button variant="text" size="sm" icon="arrow-left" class="back-button" @click="goBack">
-            返回
-          </Button>
-          <div class="page-info">
-            <h1 class="page-title">生成个性化报告</h1>
-            <p class="page-subtitle">配置您的专属聊天记录分析报告</p>
-          </div>
-        </div>
-
-        <div class="actions-right">
-          <Button variant="text" size="sm" icon="help-circle" @click="showHelp"> 帮助 </Button>
-        </div>
-      </div>
-
       <!-- 内容区域 -->
       <div class="content-wrapper">
         <!-- 左侧配置表单 -->
@@ -73,203 +56,148 @@
               </div>
             </div>
 
-            <!-- 联系人选择 -->
-            <div class="form-section">
-              <div class="section-header">
-                <Icon name="users" :size="20" class="section-icon" />
-                <h2 class="section-title">分析对象</h2>
-              </div>
-
-              <div class="contacts-config">
-                <!-- 搜索框 -->
-                <div class="search-box">
-                  <Icon name="search" :size="16" class="search-icon" />
-                  <input
-                    v-model="participantSearchQuery"
-                    type="text"
-                    placeholder="搜索联系人..."
-                    class="search-input"
-                  />
+            <!-- 分析对象和分析配置并排布局 -->
+            <div class="analysis-row">
+              <!-- 联系人选择 -->
+              <div class="form-section analysis-section">
+                <div class="section-header">
+                  <Icon name="users" :size="20" class="section-icon" />
+                  <h2 class="section-title">分析对象</h2>
                 </div>
 
-                <!-- 快速选择 -->
-                <div class="quick-actions">
-                  <button
-                    class="quick-btn"
-                    :class="{ active: allParticipantsSelected }"
-                    @click="selectAllParticipants"
-                  >
-                    全选
-                  </button>
-                  <button
-                    class="quick-btn"
-                    :class="{ active: onlyActiveSelected }"
-                    @click="selectActiveParticipants"
-                  >
-                    活跃联系人
-                  </button>
-                  <button class="quick-btn" @click="clearAllParticipants">清空</button>
-                </div>
-
-                <!-- 联系人列表 -->
-                <div class="contacts-list">
-                  <div
-                    v-for="contact in filteredContacts"
-                    :key="contact.id"
-                    class="contact-item"
-                    :class="{ selected: contact.isSelected }"
-                    @click="toggleParticipant(contact)"
-                  >
-                    <div class="contact-avatar">
-                      {{ contact.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="contact-info">
-                      <div class="contact-name">{{ contact.name }}</div>
-                      <div class="contact-stats">{{ contact.messageCount }} 条消息</div>
-                    </div>
-                    <div class="contact-checkbox">
-                      <Icon v-if="contact.isSelected" name="check" :size="14" />
-                    </div>
+                <div class="contacts-config">
+                  <!-- 搜索框 -->
+                  <div class="search-box">
+                    <Icon name="search" :size="16" class="search-icon" />
+                    <input
+                      v-model="participantSearchQuery"
+                      type="text"
+                      placeholder="搜索联系人..."
+                      class="search-input"
+                    />
                   </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- 分析配置 -->
-            <div class="form-section">
-              <div class="section-header">
-                <Icon name="settings" :size="20" class="section-icon" />
-                <h2 class="section-title">分析配置</h2>
-              </div>
-
-              <div class="analysis-config">
-                <!-- 分析深度 -->
-                <div class="config-group">
-                  <label class="config-label">分析深度</label>
-                  <div class="depth-selector-compact">
-                    <div
-                      v-for="depth in analysisDepths"
-                      :key="depth.id"
-                      class="depth-option-compact"
-                      :class="{ selected: customReportConfig.analysisOptions.depth === depth.id }"
-                      @click="selectAnalysisDepth(depth.id)"
+                  <!-- 快速选择 -->
+                  <div class="quick-actions">
+                    <button
+                      class="quick-btn"
+                      :class="{ active: allParticipantsSelected }"
+                      @click="selectAllParticipants"
                     >
-                      <div class="depth-info">
-                        <span class="depth-name">{{ depth.name }}</span>
-                        <span class="depth-time">{{ depth.duration }}</span>
+                      全选
+                    </button>
+                    <button
+                      class="quick-btn"
+                      :class="{ active: onlyActiveSelected }"
+                      @click="selectActiveParticipants"
+                    >
+                      活跃联系人
+                    </button>
+                    <button class="quick-btn" @click="clearAllParticipants">清空</button>
+                  </div>
+
+                  <!-- 联系人列表 - 优化为网格布局 -->
+                  <div class="contacts-grid">
+                    <div
+                      v-for="contact in filteredContacts"
+                      :key="contact.id"
+                      class="contact-card"
+                      :class="{ selected: contact.isSelected }"
+                      @click="toggleParticipant(contact)"
+                    >
+                      <div class="contact-avatar">
+                        {{ contact.name.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="contact-info">
+                        <div class="contact-name">{{ contact.name }}</div>
+                        <div class="contact-stats">{{ contact.messageCount }} 条消息</div>
+                      </div>
+                      <div class="contact-checkbox">
+                        <Icon v-if="contact.isSelected" name="check" :size="14" />
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <!-- 分析维度 -->
-                <div class="config-group">
-                  <label class="config-label">分析维度</label>
-                  <div class="dimensions-grid">
-                    <div
-                      v-for="dimension in analysisDimensions"
-                      :key="dimension.id"
-                      class="dimension-card"
-                      :class="{ active: dimension.isEnabled }"
-                      @click="toggleDimension(dimension)"
-                    >
-                      <div class="dimension-header">
+              <!-- 分析配置 -->
+              <div class="form-section analysis-section">
+                <div class="section-header">
+                  <Icon name="settings" :size="20" class="section-icon" />
+                  <h2 class="section-title">分析配置</h2>
+                </div>
+
+                <div class="analysis-config">
+                  <!-- 分析深度 -->
+                  <div class="config-group">
+                    <label class="config-label">分析深度</label>
+                    <div class="depth-selector-horizontal">
+                      <div
+                        v-for="depth in analysisDepths"
+                        :key="depth.id"
+                        class="depth-option-horizontal"
+                        :class="{ selected: customReportConfig.analysisOptions.depth === depth.id }"
+                        @click="selectAnalysisDepth(depth.id)"
+                      >
+                        <span class="depth-name">{{ depth.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 分析维度 -->
+                  <div class="config-group">
+                    <label class="config-label">分析维度</label>
+                    <div class="dimensions-horizontal">
+                      <div
+                        v-for="dimension in analysisDimensions"
+                        :key="dimension.id"
+                        class="dimension-chip"
+                        :class="{ active: dimension.isEnabled }"
+                        @click="toggleDimension(dimension)"
+                      >
                         <span class="dimension-name">{{ dimension.name }}</span>
                         <div class="toggle-switch" :class="{ active: dimension.isEnabled }">
                           <div class="toggle-handle"></div>
                         </div>
                       </div>
-                      <div class="dimension-desc">{{ dimension.description }}</div>
+                    </div>
+                  </div>
+
+                  <!-- 执行区域 -->
+                  <div class="execution-section">
+                    <!-- AI 模型选择 -->
+                    <div class="config-group">
+                      <label class="config-label">AI 模型</label>
+                      <select v-model="selectedAIModel" class="model-select">
+                        <option value="gpt-4">GPT-4 (推荐)</option>
+                        <option value="gpt-3.5">GPT-3.5 Turbo</option>
+                        <option value="claude-3">Claude 3</option>
+                        <option value="gemini-pro">Gemini Pro</option>
+                      </select>
+                    </div>
+
+                    <!-- 生成报告按钮 -->
+                    <div class="generate-action">
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        icon="sparkles"
+                        :disabled="!isConfigurationValid"
+                        :loading="isGenerating"
+                        class="generate-btn"
+                        @click="generateReport"
+                      >
+                        {{ isGenerating ? '生成中...' : '生成报告' }}
+                      </Button>
+                      <p class="generate-hint">
+                        {{
+                          isConfigurationValid ? '配置完成，可以开始生成报告' : '请完成必要的配置项'
+                        }}
+                      </p>
                     </div>
                   </div>
                 </div>
-
-                <!-- AI 模型 -->
-                <div class="config-group">
-                  <label class="config-label">AI 模型</label>
-                  <select v-model="selectedAIModel" class="model-select">
-                    <option value="gpt-4">GPT-4 (推荐)</option>
-                    <option value="gpt-3.5">GPT-3.5 Turbo</option>
-                    <option value="claude-3">Claude 3</option>
-                    <option value="gemini-pro">Gemini Pro</option>
-                  </select>
-                </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧预览面板 -->
-        <div class="preview-panel">
-          <div class="panel-content">
-            <!-- 配置摘要 -->
-            <div class="preview-section">
-              <h3 class="preview-title">配置摘要</h3>
-              <div class="summary-list">
-                <div class="summary-item">
-                  <span class="summary-label">时间范围</span>
-                  <span class="summary-value">
-                    {{
-                      selectedTimeRange
-                        ? formatDateRange(selectedTimeRange.start, selectedTimeRange.end)
-                        : '未选择'
-                    }}
-                  </span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">分析对象</span>
-                  <span class="summary-value">{{ selectedParticipants.length }} 个联系人</span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">分析深度</span>
-                  <span class="summary-value">{{
-                    getDepthName(customReportConfig.analysisOptions.depth)
-                  }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">分析维度</span>
-                  <span class="summary-value">{{ enabledDimensionsCount }} 个维度</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 生成预估 -->
-            <div class="preview-section">
-              <h3 class="preview-title">生成预估</h3>
-              <div class="estimate-grid">
-                <div class="estimate-item">
-                  <Icon name="clock" :size="18" />
-                  <div class="estimate-info">
-                    <div class="estimate-label">预计时间</div>
-                    <div class="estimate-value">{{ estimatedTime }} 分钟</div>
-                  </div>
-                </div>
-                <div class="estimate-item">
-                  <Icon name="file-text" :size="18" />
-                  <div class="estimate-info">
-                    <div class="estimate-label">报告页数</div>
-                    <div class="estimate-value">{{ estimatedPages }} 页</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 生成按钮 -->
-            <div class="generate-section">
-              <Button
-                variant="primary"
-                size="lg"
-                icon="sparkles"
-                :disabled="!isConfigurationValid"
-                :loading="isGenerating"
-                class="generate-btn"
-                @click="generateReport"
-              >
-                {{ isGenerating ? '生成中...' : '生成报告' }}
-              </Button>
-              <p class="generate-hint">
-                {{ isConfigurationValid ? '配置完成，可以开始生成报告' : '请完成必要的配置项' }}
-              </p>
             </div>
           </div>
         </div>
@@ -448,31 +376,6 @@ const selectedTimeRange = computed(() => {
   return null
 })
 
-const enabledDimensionsCount = computed(() => {
-  return analysisDimensions.value.filter((d) => d.isEnabled).length
-})
-
-const estimatedTime = computed(() => {
-  const baseTime = 3
-  const depthMultiplier =
-    customReportConfig.value.analysisOptions.depth === 'basic'
-      ? 1
-      : customReportConfig.value.analysisOptions.depth === 'detailed'
-        ? 2
-        : 3
-  const dimensionTime = enabledDimensionsCount.value * 1.5
-  const participantTime = selectedParticipants.value.length * 0.5
-
-  return Math.round(baseTime * depthMultiplier + dimensionTime + participantTime)
-})
-
-const estimatedPages = computed(() => {
-  const basePages = 5
-  const dimensionPages = enabledDimensionsCount.value * 2
-  const participantPages = Math.ceil(selectedParticipants.value.length / 3)
-  return basePages + dimensionPages + participantPages
-})
-
 const allParticipantsSelected = computed(() => {
   return availableContacts.value.length > 0 && availableContacts.value.every((c) => c.isSelected)
 })
@@ -491,15 +394,6 @@ const isConfigurationValid = computed(() => {
 })
 
 // 方法
-const goBack = () => {
-  router.push('/main')
-}
-
-const showHelp = () => {
-  // TODO: 显示帮助信息
-  console.log('显示帮助信息')
-}
-
 const selectTimePreset = (preset: any) => {
   selectedTimePreset.value = preset.id
 
@@ -541,19 +435,6 @@ const selectAnalysisDepth = (depthId: string) => {
 
 const toggleDimension = (dimension: AnalysisDimension) => {
   dimension.isEnabled = !dimension.isEnabled
-}
-
-const formatDateRange = (start: Date, end: Date) => {
-  const formatter = new Intl.DateTimeFormat('zh-CN', {
-    month: 'short',
-    day: 'numeric'
-  })
-  return `${formatter.format(start)} - ${formatter.format(end)}`
-}
-
-const getDepthName = (depthId: string) => {
-  const depth = analysisDepths.find((d) => d.id === depthId)
-  return depth ? depth.name : '未知'
 }
 
 const generateReport = async () => {
@@ -607,39 +488,6 @@ initializeDefaults()
 }
 
 /* ========================================
-   顶部操作栏
-======================================== */
-
-.top-actions {
-  @apply flex items-center justify-between mb-6;
-}
-
-.actions-left {
-  @apply flex items-center gap-4;
-}
-
-.back-button {
-  @apply text-neutral-600 hover:text-neutral-800;
-}
-
-.page-info {
-  @apply flex flex-col;
-}
-
-.page-title {
-  @apply text-xl font-bold text-neutral-800 mb-1;
-  letter-spacing: -0.02em;
-}
-
-.page-subtitle {
-  @apply text-sm text-neutral-600;
-}
-
-.actions-right {
-  @apply flex items-center;
-}
-
-/* ========================================
    主要内容区域
 ======================================== */
 
@@ -648,15 +496,31 @@ initializeDefaults()
 }
 
 .content-wrapper {
-  @apply flex gap-6;
+  @apply block;
 }
 
 .config-form {
-  @apply flex-1;
+  @apply w-full;
 }
 
 .form-content {
   @apply space-y-6;
+}
+
+/* ========================================
+   分析对象和分析配置并排布局
+======================================== */
+
+.analysis-row {
+  @apply flex gap-6;
+}
+
+.analysis-section:first-child {
+  @apply w-1/3;
+}
+
+.analysis-section:last-child {
+  @apply w-2/3;
 }
 
 /* ========================================
@@ -757,16 +621,17 @@ initializeDefaults()
   @apply border-primary-500 bg-primary-50 text-primary-700;
 }
 
-.contacts-list {
-  @apply space-y-2 max-h-64 overflow-y-auto;
+/* 联系人网格布局 */
+.contacts-grid {
+  @apply grid grid-cols-1 gap-3 max-h-64 overflow-y-auto;
 }
 
-.contact-item {
+.contact-card {
   @apply flex items-center gap-3 p-3 border border-neutral-200 rounded-lg cursor-pointer transition-all duration-200;
   @apply hover:border-neutral-300 hover:bg-neutral-50;
 }
 
-.contact-item.selected {
+.contact-card.selected {
   @apply border-primary-500 bg-primary-50;
 }
 
@@ -790,7 +655,7 @@ initializeDefaults()
   @apply w-5 h-5 border-2 border-neutral-300 rounded flex items-center justify-center;
 }
 
-.contact-item.selected .contact-checkbox {
+.contact-card.selected .contact-checkbox {
   @apply border-primary-500 bg-primary-500 text-white;
 }
 
@@ -810,35 +675,74 @@ initializeDefaults()
   @apply block text-sm font-medium text-neutral-700;
 }
 
-/* 紧凑分析深度选择器 */
-.depth-selector-compact {
+/* 配置网格布局 */
+.config-grid {
+  @apply grid grid-cols-2 gap-4 mb-5;
+}
+
+.config-group.full-width {
+  @apply col-span-2;
+}
+
+/* 分析深度选择器 - 横向布局 */
+.depth-selector-horizontal {
   @apply flex gap-2;
 }
 
-.depth-option-compact {
-  @apply flex-1 p-3 border border-neutral-200 rounded-lg cursor-pointer transition-all duration-200;
+.depth-option-horizontal {
+  @apply flex-1 p-3 border border-neutral-200 rounded-lg cursor-pointer transition-all duration-200 text-center;
   @apply hover:border-neutral-300 hover:bg-neutral-50;
 }
 
-.depth-option-compact.selected {
+.depth-option-horizontal.selected {
   @apply border-primary-500 bg-primary-50;
 }
 
-.depth-info {
-  @apply text-center;
-}
-
 .depth-name {
-  @apply font-medium text-neutral-800 text-sm mb-1;
-}
-
-.depth-time {
-  @apply text-xs text-neutral-500;
+  @apply font-medium text-neutral-800 text-sm;
 }
 
 /* 网格布局分析维度 */
 .dimensions-grid {
-  @apply grid grid-cols-2 gap-3;
+  @apply grid grid-cols-3 gap-3;
+}
+
+/* 分析维度 - 横向布局 */
+.dimensions-horizontal {
+  @apply flex flex-wrap gap-2;
+}
+
+.dimension-chip {
+  @apply flex items-center gap-2 px-3 py-2 border border-neutral-200 rounded-lg cursor-pointer transition-all duration-200;
+  @apply hover:border-neutral-300 hover:bg-neutral-50;
+}
+
+.dimension-chip.active {
+  @apply border-primary-500 bg-primary-50;
+}
+
+.dimension-chip .dimension-name {
+  @apply text-sm font-medium text-neutral-800;
+}
+
+/* ========================================
+   执行区域样式
+======================================== */
+
+.execution-section {
+  @apply mt-6 pt-6 border-t border-neutral-200;
+}
+
+.generate-action {
+  @apply mt-4;
+}
+
+.generate-btn {
+  @apply w-full mb-2;
+}
+
+.generate-hint {
+  @apply text-sm text-neutral-500 text-center;
 }
 
 .dimension-card {
@@ -884,92 +788,41 @@ initializeDefaults()
 }
 
 /* ========================================
-   预览面板样式
-======================================== */
-
-.preview-panel {
-  @apply w-72 bg-white rounded-xl shadow-sm border border-neutral-200 h-fit sticky top-6;
-}
-
-.panel-content {
-  @apply p-5 space-y-5;
-}
-
-.preview-section {
-  @apply space-y-3;
-}
-
-.preview-title {
-  @apply text-base font-semibold text-neutral-800;
-}
-
-.summary-list {
-  @apply space-y-3;
-}
-
-.summary-item {
-  @apply flex justify-between items-start;
-}
-
-.summary-label {
-  @apply text-sm text-neutral-600;
-}
-
-.summary-value {
-  @apply text-sm font-medium text-neutral-800 text-right;
-}
-
-.estimate-grid {
-  @apply grid grid-cols-2 gap-4;
-}
-
-.estimate-item {
-  @apply flex items-center gap-3 p-3 bg-neutral-50 rounded-lg;
-}
-
-.estimate-info {
-  @apply flex-1;
-}
-
-.estimate-label {
-  @apply text-xs text-neutral-500 mb-1;
-}
-
-.estimate-value {
-  @apply text-lg font-bold text-neutral-800;
-}
-
-.generate-section {
-  @apply pt-4 border-t border-neutral-200;
-}
-
-.generate-btn {
-  @apply w-full mb-3;
-}
-
-.generate-hint {
-  @apply text-sm text-center text-neutral-500;
-}
-
-/* ========================================
    响应式设计
 ======================================== */
 
 @media (max-width: 1024px) {
-  .content-wrapper {
-    @apply flex-col;
+  .analysis-row {
+    @apply flex-col gap-4;
   }
 
-  .preview-panel {
-    @apply w-full sticky top-0;
+  .analysis-section:first-child,
+  .analysis-section:last-child {
+    @apply w-full;
   }
 
-  .depth-selector-compact {
-    @apply flex-col gap-2;
+  .config-grid {
+    @apply grid-cols-1 gap-3;
+  }
+
+  .config-group.full-width {
+    @apply col-span-1;
+  }
+
+  .contacts-grid {
+    @apply grid-cols-1;
   }
 
   .dimensions-grid {
-    @apply grid-cols-1;
+    @apply grid-cols-2;
+  }
+
+  .depth-selector-horizontal {
+    @apply flex-col gap-2;
+  }
+
+  .dimensions-horizontal {
+    @apply flex-col gap-2;
   }
 }
 
@@ -978,7 +831,7 @@ initializeDefaults()
     @apply p-4;
   }
 
-  .actions-left {
+  .page-header {
     @apply gap-3;
   }
 
@@ -990,8 +843,8 @@ initializeDefaults()
     @apply text-xs;
   }
 
-  .content-wrapper {
-    @apply gap-4;
+  .analysis-row {
+    @apply flex-col gap-4;
   }
 
   .date-range {
@@ -1002,16 +855,24 @@ initializeDefaults()
     @apply grid grid-cols-2 gap-2;
   }
 
-  .depth-selector-compact {
-    @apply flex-col;
+  .config-grid {
+    @apply grid-cols-1;
+  }
+
+  .contacts-grid {
+    @apply grid-cols-1;
   }
 
   .dimensions-grid {
     @apply grid-cols-1;
   }
 
-  .estimate-grid {
-    @apply grid-cols-1;
+  .depth-selector-horizontal {
+    @apply flex-col;
+  }
+
+  .dimensions-horizontal {
+    @apply flex-col;
   }
 }
 
@@ -1034,9 +895,10 @@ initializeDefaults()
   }
 }
 
-.contact-item:hover,
-.depth-option-compact:hover,
-.dimension-card:hover {
+.contact-card:hover,
+.depth-option-horizontal:hover,
+.dimension-card:hover,
+.dimension-chip:hover {
   transform: translateY(-1px);
 }
 
@@ -1050,9 +912,10 @@ initializeDefaults()
 ======================================== */
 
 .preset-btn:focus,
-.contact-item:focus,
-.depth-option-compact:focus,
-.dimension-card:focus {
+.contact-card:focus,
+.depth-option-horizontal:focus,
+.dimension-card:focus,
+.dimension-chip:focus {
   @apply outline-none ring-2 ring-primary-500 ring-offset-2;
 }
 
