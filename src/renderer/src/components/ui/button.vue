@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue'
+import { type HTMLAttributes } from 'vue'
 import { Primitive, type PrimitiveProps } from 'radix-vue'
 import { type VariantProps, cva } from 'class-variance-authority'
 

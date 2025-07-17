@@ -185,7 +185,7 @@ export interface IconProps {
 
 // 布局组件属性
 export interface LayoutProps {
-  children: React.ReactNode
+  children?: string | number | boolean | object | null | undefined // Vue 3 slot content
   className?: string
   padding?: SpacingScale
   margin?: SpacingScale

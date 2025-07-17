@@ -1,15 +1,15 @@
 <template>
-  <div :class="cn(badgeClasses, $attrs.class)">
+  <div :class="cnWithAttrs(badgeClasses, $attrs.class)">
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { cn } from '@renderer/lib/utils'
+import { cnWithAttrs } from '@renderer/lib/utils'
 
 export interface BadgeProps {
-  variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'
   class?: string
 }
 
@@ -26,7 +26,9 @@ const badgeClasses = computed(() => {
     secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
     destructive:
       'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-    outline: 'text-foreground'
+    outline: 'text-foreground',
+    success: 'border-transparent bg-success text-white hover:bg-success/80',
+    warning: 'border-transparent bg-warning text-white hover:bg-warning/80'
   }
 
   return `${baseClasses} ${variantClasses[props.variant]}`

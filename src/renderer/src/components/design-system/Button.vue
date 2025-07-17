@@ -24,7 +24,7 @@ import { cn, getButtonVariantClasses, getComponentSizeClasses } from '@renderer/
 import Icon from './Icon.vue'
 
 export interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'text' | 'outlined'
+  variant?: 'primary' | 'secondary' | 'text' | 'outlined' | 'destructive'
   size?: 'sm' | 'md' | 'lg'
   type?: 'button' | 'submit' | 'reset'
   disabled?: boolean

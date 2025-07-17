@@ -1,12 +1,12 @@
 <template>
-  <div :class="cn(alertClasses, $attrs.class)" role="alert">
+  <div :class="cnWithAttrs(alertClasses, $attrs.class)" role="alert">
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { cn } from '@renderer/lib/utils'
+import { cnWithAttrs } from '@renderer/lib/utils'
 
 export interface AlertProps {
   variant?: 'default' | 'destructive'

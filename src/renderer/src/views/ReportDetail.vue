@@ -124,7 +124,7 @@
               v-for="chapter in report?.chapters || []"
               :id="`chapter-${chapter.id}`"
               :key="chapter.id"
-              :ref="(el) => (chapterRefs[chapter.id] = el)"
+              :ref="(el) => (chapterRefs[chapter.id] = el as HTMLElement)"
               class="chapter-section"
             >
               <header class="chapter-header">
@@ -193,15 +193,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import Button from '@renderer/components/design-system/Button.vue'
 import Icon from '@renderer/components/design-system/Icon.vue'
 import Badge from '@renderer/components/ui/badge.vue'
-import type { ReportData, ReportChapter } from '@renderer/types/pages'
+import type { ReportData } from '@renderer/types/pages'
 
 // Router
 const router = useRouter()
-const route = useRoute()
 
 // Props
 const props = defineProps<{
@@ -258,7 +257,8 @@ const loadReport = async () => {
 
     // Mock data for now
     setTimeout(() => {
-      // Mock report data would be loaded here
+      // Mock report data would be loaded here using props.id
+      console.log('Loading report with ID:', props.id)
       isLoading.value = false
     }, 1000)
   } catch (err) {

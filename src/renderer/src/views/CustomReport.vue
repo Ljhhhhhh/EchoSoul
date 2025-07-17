@@ -466,7 +466,10 @@ const isStep1Valid = computed(() => {
 
 const isStep2Valid = computed(() => selectedParticipants.value.length > 0)
 
-const isStep3Valid = computed(() => customReportConfig.value.analysisOptions.depth !== '')
+const isStep3Valid = computed(() => {
+  const options = customReportConfig.value.analysisOptions
+  return options.depth && options.dimensions.length > 0
+})
 
 const isCurrentStepValid = computed(() => {
   switch (currentStep.value) {

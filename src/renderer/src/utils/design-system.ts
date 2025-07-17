@@ -127,13 +127,14 @@ export function getComponentSizeClasses(size: ComponentSize = 'md') {
  * 获取按钮变体的样式类
  */
 export function getButtonVariantClasses(
-  variant: 'primary' | 'secondary' | 'text' | 'outlined' = 'primary'
+  variant: 'primary' | 'secondary' | 'text' | 'outlined' | 'destructive' = 'primary'
 ) {
   const variantMap = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
     text: 'btn-text',
-    outlined: 'btn-secondary'
+    outlined: 'btn-secondary',
+    destructive: 'bg-error text-white hover:bg-error/90 focus:ring-error'
   }
 
   return variantMap[variant]
