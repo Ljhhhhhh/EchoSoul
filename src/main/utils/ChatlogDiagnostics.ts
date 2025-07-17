@@ -1,6 +1,6 @@
 import { createLogger } from './logger'
+import { ProcessUtils } from './processUtils'
 import { ChatlogHttpClient } from '../services/ChatlogHttpClient'
-import { execa } from 'execa'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
@@ -184,14 +184,6 @@ export class ChatlogDiagnostics {
    * 检查微信进程
    */
   private async checkWeChatProcess(): Promise<DiagnosticResult> {
-    if (process.platform !== 'darwin') {
-      return {
-        category: '微信进程',
-        status: 'warning',
-        message: '仅支持 macOS 平台的微信进程检查'
-      }
-    }
-
     try {
       const pids = await this.findWeChatProcesses()
 
@@ -324,29 +316,11 @@ export class ChatlogDiagnostics {
   }
 
   private async findWeChatProcesses(): Promise<number[]> {
-    try {
-      const { stdout } = await execa('pgrep', ['-f', 'WeChat|Weixin'])
-      const pids = stdout
-        .trim()
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((pid) => parseInt(pid.trim()))
-        .filter((pid) => !isNaN(pid))
-      return pids
-    } catch (error) {
-      // pgrep 没找到进程时会返回错误，这是正常的
-      return []
-    }
+    return await ProcessUtils.findWeChatProcesses()
   }
 
   private async isPortInUse(port: number): Promise<boolean> {
-    try {
-      const { stdout } = await execa('lsof', ['-i', `:${port}`])
-      return stdout.trim().length > 0
-    } catch (error) {
-      // lsof 没找到端口使用时会返回错误
-      return false
-    }
+    return await ProcessUtils.isPortInUse(port)
   }
 
   /**

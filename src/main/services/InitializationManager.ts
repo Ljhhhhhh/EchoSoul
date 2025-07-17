@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import Store from 'electron-store'
-import { execa } from 'execa'
 import { createLogger } from '../utils/logger'
+import { ProcessUtils } from '../utils/processUtils'
 import { ChatlogService } from './ChatlogService'
 import {
   InitializationStep,
@@ -406,22 +406,12 @@ export class InitializationManager extends EventEmitter {
   }
 
   /**
-   * 查找微信进程
+   * 查找微信进程（跨平台实现）
    */
   private async findWeChatProcesses(): Promise<number[]> {
-    try {
-      const { stdout } = await execa('pgrep', ['-f', 'WeChat|Weixin'])
-      const pids = stdout
-        .trim()
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((pid) => parseInt(pid.trim()))
-        .filter((pid) => !isNaN(pid))
-      return pids
-    } catch (error) {
-      // pgrep 没找到进程时会返回错误，这是正常的
-      return []
-    }
+    const pids = await ProcessUtils.findWeChatProcesses()
+    logger.info('检查微信进程', { platform: os.platform(), pids })
+    return pids
   }
 
   // 公共方法

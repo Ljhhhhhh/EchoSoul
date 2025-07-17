@@ -1,6 +1,6 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
-import { execa } from 'execa'
 import { createLogger } from '../utils/logger'
+import { ProcessUtils } from '../utils/processUtils'
 import { InitializationManager } from '../services/InitializationManager'
 import {
   InitializationState,
@@ -141,17 +141,10 @@ export function registerInitializationHandlers(): void {
   // 检查微信状态
   ipcMain.handle('initialization:checkWeChat', async () => {
     try {
-      const { stdout } = await execa('pgrep', ['-f', 'WeChat|Weixin'])
-      const pids = stdout
-        .trim()
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((pid) => parseInt(pid.trim()))
-        .filter((pid) => !isNaN(pid))
-
+      const pids = await ProcessUtils.findWeChatProcesses()
       return { isRunning: pids.length > 0, processIds: pids }
     } catch (error: any) {
-      // pgrep 没找到进程时会返回错误，这是正常的
+      logger.error('检查微信状态时出错:', error)
       return { isRunning: false, processIds: [] }
     }
   })

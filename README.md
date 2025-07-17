@@ -97,6 +97,10 @@ pnpm typecheck    # 类型检查
 - [交互设计](./docs/interaction-design.md)
 - [页面架构](./docs/page-architecture.md)
 
+## 已知问题
+
+windows 微信4.0.5 以上版本无法开启 chatlog
+
 ## 🤝 贡献指南
 
 1. Fork 本仓库
