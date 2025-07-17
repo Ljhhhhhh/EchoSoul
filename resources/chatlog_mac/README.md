@@ -27,7 +27,6 @@ _聊天记录工具，帮助大家轻松使用自己的聊天数据_
 - 支持自动解密数据，简化使用流程
 - 支持多账号管理，可在不同账号间切换
 
-
 ## TODO
 
 - 聊天数据全文索引
@@ -74,6 +73,7 @@ chatlog
 ```
 
 操作方法：
+
 - 使用 `↑` `↓` 键选择菜单项
 - 按 `Enter` 确认选择
 - 按 `Esc` 返回上级菜单
@@ -115,18 +115,20 @@ chatlog server
 macOS 用户在获取密钥前需要临时关闭 SIP（系统完整性保护）：
 
 1. **关闭 SIP**：
+
    ```shell
    # 进入恢复模式
    # Intel Mac: 重启时按住 Command + R
    # Apple Silicon: 重启时长按电源键
-   
+
    # 在恢复模式中打开终端并执行
    csrutil disable
-   
+
    # 重启系统
    ```
 
 2. **安装必要工具**：
+
    ```shell
    # 安装 Xcode Command Line Tools
    xcode-select --install
@@ -147,6 +149,7 @@ GET /api/v1/chatlog?time=2023-01-01&talker=wxid_xxx
 ```
 
 参数说明：
+
 - `time`: 时间范围，格式为 `YYYY-MM-DD` 或 `YYYY-MM-DD~YYYY-MM-DD`
 - `talker`: 聊天对象标识（支持 wxid、群聊 ID、备注名、昵称等）
 - `limit`: 返回记录数量
@@ -159,7 +162,6 @@ GET /api/v1/chatlog?time=2023-01-01&talker=wxid_xxx
 - **群聊列表**：`GET /api/v1/chatroom`
 - **会话列表**：`GET /api/v1/session`
 - **多媒体内容**：`GET /api/v1/media?msgid=xxx`
-
 
 ## MCP 集成
 
@@ -222,5 +224,5 @@ Chatlog 可以与多种支持 MCP 的 AI 助手集成，包括：
 - [@0xlane](https://github.com/0xlane) 的 [wechat-dump-rs](https://github.com/0xlane/wechat-dump-rs) 项目
 - [@xaoyaoo](https://github.com/xaoyaoo) 的 [PyWxDump](https://github.com/xaoyaoo/PyWxDump) 项目
 - [@git-jiadong](https://github.com/git-jiadong) 的 [go-lame](https://github.com/git-jiadong/go-lame) 和 [go-silk](https://github.com/git-jiadong/go-silk) 项目
-- [Anthropic](https://www.anthropic.com/) 的 [MCP]((https://github.com/modelcontextprotocol) ) 协议
+- [Anthropic](https://www.anthropic.com/) 的 [MCP](<(https://github.com/modelcontextprotocol)>) 协议
 - 各个 Go 开源库的贡献者们

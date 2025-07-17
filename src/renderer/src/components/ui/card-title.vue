@@ -10,6 +10,6 @@ import { cn } from '@/lib/utils'
 
 <script lang="ts">
 export default {
-  inheritAttrs: false,
+  inheritAttrs: false
 }
 </script>

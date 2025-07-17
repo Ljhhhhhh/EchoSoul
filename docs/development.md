@@ -136,13 +136,13 @@ export class AppServices {
     private chatlog: ChatlogService,
     private analysis: AnalysisService,
     private report: ReportService,
-    private scheduler: SchedulerService,
+    private scheduler: SchedulerService
   ) {}
 
   async initialize() {
-    await this.config.load();
-    await this.chatlog.checkConnection();
-    await this.scheduler.start();
+    await this.config.load()
+    await this.chatlog.checkConnection()
+    await this.scheduler.start()
   }
 }
 ```
@@ -164,64 +164,64 @@ export class AppServices {
 ```typescript
 // 用户配置
 interface UserSettings {
-  llmProvider: 'openai' | 'anthropic' | 'gemini' | 'openrouter' | 'deepseek';
-  apiKeyEncrypted: string;
-  cronTime: string; // "02:00"
+  llmProvider: 'openai' | 'anthropic' | 'gemini' | 'openrouter' | 'deepseek'
+  apiKeyEncrypted: string
+  cronTime: string // "02:00"
   reportPrefs: {
-    autoGenerate: boolean;
-    includeEmotions: boolean;
-    includeTopics: boolean;
-    includeSocial: boolean;
-  };
+    autoGenerate: boolean
+    includeEmotions: boolean
+    includeTopics: boolean
+    includeSocial: boolean
+  }
 }
 
 // 聊天消息
 interface ChatMessage {
-  id: string;
-  sender: string;
-  recipient: string;
-  timestamp: string; // ISO
-  content: string;
-  type: 'text' | 'image' | 'voice' | 'video' | 'file';
-  isGroupChat: boolean;
-  groupName?: string;
+  id: string
+  sender: string
+  recipient: string
+  timestamp: string // ISO
+  content: string
+  type: 'text' | 'image' | 'voice' | 'video' | 'file'
+  isGroupChat: boolean
+  groupName?: string
 }
 
 // 报告元数据
 interface ReportMeta {
-  id: string;
-  type: 'auto' | 'custom';
-  date: string;
-  title: string;
-  filePath: string;
+  id: string
+  type: 'auto' | 'custom'
+  date: string
+  title: string
+  filePath: string
   metadata: {
-    messageCount: number;
-    timeRange: { start: string; end: string };
-    participants: string[];
-    analysisConfig: AnalysisConfig;
-  };
-  createdAt: string;
+    messageCount: number
+    timeRange: { start: string; end: string }
+    participants: string[]
+    analysisConfig: AnalysisConfig
+  }
+  createdAt: string
 }
 
 // 分析配置
 interface AnalysisConfig {
-  timeRange: { start: string; end: string };
-  participants?: string[];
-  dimensions: ('emotion' | 'topic' | 'social' | 'personality')[];
-  customPrompt?: string;
+  timeRange: { start: string; end: string }
+  participants?: string[]
+  dimensions: ('emotion' | 'topic' | 'social' | 'personality')[]
+  customPrompt?: string
 }
 
 // 任务状态
 interface TaskStatus {
-  id: string;
-  type: 'daily-report' | 'custom-report';
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  progress: number; // 0-100
-  errorMessage?: string;
+  id: string
+  type: 'daily-report' | 'custom-report'
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  progress: number // 0-100
+  errorMessage?: string
   result?: {
-    reportId: string;
-    filePath: string;
-  };
+    reportId: string
+    filePath: string
+  }
 }
 ```
 
@@ -232,40 +232,40 @@ interface TaskStatus {
 ```typescript
 // 简化的调度器
 class SchedulerService {
-  private jobs = new Map<string, cron.ScheduledTask>();
+  private jobs = new Map<string, cron.ScheduledTask>()
 
   start() {
     // 每日报告任务
     const dailyTask = cron.schedule(
       '0 2 * * *',
       async () => {
-        await this.generateDailyReport();
+        await this.generateDailyReport()
       },
-      { scheduled: false },
-    );
+      { scheduled: false }
+    )
 
-    this.jobs.set('daily-report', dailyTask);
-    dailyTask.start();
+    this.jobs.set('daily-report', dailyTask)
+    dailyTask.start()
   }
 
   private async generateDailyReport() {
     try {
-      const yesterday = this.getYesterday();
+      const yesterday = this.getYesterday()
       const messages = await this.chatlog.getMessages({
         startDate: yesterday,
-        endDate: yesterday,
-      });
+        endDate: yesterday
+      })
 
       const report = await this.analysis.generateReport(messages, {
-        type: 'daily',
-      });
+        type: 'daily'
+      })
 
-      await this.report.save(report);
+      await this.report.save(report)
 
       // 发送系统通知
-      this.sendNotification('每日报告已生成');
+      this.sendNotification('每日报告已生成')
     } catch (error) {
-      console.error('Daily report generation failed:', error);
+      console.error('Daily report generation failed:', error)
     }
   }
 }
@@ -278,33 +278,33 @@ class SchedulerService {
 class ReportService {
   async generateCustomReport(config: AnalysisConfig): Promise<string> {
     // 1. 创建任务记录
-    const taskId = this.createTask('custom-report');
+    const taskId = this.createTask('custom-report')
 
     try {
       // 2. 获取聊天数据
-      this.updateTaskProgress(taskId, 20, '获取聊天记录...');
+      this.updateTaskProgress(taskId, 20, '获取聊天记录...')
       const messages = await this.chatlog.getMessages({
         startDate: config.timeRange.start,
         endDate: config.timeRange.end,
-        participants: config.participants,
-      });
+        participants: config.participants
+      })
 
       // 3. AI分析
-      this.updateTaskProgress(taskId, 60, '分析聊天内容...');
-      const analysis = await this.analysis.analyzeMessages(messages, config);
+      this.updateTaskProgress(taskId, 60, '分析聊天内容...')
+      const analysis = await this.analysis.analyzeMessages(messages, config)
 
       // 4. 生成报告
-      this.updateTaskProgress(taskId, 80, '生成报告...');
-      const report = await this.renderReport(analysis, config);
+      this.updateTaskProgress(taskId, 80, '生成报告...')
+      const report = await this.renderReport(analysis, config)
 
       // 5. 保存文件
-      this.updateTaskProgress(taskId, 100, '保存完成');
-      const filePath = await this.saveReport(report);
+      this.updateTaskProgress(taskId, 100, '保存完成')
+      const filePath = await this.saveReport(report)
 
-      return filePath;
+      return filePath
     } catch (error) {
-      this.updateTaskProgress(taskId, -1, `生成失败: ${error.message}`);
-      throw error;
+      this.updateTaskProgress(taskId, -1, `生成失败: ${error.message}`)
+      throw error
     }
   }
 }
@@ -319,25 +319,25 @@ class ReportService {
 class AnalysisService {
   async generateReport(messages: ChatMessage[], config: AnalysisConfig) {
     // 1. 基础统计
-    const stats = this.calculateBasicStats(messages);
+    const stats = this.calculateBasicStats(messages)
 
     // 2. 直接LLM分析（无需向量化）
-    const analysis = await this.llmAnalyze(messages, stats);
+    const analysis = await this.llmAnalyze(messages, stats)
 
     // 3. 结构化输出
-    return this.formatReport(analysis, stats);
+    return this.formatReport(analysis, stats)
   }
 
   private async llmAnalyze(messages: ChatMessage[], stats: BasicStats) {
-    const prompt = this.buildAnalysisPrompt(messages, stats);
+    const prompt = this.buildAnalysisPrompt(messages, stats)
 
     // 直接调用LangChain，无需复杂Pipeline
     const result = await this.llmChain.invoke({
       messages: this.sampleMessages(messages), // 智能采样
-      context: stats,
-    });
+      context: stats
+    })
 
-    return this.validateOutput(result); // Zod校验
+    return this.validateOutput(result) // Zod校验
   }
 }
 ```
@@ -347,36 +347,36 @@ class AnalysisService {
 ```typescript
 // 多Provider支持
 class LLMService {
-  private chains = new Map<string, any>();
+  private chains = new Map<string, any>()
 
   async initializeChain(provider: string, apiKey: string) {
-    let llm;
+    let llm
 
     switch (provider) {
       case 'openai':
         llm = new ChatOpenAI({
           openAIApiKey: apiKey,
           modelName: 'gpt-3.5-turbo',
-          temperature: 0.3,
-        });
-        break;
+          temperature: 0.3
+        })
+        break
       case 'anthropic':
         llm = new ChatAnthropic({
           anthropicApiKey: apiKey,
           modelName: 'claude-3-haiku-20240307',
-          temperature: 0.3,
-        });
-        break;
+          temperature: 0.3
+        })
+        break
       // ... 其他Provider
     }
 
     const chain = new LLMChain({
       llm,
       prompt: PromptTemplate.fromTemplate('{prompt}'),
-      outputParser: new JsonOutputParser(),
-    });
+      outputParser: new JsonOutputParser()
+    })
 
-    this.chains.set(provider, chain);
+    this.chains.set(provider, chain)
   }
 }
 ```
@@ -389,30 +389,30 @@ class LLMService {
 // IPC接口定义
 interface IPCHandlers {
   // 配置管理
-  'config:get': () => Promise<UserSettings>;
-  'config:set': (settings: Partial<UserSettings>) => Promise<void>;
-  'config:test-api': (provider: string, apiKey: string) => Promise<boolean>;
+  'config:get': () => Promise<UserSettings>
+  'config:set': (settings: Partial<UserSettings>) => Promise<void>
+  'config:test-api': (provider: string, apiKey: string) => Promise<boolean>
 
   // chatlog服务
-  'chatlog:status': () => Promise<'running' | 'not-running' | 'error'>;
-  'chatlog:start': () => Promise<boolean>;
-  'chatlog:get-contacts': () => Promise<Contact[]>;
+  'chatlog:status': () => Promise<'running' | 'not-running' | 'error'>
+  'chatlog:start': () => Promise<boolean>
+  'chatlog:get-contacts': () => Promise<Contact[]>
 
   // 报告管理
-  'report:list': () => Promise<ReportMeta[]>;
-  'report:get': (id: string) => Promise<string>; // Markdown内容
-  'report:generate-custom': (config: AnalysisConfig) => Promise<string>; // taskId
+  'report:list': () => Promise<ReportMeta[]>
+  'report:get': (id: string) => Promise<string> // Markdown内容
+  'report:generate-custom': (config: AnalysisConfig) => Promise<string> // taskId
 
   // 任务状态
-  'task:status': (taskId: string) => Promise<TaskStatus>;
-  'task:cancel': (taskId: string) => Promise<void>;
+  'task:status': (taskId: string) => Promise<TaskStatus>
+  'task:cancel': (taskId: string) => Promise<void>
 }
 
 // 事件推送（Main → Renderer）
 interface IPCEvents {
-  'task:progress': (taskId: string, progress: number, message: string) => void;
-  'report:generated': (reportId: string) => void;
-  notification: (title: string, message: string) => void;
+  'task:progress': (taskId: string, progress: number, message: string) => void
+  'report:generated': (reportId: string) => void
+  notification: (title: string, message: string) => void
 }
 ```
 
@@ -422,48 +422,38 @@ interface IPCEvents {
 // 主进程IPC处理器
 export function setupIpcHandlers(services: AppServices) {
   ipcMain.handle('config:get', async () => {
-    return await services.config.get();
-  });
+    return await services.config.get()
+  })
 
-  ipcMain.handle(
-    'report:generate-custom',
-    async (_, config: AnalysisConfig) => {
-      const taskId = generateId();
+  ipcMain.handle('report:generate-custom', async (_, config: AnalysisConfig) => {
+    const taskId = generateId()
 
-      // 异步执行，通过事件推送进度
-      services.report
-        .generateCustomReport(config, taskId)
-        .then((reportId) => {
-          mainWindow.webContents.send('report:generated', reportId);
-        })
-        .catch((error) => {
-          mainWindow.webContents.send(
-            'task:progress',
-            taskId,
-            -1,
-            error.message,
-          );
-        });
+    // 异步执行，通过事件推送进度
+    services.report
+      .generateCustomReport(config, taskId)
+      .then((reportId) => {
+        mainWindow.webContents.send('report:generated', reportId)
+      })
+      .catch((error) => {
+        mainWindow.webContents.send('task:progress', taskId, -1, error.message)
+      })
 
-      return taskId;
-    },
-  );
+    return taskId
+  })
 }
 
 // 渲染进程API封装
 export class ElectronAPI {
   async getReports(): Promise<ReportMeta[]> {
-    return await window.electronAPI.invoke('report:list');
+    return await window.electronAPI.invoke('report:list')
   }
 
   async generateCustomReport(config: AnalysisConfig): Promise<string> {
-    return await window.electronAPI.invoke('report:generate-custom', config);
+    return await window.electronAPI.invoke('report:generate-custom', config)
   }
 
-  onTaskProgress(
-    callback: (taskId: string, progress: number, message: string) => void,
-  ) {
-    window.electronAPI.on('task:progress', callback);
+  onTaskProgress(callback: (taskId: string, progress: number, message: string) => void) {
+    window.electronAPI.on('task:progress', callback)
   }
 }
 ```
