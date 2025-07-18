@@ -2,6 +2,7 @@ import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { createLogger } from '../utils/logger'
 import { ProcessUtils } from '../utils/processUtils'
 import { InitializationManager } from '../services/InitializationManager'
+import { ConfigService } from '../services/ConfigService'
 import {
   InitializationState,
   InitializationStep
@@ -11,6 +12,7 @@ import {
 const logger = createLogger('InitializationIPC')
 
 let initializationManager: InitializationManager | null = null
+let configService: ConfigService | null = null
 
 /**
  * 注册初始化相关的 IPC 处理器
@@ -20,7 +22,13 @@ export function registerInitializationHandlers(): void {
   ipcMain.handle('initialization:start', async () => {
     try {
       if (!initializationManager) {
-        initializationManager = new InitializationManager()
+        // 创建 ConfigService 实例（如果还没有）
+        if (!configService) {
+          configService = new ConfigService()
+          await configService.initialize()
+        }
+
+        initializationManager = new InitializationManager(configService)
 
         // 监听状态变化
         initializationManager.on('stateChanged', (state: InitializationState) => {

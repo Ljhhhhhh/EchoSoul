@@ -3,11 +3,10 @@ import type { ChatMessage, Contact, ChatlogStatus } from '@types'
 import { spawn, ChildProcess } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import * as os from 'os'
 import { app } from 'electron'
 import { setExecutablePermission } from '../utils'
 import { ChatlogHttpClient } from './ChatlogHttpClient'
-import Store from 'electron-store'
+import { ConfigService } from './ConfigService'
 import { execa } from 'execa'
 import { getHandleExePath } from '../utils/resourceManager'
 
@@ -34,39 +33,27 @@ interface WeChatDataInfo {
   status: 'online' | 'offline'
 }
 
-interface ChatlogConfig {
-  wechatKey?: string
-  workDir?: string
-  baseUrl?: string
-}
-
 export class ChatlogService {
   private baseUrl = 'http://127.0.0.1:5030' // chatlog默认端口
   private chatlogProcess: ChildProcess | null = null
   private chatlogPath: string
   private isInitialized = false
   private httpClient: ChatlogHttpClient
-  private store: Store<ChatlogConfig>
+  private configService: ConfigService
 
   // 从配置中加载的微信密钥
   private wechatKey: string = ''
 
-  constructor() {
-    // 初始化配置存储
-    this.store = new Store<ChatlogConfig>({
-      name: 'chatlog-config',
-      defaults: {
-        baseUrl: this.baseUrl
-      }
-    })
+  constructor(configService: ConfigService) {
+    this.configService = configService
 
     // 从配置中加载设置
-    const savedBaseUrl = this.store.get('baseUrl')
+    const savedBaseUrl = this.configService.getChatlogBaseUrl()
     if (savedBaseUrl) {
       this.baseUrl = savedBaseUrl
     }
 
-    const savedKey = this.store.get('wechatKey')
+    const savedKey = this.configService.getWeChatKey()
     if (savedKey) {
       this.wechatKey = savedKey
     }
@@ -121,11 +108,8 @@ export class ChatlogService {
    * 优先使用用户选择的目录，否则使用默认目录
    */
   private getChatlogWorkDir(): string {
-    const homeDir = os.homedir()
-
-    // 优先使用用户配置的工作目录
-    const savedWorkDir = this.store.get('workDir')
-    const workDir = savedWorkDir || path.join(homeDir, 'Documents', 'EchoSoul', 'chatlog_data')
+    // 使用统一的配置服务获取工作目录
+    const workDir = this.configService.getChatlogWorkDir()
 
     // 确保目录存在
     if (!fs.existsSync(workDir)) {
@@ -140,7 +124,7 @@ export class ChatlogService {
    * 设置工作目录
    */
   setWorkDir(workDir: string): void {
-    this.store.set('workDir', workDir)
+    this.configService.setChatlogWorkDir(workDir)
     logger.info(`Work directory set to: ${workDir}`)
   }
 
@@ -900,7 +884,7 @@ export class ChatlogService {
           logger.info(`WeChat key obtained successfully: ${output.trim()}`)
           // 存储获取到的密钥
           this.wechatKey = output.trim()
-          this.store.set('wechatKey', this.wechatKey)
+          this.configService.setWeChatKey(this.wechatKey)
           resolve({ success: true, message: output.trim() })
         } else {
           logger.error('Failed to get WeChat key:', errorOutput)

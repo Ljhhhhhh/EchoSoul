@@ -17,10 +17,10 @@ export class AppServices {
   private _scheduler: SchedulerService
 
   constructor() {
-    // 初始化服务实例
+    // 初始化服务实例，注意依赖关系
     this._database = new DatabaseService()
     this._config = new ConfigService()
-    this._chatlog = new ChatlogService()
+    this._chatlog = new ChatlogService(this._config)
     this._analysis = new AnalysisService()
     this._report = new ReportService(this._database)
     this._scheduler = new SchedulerService(this._chatlog, this._report)

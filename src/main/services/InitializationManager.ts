@@ -1,14 +1,13 @@
 import { EventEmitter } from 'events'
-import Store from 'electron-store'
 import { createLogger } from '../utils/logger'
 import { ProcessUtils } from '../utils/processUtils'
 import { ChatlogService } from './ChatlogService'
+import { ConfigService } from './ConfigService'
 import {
   InitializationStep,
   InitializationStatus,
   InitializationState,
   InitializationStepInfo,
-  InitializationConfig,
   InitializationResult,
   WeChatInfo,
   INITIALIZATION_STEPS_CONFIG,
@@ -22,24 +21,16 @@ import * as os from 'os'
 const logger = createLogger('InitializationManager')
 
 export class InitializationManager extends EventEmitter {
-  private store: Store<InitializationConfig>
+  private configService: ConfigService
   private chatlogService: ChatlogService
   private state: InitializationState
   private isRunning = false
 
-  constructor() {
+  constructor(configService: ConfigService) {
     super()
 
-    // 初始化配置存储
-    this.store = new Store<InitializationConfig>({
-      name: 'initialization-config',
-      defaults: {
-        autoStartService: true,
-        skipWeChatCheck: false
-      }
-    })
-
-    this.chatlogService = new ChatlogService()
+    this.configService = configService
+    this.chatlogService = new ChatlogService(configService)
     this.state = this.createInitialState()
   }
 
@@ -88,11 +79,10 @@ export class InitializationManager extends EventEmitter {
       await this.chatlogService.initialize()
 
       // 检查是否已经完成过初始化
-      const savedConfig = this.store.store
+      const wechatKey = this.configService.getWeChatKey()
+      const workDir = this.configService.getChatlogWorkDir()
 
-      if (savedConfig.wechatKey && savedConfig.workDir) {
-        logger.info('Fo111und existing configuration, checking if service can start')
-
+      if (wechatKey && workDir) {
         // 尝试直接启动服务
         if (await this.tryStartService()) {
           this.completeInitialization()
@@ -180,10 +170,6 @@ export class InitializationManager extends EventEmitter {
    * 检查微信状态
    */
   private async checkWeChat(): Promise<InitializationResult> {
-    if (this.store.get('skipWeChatCheck')) {
-      return { success: true, message: 'Skipped WeChat check' }
-    }
-
     const wechatInfo = await this.getWeChatInfo()
 
     if (!wechatInfo.isRunning) {
@@ -206,7 +192,7 @@ export class InitializationManager extends EventEmitter {
    */
   private async getWeChatKey(): Promise<InitializationResult> {
     // 检查是否已有保存的密钥
-    const savedKey = this.store.get('wechatKey')
+    const savedKey = this.configService.getWeChatKey()
     if (savedKey) {
       logger.info('Using saved WeChat key')
       return { success: true, message: 'Using saved key' }
@@ -217,7 +203,7 @@ export class InitializationManager extends EventEmitter {
 
     if (result.success && result.message) {
       // 保存密钥
-      this.store.set('wechatKey', result.message)
+      this.configService.setWeChatKey(result.message)
       logger.info('WeChat key obtained and saved')
       return { success: true, message: 'Key obtained successfully' }
     }
@@ -233,8 +219,11 @@ export class InitializationManager extends EventEmitter {
    */
   private async selectWorkDir(): Promise<InitializationResult> {
     // 检查是否已有保存的目录
-    const savedWorkDir = this.store.get('workDir')
-    if (savedWorkDir) {
+    const savedWorkDir = this.configService.getChatlogWorkDir()
+    if (
+      savedWorkDir &&
+      savedWorkDir !== path.join(os.homedir(), 'Documents', 'EchoSoul', 'chatlog_data')
+    ) {
       logger.info('Using saved work directory:', savedWorkDir)
       return { success: true, message: 'Using saved directory' }
     }
@@ -253,7 +242,7 @@ export class InitializationManager extends EventEmitter {
     // 暂时使用默认目录
     const selectedDir = defaultWorkDir
 
-    this.store.set('workDir', selectedDir)
+    this.configService.setChatlogWorkDir(selectedDir)
     logger.info('Work directory selected:', selectedDir)
 
     return { success: true, message: 'Directory selected', data: selectedDir }
@@ -448,14 +437,18 @@ export class InitializationManager extends EventEmitter {
 
   // 配置方法
   setWorkDir(workDir: string): void {
-    this.store.set('workDir', workDir)
+    this.configService.setChatlogWorkDir(workDir)
   }
 
-  getConfig(): InitializationConfig {
-    return this.store.store
+  getConfig() {
+    return {
+      wechatKey: this.configService.getWeChatKey(),
+      workDir: this.configService.getChatlogWorkDir(),
+      autoStartService: this.configService.getAutoStartService()
+    }
   }
 
   clearConfig(): void {
-    this.store.clear()
+    this.configService.clearProjectConfig()
   }
 }
