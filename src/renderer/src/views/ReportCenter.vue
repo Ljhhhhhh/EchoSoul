@@ -4,7 +4,7 @@
     <section class="welcome-banner">
       <div class="banner-content">
         <h1 class="text-headline-large text-neutral-800">欢迎回到 EchoSoul</h1>
-        <p class="text-body-large text-neutral-600 mt-2">
+        <p class="mt-2 text-body-large text-neutral-600">
           探索您的数字化内省之旅，发现沟通中的深层洞察
         </p>
       </div>
@@ -70,7 +70,7 @@
 
           <!-- Key Insights Preview -->
           <div v-if="todayReport.insights.length > 0" class="insights-preview">
-            <h4 class="text-title-small text-neutral-800 mb-3">关键洞察</h4>
+            <h4 class="mb-3 text-title-small text-neutral-800">关键洞察</h4>
             <div class="insights-grid">
               <div
                 v-for="insight in todayReport.insights.slice(0, 3)"
@@ -178,7 +178,7 @@
         <Icon name="file-text" :size="48" />
       </div>
       <h3 class="text-title-medium text-neutral-700">还没有报告</h3>
-      <p class="text-body-medium text-neutral-500 mt-2">生成您的第一份分析报告，开始探索沟通洞察</p>
+      <p class="mt-2 text-body-medium text-neutral-500">生成您的第一份分析报告，开始探索沟通洞察</p>
       <Button variant="primary" size="lg" class="mt-6" @click="navigateToCustomReport">
         生成第一份报告
       </Button>
@@ -189,10 +189,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import Button from '@/components/design-system/Button.vue'
-import Icon from '@/components/design-system/Icon.vue'
-import Badge from '@/components/ui/badge.vue'
-import type { ReportData, QuickStats } from '@/types/pages'
+import Button from '@renderer/components/design-system/Button.vue'
+import Icon from '@renderer/components/design-system/Icon.vue'
+import Badge from '@renderer/components/ui/badge.vue'
+import type { ReportData, QuickStatsItem } from '@renderer/types/pages'
 
 // Router
 const router = useRouter()
@@ -200,7 +200,7 @@ const router = useRouter()
 // Reactive state
 const todayReport = ref<ReportData | null>(null)
 const historicalReports = ref<ReportData[]>([])
-const quickStats = ref<QuickStats[]>([])
+const quickStats = ref<QuickStatsItem[]>([])
 const searchQuery = ref('')
 const selectedFilter = ref('')
 const showSearch = ref(false)
@@ -314,6 +314,54 @@ const getInsightIcon = (type: string) => {
 onMounted(async () => {
   // Load initial data
   // TODO: Implement data loading from services
+
+  // Initialize quick stats with mock data
+  quickStats.value = [
+    {
+      id: 'total-reports',
+      label: '总报告数',
+      value: 156,
+      icon: 'file-text',
+      trend: {
+        direction: 'up',
+        value: '+12%',
+        label: '较上月'
+      }
+    },
+    {
+      id: 'this-week-reports',
+      label: '本周报告',
+      value: 8,
+      icon: 'calendar',
+      trend: {
+        direction: 'up',
+        value: '+3',
+        label: '较上周'
+      }
+    },
+    {
+      id: 'total-messages',
+      label: '分析消息数',
+      value: '2.4万',
+      icon: 'message-circle',
+      trend: {
+        direction: 'up',
+        value: '+15%',
+        label: '较上月'
+      }
+    },
+    {
+      id: 'active-contacts',
+      label: '活跃联系人',
+      value: 89,
+      icon: 'users',
+      trend: {
+        direction: 'down',
+        value: '-2',
+        label: '较上月'
+      }
+    }
+  ]
 })
 </script>
 

@@ -284,7 +284,7 @@ import { useRouter } from 'vue-router'
 import Button from '@renderer/components/design-system/Button.vue'
 import Icon from '@renderer/components/design-system/Icon.vue'
 import Badge from '@renderer/components/ui/badge.vue'
-import type { ReportData, FilterOptions, SortOptions } from '@renderer/types/pages'
+import type { ReportData, FilterOptions } from '@renderer/types/pages'
 
 // Router
 const router = useRouter()
@@ -328,11 +328,21 @@ const filteredReports = computed(() => {
 
   // Apply filters
   if (filters.value.reportType) {
-    filtered = filtered.filter((report) => report.type === filters.value.reportType)
+    const reportType = filters.value.reportType
+    if (Array.isArray(reportType)) {
+      filtered = filtered.filter((report) => reportType.includes(report.type))
+    } else {
+      filtered = filtered.filter((report) => report.type === reportType)
+    }
   }
 
   if (filters.value.status) {
-    filtered = filtered.filter((report) => report.status === filters.value.status)
+    const status = filters.value.status
+    if (Array.isArray(status)) {
+      filtered = filtered.filter((report) => status.includes(report.status))
+    } else {
+      filtered = filtered.filter((report) => report.status === status)
+    }
   }
 
   if (filters.value.timeRange) {
@@ -394,7 +404,7 @@ const paginatedReports = computed(() => {
 })
 
 const visiblePages = computed(() => {
-  const pages = []
+  const pages: (number | string)[] = []
   const total = totalPages.value
   const current = currentPage.value
 
@@ -475,10 +485,11 @@ const clearSelection = () => {
   selectedReports.value = []
 }
 
-const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
+const goToPage = (page: number | string) => {
+  if (typeof page === 'number' && page >= 1 && page <= totalPages.value) {
     currentPage.value = page
   }
+  // Ignore string values like "..."
 }
 
 const exportReports = () => {

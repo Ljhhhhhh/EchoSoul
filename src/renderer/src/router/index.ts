@@ -3,6 +3,7 @@ import InitializationPage from '../views/InitializationPage.vue'
 import MainApp from '../views/MainApp.vue'
 
 // Lazy load page components for better performance
+const Dashboard = () => import('../views/Dashboard.vue')
 const ReportCenter = () => import('../views/ReportCenter.vue')
 const ReportDetail = () => import('../views/ReportDetail.vue')
 const CustomReport = () => import('../views/CustomReport.vue')
@@ -35,6 +36,12 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
+        name: 'dashboard',
+        component: Dashboard,
+        meta: { title: '仪表板' }
+      },
+      {
+        path: 'reports',
         name: 'report-center',
         component: ReportCenter,
         meta: { title: '报告中心' }

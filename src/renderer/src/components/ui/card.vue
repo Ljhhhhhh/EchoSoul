@@ -1,11 +1,13 @@
 <template>
-  <div :class="cn('rounded-lg border bg-card text-card-foreground shadow-sm', $attrs.class)">
+  <div
+    :class="cnWithAttrs('rounded-lg border bg-card text-card-foreground shadow-sm', $attrs.class)"
+  >
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-import { cn } from '@renderer/lib/utils'
+import { cnWithAttrs } from '@renderer/lib/utils'
 </script>
 
 <script lang="ts">

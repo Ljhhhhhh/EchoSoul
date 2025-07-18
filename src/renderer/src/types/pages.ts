@@ -162,6 +162,10 @@ export interface SettingsSection {
 }
 
 export interface AIServiceConfig {
+  id: string
+  name: string
+  description: string
+  icon: string
   provider: 'openai' | 'claude' | 'gemini' | 'openrouter' | 'deepseek'
   apiKey: string
   model: string
@@ -242,10 +246,11 @@ export interface FilterOptions {
     start: Date
     end: Date
   }
-  reportType?: string[]
-  status?: string[]
+  reportType?: string | string[]
+  status?: string | string[]
   participants?: string[]
   searchQuery?: string
+  timeRange?: string
 }
 
 export interface SortOptions {
@@ -300,6 +305,7 @@ export interface QuickStatsItem {
   trend?: {
     direction: 'up' | 'down'
     value: string
+    label: string
   }
 }
 

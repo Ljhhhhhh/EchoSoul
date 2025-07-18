@@ -438,7 +438,12 @@ const osInfo = ref('macOS 14.0')
 const cpuArch = ref('arm64')
 const memoryUsage = ref('256 MB')
 
-const themeOptions = [
+const themeOptions: Array<{
+  id: 'light' | 'dark' | 'auto'
+  name: string
+  description: string
+  icon: string
+}> = [
   {
     id: 'light',
     name: '浅色模式',
@@ -459,7 +464,11 @@ const themeOptions = [
   }
 ]
 
-const updateChannels = [
+const updateChannels: Array<{
+  id: 'stable' | 'beta'
+  name: string
+  description: string
+}> = [
   {
     id: 'stable',
     name: '稳定版',

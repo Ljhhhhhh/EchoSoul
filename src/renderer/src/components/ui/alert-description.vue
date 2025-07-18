@@ -1,11 +1,11 @@
 <template>
-  <div :class="cn('text-sm [&_p]:leading-relaxed', $attrs.class)">
+  <div :class="cnWithAttrs('text-sm [&_p]:leading-relaxed', $attrs.class)">
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-import { cn } from '@renderer/lib/utils'
+import { cnWithAttrs } from '@renderer/lib/utils'
 
 export interface AlertDescriptionProps {
   class?: string

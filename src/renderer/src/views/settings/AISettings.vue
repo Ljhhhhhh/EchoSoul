@@ -284,6 +284,10 @@ const connectionResults = ref<Record<string, { success: boolean; message: string
 
 const aiProviders = ref<AIServiceConfig[]>([
   {
+    id: 'openai',
+    name: 'OpenAI',
+    description: '强大的 GPT 系列模型，适合各种文本生成任务',
+    icon: 'brain',
     provider: 'openai',
     apiKey: '',
     model: 'gpt-4',
@@ -294,6 +298,10 @@ const aiProviders = ref<AIServiceConfig[]>([
     }
   },
   {
+    id: 'claude',
+    name: 'Claude',
+    description: 'Anthropic 的 Claude 模型，擅长对话和分析',
+    icon: 'message-circle',
     provider: 'claude',
     apiKey: '',
     model: 'claude-3-sonnet',
@@ -304,6 +312,10 @@ const aiProviders = ref<AIServiceConfig[]>([
     }
   },
   {
+    id: 'gemini',
+    name: 'Gemini',
+    description: 'Google 的多模态 AI 模型',
+    icon: 'sparkles',
     provider: 'gemini',
     apiKey: '',
     model: 'gemini-pro',
@@ -314,6 +326,10 @@ const aiProviders = ref<AIServiceConfig[]>([
     }
   },
   {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    description: '统一的 AI 模型接口，支持多种模型',
+    icon: 'route',
     provider: 'openrouter',
     apiKey: '',
     model: 'openai/gpt-4',
@@ -325,6 +341,10 @@ const aiProviders = ref<AIServiceConfig[]>([
     }
   },
   {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    description: '深度求索的高性能 AI 模型',
+    icon: 'search',
     provider: 'deepseek',
     apiKey: '',
     model: 'deepseek-chat',
