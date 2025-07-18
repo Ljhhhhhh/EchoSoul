@@ -32,7 +32,7 @@ export class ProcessUtils {
    */
   private static async findWeChatProcessesWindows(): Promise<number[]> {
     // Windows 微信进程名，支持多个版本
-    const processNames = ['WeChatAppEx.exe', 'WeChat.exe', 'Weixin.exe']
+    const processNames = ['WeChat.exe', 'Weixin.exe']
     const allPids: number[] = []
 
     for (const processName of processNames) {
