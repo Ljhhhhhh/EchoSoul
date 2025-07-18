@@ -64,17 +64,19 @@ export class ResourceManager {
   /**
    * 获取 chatlog 可执行文件的路径
    */
-  public getChatlogExePath(): string {
+  public getChatlogProgramPath(): string {
     const platform = process.platform
-    let executableName: string
+    let relativePath: string
 
     if (platform === 'win32') {
-      executableName = 'chatlog.exe'
+      relativePath = 'chatlog_windows/chatlog.exe'
+    } else if (platform === 'darwin') {
+      relativePath = 'chatlog_mac/chatlog'
     } else {
-      executableName = 'chatlog'
+      throw new Error(`Unsupported platform: ${platform}`)
     }
 
-    return this.getResourcePath(executableName)
+    return this.getResourcePath(relativePath)
   }
 
   /**
@@ -152,8 +154,8 @@ export function getHandleExePath(): string {
   return resourceManager.getHandleExePath()
 }
 
-export function getChatlogExePath(): string {
-  return resourceManager.getChatlogExePath()
+export function getChatlogProgramPath(): string {
+  return resourceManager.getChatlogProgramPath()
 }
 
 export function validateResources() {

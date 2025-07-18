@@ -112,7 +112,7 @@ const router = createRouter({
 })
 
 // Navigation guard for initialization check
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (_to, _from, next) => {
   // TODO: Implement initialization status check
   // const isInitialized = await checkInitializationStatus()
 
