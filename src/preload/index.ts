@@ -28,6 +28,17 @@ const api = {
       ipcRenderer.removeAllListeners('initialization:completed')
       ipcRenderer.removeAllListeners('initialization:error')
     }
+  },
+
+  // chatlog相关的API
+  chatlog: {
+    decryptDatabase: () => ipcRenderer.invoke('chatlog:decrypt-database'),
+    status: () => ipcRenderer.invoke('chatlog:status'),
+    start: () => ipcRenderer.invoke('chatlog:start'),
+    stop: () => ipcRenderer.invoke('chatlog:stop'),
+    getContacts: () => ipcRenderer.invoke('chatlog:get-contacts'),
+    getWechatKey: () => ipcRenderer.invoke('chatlog:get-wechat-key'),
+    checkInitialization: () => ipcRenderer.invoke('chatlog:check-initialization')
   }
 }
 

@@ -57,10 +57,10 @@
             <Button
               variant="text"
               size="sm"
-              icon="settings"
-              aria-label="设置"
+              icon="refresh-cw"
+              aria-label="解密聊天记录"
               class="action-button"
-              @click="() => router.push('/main/settings')"
+              @click="decryptDatabase"
             />
           </div>
         </div>
@@ -161,6 +161,24 @@ const getStatusText = () => {
 const showHelp = () => {
   // TODO: Implement help dialog or navigate to help page
   console.log('显示帮助')
+}
+
+const decryptDatabase = async () => {
+  try {
+    console.log('开始解密聊天记录...')
+    const result = await window.api.chatlog.decryptDatabase()
+
+    if (result.success) {
+      console.log('聊天记录解密成功:', result.message)
+      // TODO: 可以添加成功提示
+    } else {
+      console.error('聊天记录解密失败:', result.message)
+      // TODO: 可以添加错误提示
+    }
+  } catch (error) {
+    console.error('调用解密功能时出错:', error)
+    // TODO: 可以添加错误提示
+  }
 }
 
 // Update navigation active states when route changes
