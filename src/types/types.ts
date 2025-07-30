@@ -3,14 +3,7 @@ import { z } from 'zod'
 // 用户配置
 export const UserSettingsSchema = z.object({
   llmProvider: z.enum(['openai', 'anthropic', 'gemini', 'openrouter', 'deepseek']),
-  apiKeyEncrypted: z.string(),
-  cronTime: z.string().default('02:00'),
-  reportPrefs: z.object({
-    autoGenerate: z.boolean().default(true),
-    includeEmotions: z.boolean().default(true),
-    includeTopics: z.boolean().default(true),
-    includeSocial: z.boolean().default(true)
-  })
+  apiKeyEncrypted: z.string()
 })
 
 export type UserSettings = z.infer<typeof UserSettingsSchema>
@@ -32,7 +25,6 @@ export type ChatMessage = z.infer<typeof ChatMessageSchema>
 // 报告元数据
 export const ReportMetaSchema = z.object({
   id: z.string(),
-  type: z.enum(['auto', 'custom']),
   date: z.string(),
   title: z.string(),
   filePath: z.string(),
@@ -43,7 +35,7 @@ export const ReportMetaSchema = z.object({
       end: z.string()
     }),
     participants: z.array(z.string()),
-    analysisConfig: z.any() // 稍后定义详细schema
+    prompt: z.string()
   }),
   createdAt: z.string()
 })
@@ -57,8 +49,7 @@ export const AnalysisConfigSchema = z.object({
     end: z.string()
   }),
   participants: z.array(z.string()).optional(),
-  dimensions: z.array(z.enum(['emotion', 'topic', 'social', 'personality'])),
-  customPrompt: z.string().optional()
+  prompt: z.string()
 })
 
 export type AnalysisConfig = z.infer<typeof AnalysisConfigSchema>
