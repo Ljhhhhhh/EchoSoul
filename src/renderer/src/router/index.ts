@@ -26,6 +26,7 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: false
     }
   },
+
   {
     path: '/main',
     name: 'main',

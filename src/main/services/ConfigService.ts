@@ -29,14 +29,13 @@ export class ConfigService {
   private projectStore: Store<ProjectConfig>
 
   private defaultUserSettings: UserSettings = {
-    llmProvider: 'openai',
-    apiKeyEncrypted: '',
-    cronTime: '02:00',
-    reportPrefs: {
-      autoGenerate: true,
-      includeEmotions: true,
-      includeTopics: true,
-      includeSocial: true
+    llmProvider: 'openrouter',
+    aiServices: [],
+    preferences: {
+      autoRetry: true,
+      enableUsageTracking: true,
+      enableHealthChecks: true,
+      healthCheckInterval: 300000 // 5分钟
     }
   }
 
