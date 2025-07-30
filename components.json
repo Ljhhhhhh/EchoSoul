@@ -4,7 +4,7 @@
   "typescript": true,
   "tsConfigPath": "./tsconfig.web.json",
   "tailwind": {
-    "config": "tailwind.config.js",
+    "config": "tailwind.config.mjs",
     "css": "src/renderer/src/assets/main.css",
     "baseColor": "slate",
     "cssVariables": true

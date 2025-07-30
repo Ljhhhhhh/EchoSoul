@@ -9,6 +9,7 @@ const ReportDetail = () => import('../views/ReportDetail.vue')
 const CustomReport = () => import('../views/CustomReport.vue')
 const ReportHistory = () => import('../views/ReportHistory.vue')
 const Settings = () => import('../views/Settings.vue')
+const DesignSystemDemo = () => import('../views/DesignSystemDemo.vue')
 
 // Settings sub-pages
 const AISettings = () => import('../views/settings/AISettings.vue')
@@ -23,6 +24,15 @@ const routes: RouteRecordRaw[] = [
     component: InitializationPage,
     meta: {
       title: 'EchoSoul 初始化',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/design-system',
+    name: 'design-system-demo',
+    component: DesignSystemDemo,
+    meta: {
+      title: 'EchoSoul × Northern Lights 设计系统',
       requiresAuth: false
     }
   },

@@ -1,67 +1,84 @@
 /*
- * EchoSoul Design Tokens
- * 设计令牌文件 - 包含所有设计系统的常量定义
- * 基于 Material Design 3 规范 + Tailwind CSS 3.4
+ * EchoSoul × Northern Lights Design Tokens
+ * 设计令牌文件 - 融合 Northern Lights 主题与 EchoSoul 设计理念
+ * 基于 OKLCH 色彩空间 + Material Design 3 规范
  */
 
 :root {
   /* ========================================
-   * EchoSoul 色彩系统 (Color System)
+   * EchoSoul × Northern Lights 色彩系统
+   * 使用现代 OKLCH 色彩空间，确保色彩感知一致性
    * ======================================== */
 
-  /* 深海智慧蓝 (Deep Ocean Wisdom Blue) - 主色系 */
-  --color-primary-50: #f7fbff;
-  --color-primary-100: #e8f4ff;
-  --color-primary-200: #c7e4ff;
-  --color-primary-300: #96ceff;
-  --color-primary-400: #5db4ff;
-  --color-primary-500: #2e96ff;
-  --color-primary-600: #1a7ae6;
-  --color-primary-700: #155fb3;
-  --color-primary-800: #0f4580;
-  --color-primary-900: #0a2e4d;
+  /* 智慧绿 (Wisdom Green) - 主色系 */
+  --color-primary-base: oklch(0.6487 0.1538 150.3071);
+  --color-primary-50: oklch(0.95 0.02 150);
+  --color-primary-100: oklch(0.9 0.04 150);
+  --color-primary-200: oklch(0.85 0.06 150);
+  --color-primary-300: oklch(0.8 0.08 150);
+  --color-primary-400: oklch(0.75 0.1 150);
+  --color-primary-500: oklch(0.6487 0.1538 150.3071);
+  --color-primary-600: oklch(0.6 0.16 150);
+  --color-primary-700: oklch(0.55 0.14 150);
+  --color-primary-800: oklch(0.45 0.12 150);
+  --color-primary-900: oklch(0.35 0.1 150);
 
   /* 紫罗兰洞察 (Violet Insight) - 辅助色系 */
-  --color-secondary-50: #faf7ff;
-  --color-secondary-100: #ede5ff;
-  --color-secondary-200: #d6c7ff;
-  --color-secondary-300: #b8a0ff;
-  --color-secondary-400: #9575ff;
-  --color-secondary-500: #7048e8;
-  --color-secondary-600: #5a2fc2;
-  --color-secondary-700: #44239c;
-  --color-secondary-800: #2e1876;
-  --color-secondary-900: #1a0e50;
+  --color-secondary-base: oklch(0.6746 0.1414 261.338);
+  --color-secondary-50: oklch(0.95 0.02 261);
+  --color-secondary-100: oklch(0.9 0.04 261);
+  --color-secondary-200: oklch(0.85 0.06 261);
+  --color-secondary-300: oklch(0.8 0.08 261);
+  --color-secondary-400: oklch(0.75 0.1 261);
+  --color-secondary-500: oklch(0.6746 0.1414 261.338);
+  --color-secondary-600: oklch(0.6 0.14 261);
+  --color-secondary-700: oklch(0.55 0.12 261);
+  --color-secondary-800: oklch(0.45 0.1 261);
+  --color-secondary-900: oklch(0.35 0.08 261);
 
-  /* 温暖中性色系 (Warm Neutral) */
-  --color-neutral-0: #ffffff;
-  --color-neutral-50: #fdfcfb;
-  --color-neutral-100: #f7f6f4;
-  --color-neutral-200: #ebe9e7;
-  --color-neutral-300: #d4d1cc;
-  --color-neutral-400: #a8a29e;
-  --color-neutral-500: #78716c;
-  --color-neutral-600: #57534e;
-  --color-neutral-700: #44403c;
-  --color-neutral-800: #292524;
-  --color-neutral-900: #1c1917;
+  /* 天空蓝 (Sky Blue) - 强调色系 */
+  --color-accent-base: oklch(0.8269 0.108 211.9627);
+  --color-accent-50: oklch(0.95 0.02 212);
+  --color-accent-100: oklch(0.9 0.04 212);
+  --color-accent-200: oklch(0.85 0.06 212);
+  --color-accent-300: oklch(0.8 0.08 212);
+  --color-accent-400: oklch(0.75 0.1 212);
+  --color-accent-500: oklch(0.8269 0.108 211.9627);
+  --color-accent-600: oklch(0.7 0.12 212);
+  --color-accent-700: oklch(0.65 0.1 212);
+  --color-accent-800: oklch(0.55 0.08 212);
+  --color-accent-900: oklch(0.45 0.06 212);
 
-  /* 语义色彩 - 精致美观版 */
-  --color-success: #3d8b40;
-  --color-warning: #f59e0b;
-  --color-error: #dc2626;
-  --color-info: #2e96ff;
+  /* 现代中性色系 (Modern Neutral) - 基于 OKLCH */
+  --color-neutral-0: oklch(1 0 0);
+  --color-neutral-50: oklch(0.9824 0.0013 286.3757);
+  --color-neutral-100: oklch(0.95 0.005 286);
+  --color-neutral-200: oklch(0.9 0.01 286);
+  --color-neutral-300: oklch(0.85 0.015 286);
+  --color-neutral-400: oklch(0.7 0.02 286);
+  --color-neutral-500: oklch(0.55 0.015 286);
+  --color-neutral-600: oklch(0.45 0.01 286);
+  --color-neutral-700: oklch(0.35 0.008 286);
+  --color-neutral-800: oklch(0.25 0.006 286);
+  --color-neutral-900: oklch(0.15 0.004 286);
+
+  /* 语义色彩 - OKLCH 版本 */
+  --color-success: oklch(0.6487 0.1538 150.3071);
+  --color-warning: oklch(0.75 0.15 85);
+  --color-error: oklch(0.6368 0.2078 25.3313);
+  --color-info: oklch(0.8269 0.108 211.9627);
 
   /* 数据可视化色彩系列 (Data Visualization Colors) */
-  --color-chart-1: #2e96ff; /* 深海智慧蓝 */
-  --color-chart-2: #44239c; /* 紫罗兰洞察 */
-  --color-chart-3: #3d8b40; /* 森林成长绿 */
-  --color-chart-4: #f97316; /* 日落温暖橙 */
-  --color-chart-5: #0891b2; /* 海洋清新青 */
-  --color-chart-6: #e879f9; /* 玫瑰优雅粉 */
+  --color-chart-1: oklch(0.6487 0.1538 150.3071); /* 智慧绿 */
+  --color-chart-2: oklch(0.6746 0.1414 261.338); /* 紫罗兰洞察 */
+  --color-chart-3: oklch(0.8269 0.108 211.9627); /* 天空蓝 */
+  --color-chart-4: oklch(0.588 0.0993 245.7394); /* 深紫调 */
+  --color-chart-5: oklch(0.5905 0.1608 148.2409); /* 森林绿 */
+  --color-chart-6: oklch(0.75 0.15 320); /* 玫瑰粉 */
 
   /* ========================================
-   * Material Design 字体系统 (Typography System)
+   * Northern Lights 字体系统 (Typography System)
+   * 基于 Material Design 3 + 现代字体家族
    * ======================================== */
 
   /* Display 级别 - 用于大标题 */
@@ -105,14 +122,17 @@
   --line-height-label-small: 16px;
 
   /* ========================================
-   * 字体家族 (Font Families)
+   * Northern Lights 字体家族 (Font Families)
    * ======================================== */
 
   --font-family-sans:
-    'Noto Sans CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei',
-    'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+    'Plus Jakarta Sans', 'Noto Sans CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'WenQuanYi Micro Hei', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
+  --font-family-serif:
+    'Source Serif 4', 'Noto Serif CJK SC', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
   --font-family-mono:
-    'Roboto Mono', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    'JetBrains Mono', 'Roboto Mono', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono',
+    'Courier New', monospace;
 
   /* ========================================
    * 间距系统 (Spacing System)
@@ -158,26 +178,39 @@
 }
 
 /* ========================================
- * 深色模式支持 (Dark Mode Support)
+ * Northern Lights 深色模式支持 (Dark Mode Support)
+ * 基于 OKLCH 色彩空间的精确深色模式调整
  * ======================================== */
 
 .dark {
-  /* 深色模式色彩优化 - 保持美观性 */
+  /* 深色模式背景色系 - 深邃夜空蓝 */
+  --color-neutral-0: oklch(0.15 0.004 286);
+  --color-neutral-50: oklch(0.2303 0.0125 264.2926);
+  --color-neutral-100: oklch(0.25 0.01 264);
+  --color-neutral-200: oklch(0.3 0.015 264);
+  --color-neutral-300: oklch(0.35 0.02 264);
+  --color-neutral-400: oklch(0.5 0.025 264);
+  --color-neutral-500: oklch(0.65 0.02 264);
+  --color-neutral-600: oklch(0.75 0.015 264);
+  --color-neutral-700: oklch(0.85 0.01 264);
+  --color-neutral-800: oklch(0.9 0.008 264);
+  --color-neutral-900: oklch(0.9219 0 0);
 
-  /* 主色系调整 - 更亮更柔和 */
-  --color-primary-500: #5db4ff;
-  --color-primary-600: #3da5ff;
-  --color-primary-700: #1e96ff;
+  /* 主色系保持一致 - 智慧绿在深色模式下依然美观 */
+  --color-primary-base: oklch(0.6487 0.1538 150.3071);
+  --color-primary-500: oklch(0.6487 0.1538 150.3071);
 
-  /* 辅助色系调整 */
-  --color-secondary-500: #9575ff;
-  --color-secondary-600: #7c5cff;
-  --color-secondary-700: #6344ff;
+  /* 辅助色系调整 - 深色模式下的柔和紫调 */
+  --color-secondary-base: oklch(0.588 0.0993 245.7394);
+  --color-secondary-500: oklch(0.588 0.0993 245.7394);
 
-  /* 中性色系调整 - 深邃而温暖 */
-  --color-neutral-50: #1a1815;
-  --color-neutral-100: #211e1a;
-  --color-neutral-200: #2e2a25;
-  --color-neutral-800: #f4f3f1;
-  --color-neutral-900: #ffffff;
+  /* 强调色系调整 - 深色模式下的紫罗兰 */
+  --color-accent-base: oklch(0.6746 0.1414 261.338);
+  --color-accent-500: oklch(0.6746 0.1414 261.338);
+
+  /* 语义色彩在深色模式下的调整 */
+  --color-success: oklch(0.6487 0.1538 150.3071);
+  --color-warning: oklch(0.8 0.15 85);
+  --color-error: oklch(0.6368 0.2078 25.3313);
+  --color-info: oklch(0.8269 0.108 211.9627);
 }
