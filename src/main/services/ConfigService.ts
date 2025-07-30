@@ -30,7 +30,13 @@ export class ConfigService {
 
   private defaultUserSettings: UserSettings = {
     llmProvider: 'openrouter',
-    apiKeyEncrypted: ''
+    aiServices: [],
+    preferences: {
+      autoRetry: true,
+      enableUsageTracking: true,
+      enableHealthChecks: true,
+      healthCheckInterval: 300000 // 5分钟
+    }
   }
 
   private defaultProjectConfig: ProjectConfig = {

@@ -1,0 +1,306 @@
+import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '@types'
+import { BaseAIProviderAdapter, type AIProviderAdapter } from './AIProviderAdapter'
+import { OpenAIAdapter } from './OpenAIAdapter'
+import { AnthropicAdapter } from './AnthropicAdapter'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('AIProviderFactory')
+
+/**
+ * AI 提供商适配器工厂
+ * 负责创建和管理各种 AI 服务提供商的适配器实例
+ */
+export class AIProviderFactory {
+  private static adapters = new Map<AIProvider, AIProviderAdapter>()
+
+  /**
+   * 获取指定提供商的适配器
+   * @param provider 提供商标识
+   * @returns 适配器实例
+   */
+  static getAdapter(provider: AIProvider): AIProviderAdapter {
+    if (!this.adapters.has(provider)) {
+      this.adapters.set(provider, this.createAdapter(provider))
+    }
+
+    return this.adapters.get(provider)!
+  }
+
+  /**
+   * 获取所有可用的提供商
+   * @returns 提供商列表
+   */
+  static getAvailableProviders(): AIProvider[] {
+    return ['openai', 'anthropic', 'gemini', 'openrouter', 'deepseek', 'local']
+  }
+
+  /**
+   * 获取所有适配器实例
+   * @returns 适配器映射
+   */
+  static getAllAdapters(): Map<AIProvider, AIProviderAdapter> {
+    // 确保所有适配器都已创建
+    this.getAvailableProviders().forEach((provider) => {
+      this.getAdapter(provider)
+    })
+
+    return new Map(this.adapters)
+  }
+
+  /**
+   * 检查提供商是否受支持
+   * @param provider 提供商标识
+   * @returns 是否支持
+   */
+  static isProviderSupported(provider: AIProvider): boolean {
+    return this.getAvailableProviders().includes(provider)
+  }
+
+  /**
+   * 清理所有适配器
+   */
+  static async cleanup(): Promise<void> {
+    logger.info('Cleaning up AI provider adapters...')
+
+    const cleanupPromises = Array.from(this.adapters.values()).map((adapter) => adapter.cleanup?.())
+
+    await Promise.allSettled(cleanupPromises)
+    this.adapters.clear()
+
+    logger.info('AI provider adapters cleaned up')
+  }
+
+  /**
+   * 创建适配器实例
+   * @param provider 提供商标识
+   * @returns 适配器实例
+   */
+  private static createAdapter(provider: AIProvider): AIProviderAdapter {
+    switch (provider) {
+      case 'openai':
+        return new OpenAIAdapter()
+
+      case 'anthropic':
+        return new AnthropicAdapter()
+
+      case 'gemini':
+        return new GeminiAdapter()
+
+      case 'openrouter':
+        return new OpenRouterAdapter()
+
+      case 'deepseek':
+        return new DeepSeekAdapter()
+
+      case 'local':
+        return new LocalAdapter()
+
+      default:
+        throw new Error(`Unsupported AI provider: ${provider}`)
+    }
+  }
+}
+
+/**
+ * Gemini 适配器（占位符实现）
+ */
+class GeminiAdapter extends BaseAIProviderAdapter {
+  readonly provider: AIProvider = 'gemini'
+  readonly name = 'Google Gemini'
+  readonly description = 'Google Gemini models'
+  readonly supportedModels = ['gemini-pro', 'gemini-pro-vision']
+  readonly defaultModel = 'gemini-pro'
+  readonly requiresApiKey = true
+  readonly supportsCustomBaseUrl = false
+
+  private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta'
+
+  async validateApiKey(apiKey: string): Promise<boolean> {
+    try {
+      const url = `${this.baseUrl}/models?key=${apiKey}`
+      const response = await fetch(url)
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
+  async testConnection(_config: AIServiceConfig): Promise<AIServiceTestResult> {
+    // TODO: 实现 Gemini 连接测试
+    return {
+      success: false,
+      error: 'Gemini adapter not fully implemented yet'
+    }
+  }
+
+  async sendChatRequest(
+    _config: AIServiceConfig,
+    _messages: Array<{ role: string; content: string }>,
+    _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
+  ): Promise<{
+    content: string
+    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
+    model?: string
+  }> {
+    // TODO: 实现 Gemini 聊天请求
+    throw new Error('Gemini adapter not fully implemented yet')
+  }
+}
+
+/**
+ * OpenRouter 适配器（基于 OpenAI 兼容接口）
+ */
+class OpenRouterAdapter extends BaseAIProviderAdapter {
+  readonly provider: AIProvider = 'openrouter'
+  readonly name = 'OpenRouter'
+  readonly description = 'OpenRouter unified API for multiple models'
+  readonly supportedModels = [
+    'openai/gpt-4o',
+    'openai/gpt-4o-mini',
+    'anthropic/claude-3.5-sonnet',
+    'google/gemini-pro',
+    'meta-llama/llama-3.1-8b-instruct'
+  ]
+  readonly defaultModel = 'openai/gpt-4o-mini'
+  readonly requiresApiKey = true
+  readonly supportsCustomBaseUrl = true
+
+  private readonly defaultBaseUrl = 'https://openrouter.ai/api/v1'
+
+  async validateApiKey(apiKey: string, baseUrl?: string): Promise<boolean> {
+    try {
+      const url = `${baseUrl || this.defaultBaseUrl}/auth/key`
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
+  async testConnection(_config: AIServiceConfig): Promise<AIServiceTestResult> {
+    // TODO: 实现 OpenRouter 连接测试
+    return {
+      success: false,
+      error: 'OpenRouter adapter not fully implemented yet'
+    }
+  }
+
+  async sendChatRequest(
+    _config: AIServiceConfig,
+    _messages: Array<{ role: string; content: string }>,
+    _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
+  ): Promise<{
+    content: string
+    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
+    model?: string
+  }> {
+    // TODO: 实现 OpenRouter 聊天请求
+    throw new Error('OpenRouter adapter not fully implemented yet')
+  }
+}
+
+/**
+ * DeepSeek 适配器（基于 OpenAI 兼容接口）
+ */
+class DeepSeekAdapter extends BaseAIProviderAdapter {
+  readonly provider: AIProvider = 'deepseek'
+  readonly name = 'DeepSeek'
+  readonly description = 'DeepSeek AI models'
+  readonly supportedModels = ['deepseek-chat', 'deepseek-coder']
+  readonly defaultModel = 'deepseek-chat'
+  readonly requiresApiKey = true
+  readonly supportsCustomBaseUrl = true
+
+  private readonly defaultBaseUrl = 'https://api.deepseek.com/v1'
+
+  async validateApiKey(apiKey: string, baseUrl?: string): Promise<boolean> {
+    // TODO: 实现 DeepSeek API 密钥验证
+    try {
+      const url = `${baseUrl || this.defaultBaseUrl}/models`
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`
+        }
+      })
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
+  async testConnection(_config: AIServiceConfig): Promise<AIServiceTestResult> {
+    // TODO: 实现 DeepSeek 连接测试
+    return {
+      success: false,
+      error: 'DeepSeek adapter not fully implemented yet'
+    }
+  }
+
+  async sendChatRequest(
+    _config: AIServiceConfig,
+    _messages: Array<{ role: string; content: string }>,
+    _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
+  ): Promise<{
+    content: string
+    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
+    model?: string
+  }> {
+    // TODO: 实现 DeepSeek 聊天请求
+    throw new Error('DeepSeek adapter not fully implemented yet')
+  }
+}
+
+/**
+ * 本地模型适配器（占位符实现）
+ */
+class LocalAdapter extends BaseAIProviderAdapter {
+  readonly provider: AIProvider = 'local'
+  readonly name = 'Local Model'
+  readonly description = 'Local AI models via Ollama or similar'
+  readonly supportedModels = ['llama3', 'codellama', 'mistral']
+  readonly defaultModel = 'llama3'
+  readonly requiresApiKey = false
+  readonly supportsCustomBaseUrl = true
+
+  private readonly defaultBaseUrl = 'http://localhost:11434/v1'
+
+  async validateApiKey(_apiKey: string, baseUrl?: string): Promise<boolean> {
+    // 本地模型通常不需要 API 密钥，只需要检查服务是否可用
+    try {
+      const url = `${baseUrl || this.defaultBaseUrl}/models`
+      const response = await fetch(url)
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
+  async testConnection(_config: AIServiceConfig): Promise<AIServiceTestResult> {
+    // TODO: 实现本地模型连接测试
+    return {
+      success: false,
+      error: 'Local adapter not fully implemented yet'
+    }
+  }
+
+  async sendChatRequest(
+    _config: AIServiceConfig,
+    _messages: Array<{ role: string; content: string }>,
+    _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
+  ): Promise<{
+    content: string
+    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
+    model?: string
+  }> {
+    // TODO: 实现本地模型聊天请求
+    throw new Error('Local adapter not fully implemented yet')
+  }
+}

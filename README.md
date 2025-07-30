@@ -118,3 +118,10 @@ windows 微信4.0.5 以上版本无法开启 chatlog
 - [electron-vite](https://electron-vite.org/) - 优秀的 Electron 开发工具
 - [shadcn/ui](https://ui.shadcn.com/) - 现代化的 UI 组件库
 - [LangChain.js](https://js.langchain.com/) - 强大的 AI 应用开发框架
+
+🔄 chatlog服务集成
+🔄 AI服务配置与管理
+🔄 报告生成核心逻辑
+🔄 报告查看与管理界面
+🔄 数据库设计与实现
+🔄 IPC通信层完善

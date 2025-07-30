@@ -510,7 +510,7 @@ onMounted(async () => {
 }
 
 .provider-card.configured {
-  @apply border-success bg-success/5;
+  @apply border-green-500 bg-green-50;
 }
 
 .provider-header {

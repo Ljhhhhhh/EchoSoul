@@ -723,7 +723,7 @@ onMounted(async () => {
 }
 
 .cleanup-item.danger {
-  @apply border-error bg-error/5;
+  @apply border-destructive bg-destructive/5;
 }
 
 .export-info,

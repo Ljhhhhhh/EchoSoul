@@ -26,7 +26,7 @@
             v-for="section in settingsSections"
             :key="section.id"
             class="nav-item"
-            :class="{ active: section.isActive }"
+            :class="{ active: isActiveSection(section.path) }"
             @click="navigateToSection(section)"
           >
             <div class="nav-icon">
@@ -46,8 +46,11 @@
       <!-- Settings Panel -->
       <main class="settings-panel">
         <div class="panel-container">
+          <!-- Router View for Settings Sub-pages -->
+          <router-view v-if="$route.name !== 'settings'" />
+
           <!-- Default Settings Overview -->
-          <div v-if="!$route.params.section" class="settings-overview">
+          <div v-else class="settings-overview">
             <div class="overview-header">
               <h2 class="text-title-large text-neutral-800">设置概览</h2>
               <p class="mt-2 text-body-medium text-neutral-600">
@@ -94,22 +97,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Settings Sub-pages -->
-          <div v-else class="settings-subpage">
-            <div class="subpage-header">
-              <div class="breadcrumb">
-                <Button variant="text" size="sm" @click="navigateToOverview"> 设置 </Button>
-                <Icon name="chevron-right" :size="16" />
-                <span class="current-section">{{ currentSectionTitle }}</span>
-              </div>
-            </div>
-
-            <!-- Router View for Sub-pages -->
-            <div class="subpage-content">
-              <router-view />
-            </div>
-          </div>
         </div>
       </main>
     </div>
@@ -117,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Button from '@renderer/components/design-system/Button.vue'
 import Icon from '@renderer/components/design-system/Icon.vue'
@@ -159,13 +146,6 @@ const settingsSections = ref<SettingsSection[]>([
   }
 ])
 
-// Computed properties
-const currentSectionTitle = computed(() => {
-  const sectionId = route.params.section as string
-  const section = settingsSections.value.find((s) => s.id === sectionId)
-  return section?.title || '设置'
-})
-
 // Methods
 const goBack = () => {
   router.push('/main')
@@ -175,12 +155,12 @@ const showHelp = () => {
   // Show help dialog or navigate to help page
 }
 
-const navigateToSection = (section: SettingsSection) => {
-  router.push(section.path)
+const isActiveSection = (sectionPath: string) => {
+  return route.path === sectionPath
 }
 
-const navigateToOverview = () => {
-  router.push('/main/settings')
+const navigateToSection = (section: SettingsSection) => {
+  router.push(section.path)
 }
 
 const exportSettings = () => {
@@ -198,157 +178,201 @@ const resetSettings = () => {
 const showAbout = () => {
   // Show about dialog
 }
-
-const updateActiveSection = () => {
-  const currentPath = route.path
-  settingsSections.value.forEach((section) => {
-    section.isActive = section.path === currentPath
-  })
-}
-
-// Watchers
-watch(route, updateActiveSection, { immediate: true })
-
-// Lifecycle
-onMounted(() => {
-  updateActiveSection()
-})
 </script>
 
 <style scoped>
 .settings {
-  @apply min-h-screen bg-neutral-50;
+  min-height: 100vh;
+  background-color: rgb(250 250 250);
 }
 
 .settings-header {
-  @apply bg-white border-b border-neutral-200 p-6;
+  background-color: white;
+  border-bottom: 1px solid rgb(229 229 229);
+  padding: 1.5rem;
 }
 
 .header-content {
-  @apply flex items-center justify-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .header-left {
-  @apply flex items-center space-x-4;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .settings-content {
-  @apply flex;
+  display: flex;
 }
 
 .settings-navigation {
-  @apply w-80 bg-white border-r border-neutral-200 p-6;
+  width: 20rem;
+  background-color: white;
+  border-right: 1px solid rgb(229 229 229);
+  padding: 1.5rem;
 }
 
 .nav-menu {
-  @apply space-y-2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .nav-item {
-  @apply flex items-center space-x-3 p-4 rounded-lg cursor-pointer transition-colors hover:bg-neutral-100;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-item:hover {
+  background-color: rgb(245 245 245);
 }
 
 .nav-item.active {
-  @apply bg-primary-50 text-primary-700;
+  background-color: rgb(239 246 255);
+  color: rgb(29 78 216);
 }
 
 .nav-icon {
-  @apply w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: rgb(245 245 245);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-item.active .nav-icon {
-  @apply bg-primary-100 text-primary-600;
+  background-color: rgb(219 234 254);
+  color: rgb(37 99 235);
 }
 
 .nav-content {
-  @apply flex-1;
+  flex: 1;
 }
 
 .nav-title {
-  @apply font-medium text-neutral-800;
+  font-weight: 500;
+  color: rgb(38 38 38);
 }
 
 .nav-item.active .nav-title {
-  @apply text-primary-700;
+  color: rgb(29 78 216);
 }
 
 .nav-description {
-  @apply text-sm text-neutral-500 mt-1;
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+  margin-top: 0.25rem;
 }
 
 .nav-arrow {
-  @apply text-neutral-400;
+  color: rgb(163 163 163);
 }
 
 .nav-item.active .nav-arrow {
-  @apply text-primary-500;
+  color: rgb(59 130 246);
 }
 
 .settings-panel {
-  @apply flex-1;
+  flex: 1;
 }
 
 .panel-container {
-  @apply max-w-4xl mx-auto p-6;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
 
 .settings-overview {
-  @apply space-y-8;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .overview-header {
-  @apply text-center;
+  text-align: center;
 }
 
 .overview-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .overview-card {
-  @apply bg-white p-6 rounded-lg shadow-sm border border-neutral-200 cursor-pointer transition-all hover:shadow-md hover:-translate-y-1;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  border: 1px solid rgb(229 229 229);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.overview-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transform: translateY(-0.25rem);
 }
 
 .card-icon {
-  @apply w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mb-4;
+  width: 3rem;
+  height: 3rem;
+  background-color: rgb(219 234 254);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(37 99 235);
+  margin-bottom: 1rem;
 }
 
 .card-title {
-  @apply text-lg font-medium text-neutral-800 mb-2;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: rgb(38 38 38);
+  margin-bottom: 0.5rem;
 }
 
 .card-description {
-  @apply text-neutral-600 mb-4;
+  color: rgb(115 115 115);
+  margin-bottom: 1rem;
 }
 
 .card-arrow {
-  @apply text-neutral-400;
+  color: rgb(163 163 163);
 }
 
 .quick-actions {
-  @apply bg-white p-6 rounded-lg shadow-sm;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
 
 .actions-grid {
-  @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
-.settings-subpage {
-  @apply space-y-6;
-}
-
-.subpage-header {
-  @apply pb-4 border-b border-neutral-200;
-}
-
-.breadcrumb {
-  @apply flex items-center space-x-2 text-sm;
-}
-
-.current-section {
-  @apply text-neutral-700 font-medium;
-}
-
-.subpage-content {
-  @apply bg-white rounded-lg shadow-sm;
+@media (min-width: 768px) {
+  .actions-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 </style>

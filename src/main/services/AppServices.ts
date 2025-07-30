@@ -1,6 +1,8 @@
 import { ConfigService } from './ConfigService'
 import { ChatlogService } from './ChatlogService'
 import { DatabaseService } from './DatabaseService'
+import { AIServiceManager } from './AIServiceManager'
+import { AIHealthCheckService } from './AIHealthCheckService'
 import { createLogger } from '../utils/logger'
 
 const logger = createLogger('AppServices')
@@ -9,12 +11,16 @@ export class AppServices {
   private _database: DatabaseService
   private _config: ConfigService
   private _chatlog: ChatlogService
+  private _aiService: AIServiceManager
+  private _aiHealthCheck: AIHealthCheckService
 
   constructor() {
     // 初始化服务实例，注意依赖关系
     this._database = new DatabaseService()
     this._config = new ConfigService()
     this._chatlog = new ChatlogService(this._config)
+    this._aiService = new AIServiceManager(this._config)
+    this._aiHealthCheck = new AIHealthCheckService()
   }
 
   async initialize() {
@@ -24,6 +30,7 @@ export class AppServices {
       // 按依赖顺序初始化服务
       await this._database.initialize()
       await this._config.initialize()
+      await this._aiService.initialize()
       await this._chatlog.initialize()
 
       logger.info('All services initialized successfully')
@@ -39,6 +46,8 @@ export class AppServices {
 
       // 按相反顺序清理服务
       await this._chatlog.cleanup()
+      await this._aiHealthCheck.cleanup()
+      await this._aiService.cleanup()
       await this._config.cleanup()
       await this._database.cleanup()
 
@@ -59,5 +68,13 @@ export class AppServices {
 
   get chatlog() {
     return this._chatlog
+  }
+
+  get aiService() {
+    return this._aiService
+  }
+
+  get aiHealthCheck() {
+    return this._aiHealthCheck
   }
 }
