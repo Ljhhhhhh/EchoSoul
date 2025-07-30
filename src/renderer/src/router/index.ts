@@ -6,15 +6,8 @@ import MainApp from '../views/MainApp.vue'
 const Dashboard = () => import('../views/Dashboard.vue')
 const ReportCenter = () => import('../views/ReportCenter.vue')
 const ReportDetail = () => import('../views/ReportDetail.vue')
-const CustomReport = () => import('../views/CustomReport.vue')
 const ReportHistory = () => import('../views/ReportHistory.vue')
 const Settings = () => import('../views/Settings.vue')
-
-// Settings sub-pages
-const AISettings = () => import('../views/settings/AISettings.vue')
-const ReportSettings = () => import('../views/settings/ReportSettings.vue')
-const DataSettings = () => import('../views/settings/DataSettings.vue')
-const SystemSettings = () => import('../views/settings/SystemSettings.vue')
 
 const routes: RouteRecordRaw[] = [
   {
@@ -55,12 +48,6 @@ const routes: RouteRecordRaw[] = [
         props: true
       },
       {
-        path: 'create',
-        name: 'custom-report',
-        component: CustomReport,
-        meta: { title: '生成自定义报告' }
-      },
-      {
         path: 'history',
         name: 'report-history',
         component: ReportHistory,
@@ -70,33 +57,7 @@ const routes: RouteRecordRaw[] = [
         path: 'settings',
         name: 'settings',
         component: Settings,
-        meta: { title: '设置' },
-        children: [
-          {
-            path: 'ai',
-            name: 'ai-settings',
-            component: AISettings,
-            meta: { title: 'AI服务配置' }
-          },
-          {
-            path: 'reports',
-            name: 'report-settings',
-            component: ReportSettings,
-            meta: { title: '报告偏好' }
-          },
-          {
-            path: 'data',
-            name: 'data-settings',
-            component: DataSettings,
-            meta: { title: '数据管理' }
-          },
-          {
-            path: 'system',
-            name: 'system-settings',
-            component: SystemSettings,
-            meta: { title: '系统设置' }
-          }
-        ]
+        meta: { title: '设置' }
       }
     ]
   },

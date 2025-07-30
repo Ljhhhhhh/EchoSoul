@@ -3,30 +3,10 @@
  * 设计系统的TypeScript类型定义
  */
 
-// 色彩系统类型
-export type PrimaryColorScale =
-  | '50'
-  | '100'
-  | '200'
-  | '300'
-  | '400'
-  | '500'
-  | '600'
-  | '700'
-  | '800'
-  | '900'
+// 色彩系统类型 - 简化为基础颜色
+export type PrimaryColorScale = 'DEFAULT' | 'foreground'
 
-export type SecondaryColorScale =
-  | '50'
-  | '100'
-  | '200'
-  | '300'
-  | '400'
-  | '500'
-  | '600'
-  | '700'
-  | '800'
-  | '900'
+export type SecondaryColorScale = 'DEFAULT' | 'foreground'
 
 export type NeutralColorScale =
   | '0'

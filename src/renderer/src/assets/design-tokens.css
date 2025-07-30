@@ -1,216 +1,171 @@
 /*
- * EchoSoul × Northern Lights Design Tokens
- * 设计令牌文件 - 融合 Northern Lights 主题与 EchoSoul 设计理念
- * 基于 OKLCH 色彩空间 + Material Design 3 规范
+ * EchoSoul Design Tokens
  */
 
 :root {
-  /* ========================================
-   * EchoSoul × Northern Lights 色彩系统
-   * 使用现代 OKLCH 色彩空间，确保色彩感知一致性
-   * ======================================== */
-
-  /* 智慧绿 (Wisdom Green) - 主色系 */
-  --color-primary-base: oklch(0.6487 0.1538 150.3071);
-  --color-primary-50: oklch(0.95 0.02 150);
-  --color-primary-100: oklch(0.9 0.04 150);
-  --color-primary-200: oklch(0.85 0.06 150);
-  --color-primary-300: oklch(0.8 0.08 150);
-  --color-primary-400: oklch(0.75 0.1 150);
-  --color-primary-500: oklch(0.6487 0.1538 150.3071);
-  --color-primary-600: oklch(0.6 0.16 150);
-  --color-primary-700: oklch(0.55 0.14 150);
-  --color-primary-800: oklch(0.45 0.12 150);
-  --color-primary-900: oklch(0.35 0.1 150);
-
-  /* 紫罗兰洞察 (Violet Insight) - 辅助色系 */
-  --color-secondary-base: oklch(0.6746 0.1414 261.338);
-  --color-secondary-50: oklch(0.95 0.02 261);
-  --color-secondary-100: oklch(0.9 0.04 261);
-  --color-secondary-200: oklch(0.85 0.06 261);
-  --color-secondary-300: oklch(0.8 0.08 261);
-  --color-secondary-400: oklch(0.75 0.1 261);
-  --color-secondary-500: oklch(0.6746 0.1414 261.338);
-  --color-secondary-600: oklch(0.6 0.14 261);
-  --color-secondary-700: oklch(0.55 0.12 261);
-  --color-secondary-800: oklch(0.45 0.1 261);
-  --color-secondary-900: oklch(0.35 0.08 261);
-
-  /* 天空蓝 (Sky Blue) - 强调色系 */
-  --color-accent-base: oklch(0.8269 0.108 211.9627);
-  --color-accent-50: oklch(0.95 0.02 212);
-  --color-accent-100: oklch(0.9 0.04 212);
-  --color-accent-200: oklch(0.85 0.06 212);
-  --color-accent-300: oklch(0.8 0.08 212);
-  --color-accent-400: oklch(0.75 0.1 212);
-  --color-accent-500: oklch(0.8269 0.108 211.9627);
-  --color-accent-600: oklch(0.7 0.12 212);
-  --color-accent-700: oklch(0.65 0.1 212);
-  --color-accent-800: oklch(0.55 0.08 212);
-  --color-accent-900: oklch(0.45 0.06 212);
-
-  /* 现代中性色系 (Modern Neutral) - 基于 OKLCH */
-  --color-neutral-0: oklch(1 0 0);
-  --color-neutral-50: oklch(0.9824 0.0013 286.3757);
-  --color-neutral-100: oklch(0.95 0.005 286);
-  --color-neutral-200: oklch(0.9 0.01 286);
-  --color-neutral-300: oklch(0.85 0.015 286);
-  --color-neutral-400: oklch(0.7 0.02 286);
-  --color-neutral-500: oklch(0.55 0.015 286);
-  --color-neutral-600: oklch(0.45 0.01 286);
-  --color-neutral-700: oklch(0.35 0.008 286);
-  --color-neutral-800: oklch(0.25 0.006 286);
-  --color-neutral-900: oklch(0.15 0.004 286);
-
-  /* 语义色彩 - OKLCH 版本 */
-  --color-success: oklch(0.6487 0.1538 150.3071);
-  --color-warning: oklch(0.75 0.15 85);
-  --color-error: oklch(0.6368 0.2078 25.3313);
-  --color-info: oklch(0.8269 0.108 211.9627);
-
-  /* 数据可视化色彩系列 (Data Visualization Colors) */
-  --color-chart-1: oklch(0.6487 0.1538 150.3071); /* 智慧绿 */
-  --color-chart-2: oklch(0.6746 0.1414 261.338); /* 紫罗兰洞察 */
-  --color-chart-3: oklch(0.8269 0.108 211.9627); /* 天空蓝 */
-  --color-chart-4: oklch(0.588 0.0993 245.7394); /* 深紫调 */
-  --color-chart-5: oklch(0.5905 0.1608 148.2409); /* 森林绿 */
-  --color-chart-6: oklch(0.75 0.15 320); /* 玫瑰粉 */
-
-  /* ========================================
-   * Northern Lights 字体系统 (Typography System)
-   * 基于 Material Design 3 + 现代字体家族
-   * ======================================== */
-
-  /* Display 级别 - 用于大标题 */
-  --font-size-display-large: 57px;
-  --line-height-display-large: 64px;
-  --font-size-display-medium: 45px;
-  --line-height-display-medium: 52px;
-  --font-size-display-small: 36px;
-  --line-height-display-small: 44px;
-
-  /* Headline 级别 - 用于页面标题 */
-  --font-size-headline-large: 32px;
-  --line-height-headline-large: 40px;
-  --font-size-headline-medium: 28px;
-  --line-height-headline-medium: 36px;
-  --font-size-headline-small: 24px;
-  --line-height-headline-small: 32px;
-
-  /* Title 级别 - 用于组件标题 */
-  --font-size-title-large: 22px;
-  --line-height-title-large: 28px;
-  --font-size-title-medium: 16px;
-  --line-height-title-medium: 24px;
-  --font-size-title-small: 14px;
-  --line-height-title-small: 20px;
-
-  /* Body 级别 - 用于正文 */
-  --font-size-body-large: 16px;
-  --line-height-body-large: 24px;
-  --font-size-body-medium: 14px;
-  --line-height-body-medium: 20px;
-  --font-size-body-small: 12px;
-  --line-height-body-small: 16px;
-
-  /* Label 级别 - 用于标签 */
-  --font-size-label-large: 14px;
-  --line-height-label-large: 20px;
-  --font-size-label-medium: 12px;
-  --line-height-label-medium: 16px;
-  --font-size-label-small: 11px;
-  --line-height-label-small: 16px;
-
-  /* ========================================
-   * Northern Lights 字体家族 (Font Families)
-   * ======================================== */
-
-  --font-family-sans:
-    'Plus Jakarta Sans', 'Noto Sans CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-    'WenQuanYi Micro Hei', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
-  --font-family-serif:
-    'Source Serif 4', 'Noto Serif CJK SC', 'Source Serif Pro', 'Georgia', 'Times New Roman', serif;
-  --font-family-mono:
-    'JetBrains Mono', 'Roboto Mono', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono',
-    'Courier New', monospace;
-
-  /* ========================================
-   * 间距系统 (Spacing System)
-   * ======================================== */
-
-  --spacing-0: 0px;
-  --spacing-1: 4px;
-  --spacing-2: 8px;
-  --spacing-3: 12px;
-  --spacing-4: 16px;
-  --spacing-5: 20px;
-  --spacing-6: 24px;
-  --spacing-8: 32px;
-  --spacing-10: 40px;
-  --spacing-12: 48px;
-  --spacing-16: 64px;
-  --spacing-20: 80px;
-  --spacing-24: 96px;
-  --spacing-32: 128px;
-
-  /* ========================================
-   * 圆角系统 (Border Radius System)
-   * ======================================== */
-
-  --radius-none: 0px;
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
-  --radius-full: 9999px;
-
-  /* ========================================
-   * 阴影系统 (Shadow System)
-   * ======================================== */
-
-  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  --shadow-elevation-3: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-  --shadow-elevation-4: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
-  --shadow-elevation-5: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+  --background: #f7f9f3;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #14b8a6;
+  --secondary-foreground: #ffffff;
+  --muted: #f0f0f0;
+  --muted-foreground: #333333;
+  --accent: #f59e0b;
+  --accent-foreground: #000000;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #000000;
+  --input: #737373;
+  --ring: #a5b4fc;
+  --chart-1: #4f46e5;
+  --chart-2: #14b8a6;
+  --chart-3: #f59e0b;
+  --chart-4: #ec4899;
+  --chart-5: #22c55e;
+  --sidebar: #f7f9f3;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #4f46e5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f59e0b;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #000000;
+  --sidebar-ring: #a5b4fc;
+  --font-sans: DM Sans, sans-serif;
+  --font-serif: DM Sans, sans-serif;
+  --font-mono: Space Mono, monospace;
+  --radius: 1rem;
+  --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
+  --shadow-xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
+  --shadow-sm:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-md:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 2px 4px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-lg:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 4px 6px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-xl:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.13);
+  --tracking-normal: normal;
+  --spacing: 0.25rem;
 }
 
-/* ========================================
- * Northern Lights 深色模式支持 (Dark Mode Support)
- * 基于 OKLCH 色彩空间的精确深色模式调整
- * ======================================== */
-
 .dark {
-  /* 深色模式背景色系 - 深邃夜空蓝 */
-  --color-neutral-0: oklch(0.15 0.004 286);
-  --color-neutral-50: oklch(0.2303 0.0125 264.2926);
-  --color-neutral-100: oklch(0.25 0.01 264);
-  --color-neutral-200: oklch(0.3 0.015 264);
-  --color-neutral-300: oklch(0.35 0.02 264);
-  --color-neutral-400: oklch(0.5 0.025 264);
-  --color-neutral-500: oklch(0.65 0.02 264);
-  --color-neutral-600: oklch(0.75 0.015 264);
-  --color-neutral-700: oklch(0.85 0.01 264);
-  --color-neutral-800: oklch(0.9 0.008 264);
-  --color-neutral-900: oklch(0.9219 0 0);
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #1a212b;
+  --card-foreground: #ffffff;
+  --popover: #1a212b;
+  --popover-foreground: #ffffff;
+  --primary: #818cf8;
+  --primary-foreground: #000000;
+  --secondary: #2dd4bf;
+  --secondary-foreground: #000000;
+  --muted: #333333;
+  --muted-foreground: #cccccc;
+  --accent: #fcd34d;
+  --accent-foreground: #000000;
+  --destructive: #f87171;
+  --destructive-foreground: #000000;
+  --border: #545454;
+  --input: #ffffff;
+  --ring: #818cf8;
+  --chart-1: #818cf8;
+  --chart-2: #2dd4bf;
+  --chart-3: #fcd34d;
+  --chart-4: #f472b6;
+  --chart-5: #4ade80;
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #818cf8;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #fcd34d;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #ffffff;
+  --sidebar-ring: #818cf8;
+  --font-sans: DM Sans, sans-serif;
+  --font-serif: DM Sans, sans-serif;
+  --font-mono: Space Mono, monospace;
+  --radius: 1rem;
+  --shadow-2xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
+  --shadow-xs: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.03);
+  --shadow-sm:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-md:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 2px 4px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-lg:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 4px 6px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-xl:
+    0px 0px 0px 0px hsl(0 0% 10.1961% / 0.05), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.05);
+  --shadow-2xl: 0px 0px 0px 0px hsl(0 0% 10.1961% / 0.13);
+}
 
-  /* 主色系保持一致 - 智慧绿在深色模式下依然美观 */
-  --color-primary-base: oklch(0.6487 0.1538 150.3071);
-  --color-primary-500: oklch(0.6487 0.1538 150.3071);
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-  /* 辅助色系调整 - 深色模式下的柔和紫调 */
-  --color-secondary-base: oklch(0.588 0.0993 245.7394);
-  --color-secondary-500: oklch(0.588 0.0993 245.7394);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
 
-  /* 强调色系调整 - 深色模式下的紫罗兰 */
-  --color-accent-base: oklch(0.6746 0.1414 261.338);
-  --color-accent-500: oklch(0.6746 0.1414 261.338);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
-  /* 语义色彩在深色模式下的调整 */
-  --color-success: oklch(0.6487 0.1538 150.3071);
-  --color-warning: oklch(0.8 0.15 85);
-  --color-error: oklch(0.6368 0.2078 25.3313);
-  --color-info: oklch(0.8269 0.108 211.9627);
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-normal: var(--tracking-normal);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+}
+
+body {
+  letter-spacing: var(--tracking-normal);
 }

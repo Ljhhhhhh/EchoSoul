@@ -26,17 +26,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * 获取主色系的 CSS 类名
+ * 获取主色系的 CSS 变量
  */
-export function getPrimaryColor(scale: PrimaryColorScale = '500') {
-  return `text-primary-${scale}` as const
+export function getPrimaryColor() {
+  return 'var(--primary)' as const
 }
 
 /**
- * 获取主色系背景的 CSS 类名
+ * 获取主色系背景的 CSS 变量
  */
-export function getPrimaryBg(scale: PrimaryColorScale = '500') {
-  return `bg-primary-${scale}` as const
+export function getPrimaryBg() {
+  return 'var(--primary)' as const
 }
 
 /**
