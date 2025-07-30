@@ -7,7 +7,7 @@
 
 ## 1. 项目总览
 
-EchoSoul 是一款跨平台桌面应用（macOS / Windows / Linux），通过分析用户聊天记录，生成每日或自定义的个人行为洞察报告。所有数据与推理默认在本地完成，仅在需要时调用云端 LLM。
+EchoSoul 是一款跨平台桌面应用（macOS / Windows / Linux），通过微信聊天记录+用户Prompt实现基于AI的报告生成。所有数据与推理默认在本地完成，仅在需要时调用云端 LLM。
 
 ## 2. 架构设计原则
 
@@ -36,8 +36,7 @@ EchoSoul 是一款跨平台桌面应用（macOS / Windows / Linux），通过分
 | 主进程   | 轻量 Service 层 + TypeScript                                    |
 | AI / NLP | LangChain.js 0.3.x，支持 OpenAI / Claude / Gemini / DeepSeek 等 |
 | 存储     | SQLite（元数据）+ Markdown（报告内容）                          |
-| 样式     | Tailwind CSS + shadcn/ui                                        |
-| 任务调度 | node-cron + 简单内存队列                                        |
+| 样式     | Tailwind CSS                                                    |
 | 打包     | electron-builder                                                |
 | 测试     | vitest • @testing-library/vue • Playwright                      |
 
@@ -149,13 +148,12 @@ export class AppServices {
 
 ### 服务职责分工
 
-| 服务               | 职责                                     | 关键方法                                |
-| ------------------ | ---------------------------------------- | --------------------------------------- |
-| `ConfigService`    | 配置管理、API Key 安全存储、用户偏好设置 | `load()`, `save()`, `encrypt()`         |
-| `ChatlogService`   | chatlog API 集成、连接检测、数据获取     | `checkStatus()`, `getMessages()`        |
-| `AnalysisService`  | 简化 AI 分析、LangChain 调用、结构化输出 | `generateReport()`, `analyzeMessages()` |
-| `ReportService`    | 报告生成、Markdown 渲染、文件存储        | `create()`, `save()`, `list()`          |
-| `SchedulerService` | 定时任务、任务队列、进度跟踪             | `start()`, `scheduleDaily()`            |
+| 服务              | 职责                                     | 关键方法                                |
+| ----------------- | ---------------------------------------- | --------------------------------------- |
+| `ConfigService`   | 配置管理、API Key 安全存储、用户偏好设置 | `load()`, `save()`, `encrypt()`         |
+| `ChatlogService`  | chatlog API 集成、连接检测、数据获取     | `checkStatus()`, `getMessages()`        |
+| `AnalysisService` | 简化 AI 分析、LangChain 调用、结构化输出 | `generateReport()`, `analyzeMessages()` |
+| `ReportService`   | 报告生成、Markdown 渲染、文件存储        | `create()`, `save()`, `list()`          |
 
 ## 7. 数据模型
 
@@ -227,58 +225,14 @@ interface TaskStatus {
 
 ## 8. 核心流程
 
-### 8.1 每日自动报告流程
-
-```typescript
-// 简化的调度器
-class SchedulerService {
-  private jobs = new Map<string, cron.ScheduledTask>()
-
-  start() {
-    // 每日报告任务
-    const dailyTask = cron.schedule(
-      '0 2 * * *',
-      async () => {
-        await this.generateDailyReport()
-      },
-      { scheduled: false }
-    )
-
-    this.jobs.set('daily-report', dailyTask)
-    dailyTask.start()
-  }
-
-  private async generateDailyReport() {
-    try {
-      const yesterday = this.getYesterday()
-      const messages = await this.chatlog.getMessages({
-        startDate: yesterday,
-        endDate: yesterday
-      })
-
-      const report = await this.analysis.generateReport(messages, {
-        type: 'daily'
-      })
-
-      await this.report.save(report)
-
-      // 发送系统通知
-      this.sendNotification('每日报告已生成')
-    } catch (error) {
-      console.error('Daily report generation failed:', error)
-    }
-  }
-}
-```
-
-### 8.2 自定义报告流程
+### 8.1 自定义报告流程
 
 ```typescript
 // 自定义报告生成
 class ReportService {
   async generateCustomReport(config: AnalysisConfig): Promise<string> {
     // 1. 创建任务记录
-    const taskId = this.createTask('custom-report')
+    const taskId = this.createTask()
 
     try {
       // 2. 获取聊天数据
@@ -312,37 +266,7 @@ class ReportService {
 
 ## 9. AI 分析 Pipeline
 
-### 9.1 简化的分析流程
-
-```typescript
-// 简化的分析服务
-class AnalysisService {
-  async generateReport(messages: ChatMessage[], config: AnalysisConfig) {
-    // 1. 基础统计
-    const stats = this.calculateBasicStats(messages)
-
-    // 2. 直接LLM分析（无需向量化）
-    const analysis = await this.llmAnalyze(messages, stats)
-
-    // 3. 结构化输出
-    return this.formatReport(analysis, stats)
-  }
-
-  private async llmAnalyze(messages: ChatMessage[], stats: BasicStats) {
-    const prompt = this.buildAnalysisPrompt(messages, stats)
-
-    // 直接调用LangChain，无需复杂Pipeline
-    const result = await this.llmChain.invoke({
-      messages: this.sampleMessages(messages), // 智能采样
-      context: stats
-    })
-
-    return this.validateOutput(result) // Zod校验
-  }
-}
-```
-
-### 9.2 LangChain 集成
+### 9.1 LangChain 集成
 
 ```typescript
 // 多Provider支持
