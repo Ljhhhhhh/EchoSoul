@@ -1,25 +1,8 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*", "src/types/**/*"],
-  "exclude": [
-    "**/__tests__/**/*",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
+  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*"],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"],
-    "target": "esnext",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": ".",
-    "paths": {
-      "@types/*": ["./src/types/*"],
-      "@types": ["./src/types/index"]
-    },
-    "noImplicitAny": false,
-    "noImplicitReturns": false
+    "types": ["electron-vite/node"]
   }
 }

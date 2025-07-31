@@ -3,19 +3,20 @@
   "include": [
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
-    "src/renderer/src/**/*.vue",
+    "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts"
   ],
   "compilerOptions": {
     "composite": true,
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [
         "src/renderer/src/*"
       ],
-      "@types/*": ["src/types/*"]
-    },
-    "noImplicitAny": false,
-    "noImplicitReturns": false
+      "@/*": [
+        "src/renderer/src/*"
+      ]
+    }
   }
 }
