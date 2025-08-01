@@ -10,6 +10,7 @@ const api = {
     retryFromStep: (step: string) => ipcRenderer.invoke('initialization:retryFromStep', step),
     selectWorkDir: () => ipcRenderer.invoke('initialization:selectWorkDir'),
     getDiagnostics: () => ipcRenderer.invoke('initialization:getDiagnostics'),
+    hasDecryptedData: () => ipcRenderer.invoke('initialization:hasDecryptedData'),
 
     // 事件监听
     onStateChanged: (callback: (state: any) => void) => {

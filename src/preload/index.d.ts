@@ -11,6 +11,7 @@ interface InitializationAPI {
     report?: string
     error?: string
   }>
+  hasDecryptedData: () => Promise<boolean>
   onStateChanged: (callback: (state: any) => void) => void
   onCompleted: (callback: () => void) => void
   onError: (callback: (error: any) => void) => void

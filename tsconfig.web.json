@@ -16,7 +16,14 @@
       ],
       "@/*": [
         "src/renderer/src/*"
-      ]
-    }
+      ],
+      "@types/*": ["src/types/*"]
+    },
+    // 允许返回any类型和不设置返回类型
+    "noImplicitReturns": false,
+    "noImplicitAny": false,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   }
 }

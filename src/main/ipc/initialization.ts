@@ -157,6 +157,51 @@ export function registerInitializationHandlers(): void {
     }
   })
 
+  // 检查是否存在解密后的数据
+  ipcMain.handle('initialization:hasDecryptedData', async () => {
+    try {
+      logger.info('🔍 [IPC] 收到 hasDecryptedData 请求')
+
+      // 如果 initializationManager 已经存在，使用它
+      if (initializationManager) {
+        logger.info('🔍 [IPC] 使用现有的 initializationManager')
+        const result = await initializationManager.hasDecryptedData()
+        logger.info(`🔍 [IPC] initializationManager 返回结果: ${result}`)
+        return result
+      }
+
+      logger.info('🔍 [IPC] initializationManager 不存在，使用底层服务直接检查')
+
+      // 如果 initializationManager 不存在，直接使用底层服务检查
+      // 这避免了等待和竞态条件问题
+      if (!configService) {
+        logger.info('🔍 [IPC] 创建新的 ConfigService')
+        configService = new ConfigService()
+        await configService.initialize()
+      }
+
+      const workDir = configService.getChatlogWorkDir()
+      logger.info(`🔍 [IPC] 获取工作目录: ${workDir}`)
+
+      if (!workDir) {
+        logger.warn('🔍 [IPC] 工作目录为空，返回 false')
+        return false
+      }
+
+      // 直接检查工作目录下是否有解密后的数据库文件
+      logger.info('🔍 [IPC] 开始检查数据库文件...')
+      const { WeChatDatabaseService } = await import('../services/wechat/WeChatDatabaseService')
+      const databaseService = new WeChatDatabaseService()
+      const result = await databaseService.checkDecryptedData(workDir)
+
+      logger.info(`🔍 [IPC] 数据库文件检查结果: ${result}`)
+      return result
+    } catch (error: any) {
+      logger.error('🔍 [IPC] 检查解密数据时出错:', error)
+      return false
+    }
+  })
+
   // 强制退出初始化（仅开发模式）
   ipcMain.handle('initialization:forceExit', () => {
     if (process.env.NODE_ENV === 'development') {

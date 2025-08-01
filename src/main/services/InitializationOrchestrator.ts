@@ -477,4 +477,25 @@ export class InitializationOrchestrator extends EventEmitter {
   setWorkDir(workDir: string): void {
     this.services.configService.setChatlogWorkDir(workDir)
   }
+
+  /**
+   * 检查是否存在解密后的数据
+   */
+  async hasDecryptedData(): Promise<boolean> {
+    try {
+      const workDir = this.services.configService.getChatlogWorkDir()
+
+      if (!workDir) {
+        return false
+      }
+
+      // 检查工作目录下是否存在解密后的数据库文件
+      const result = await this.services.databaseService.checkDecryptedData(workDir)
+
+      return result
+    } catch (error) {
+      logger.error('💥 [hasDecryptedData] Failed to check decrypted data:', error)
+      return false
+    }
+  }
 }

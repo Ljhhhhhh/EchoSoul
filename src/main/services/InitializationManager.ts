@@ -216,6 +216,18 @@ export class InitializationManager extends EventEmitter {
   }
 
   /**
+   * 检查是否存在解密后的数据
+   */
+  async hasDecryptedData(): Promise<boolean> {
+    try {
+      return await this.serviceContainer.initializationOrchestrator.hasDecryptedData()
+    } catch (error) {
+      logger.error('Failed to check decrypted data:', error)
+      return false
+    }
+  }
+
+  /**
    * 清理资源
    */
   cleanup(): void {

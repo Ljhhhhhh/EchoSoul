@@ -73,13 +73,15 @@ export class WeChatDatabaseService extends EventEmitter implements IWeChatDataba
   async checkDecryptedData(workDir: string): Promise<boolean> {
     try {
       if (!fs.existsSync(workDir)) {
+        logger.warn(`[checkDecryptedData] 工作目录不存在: ${workDir}`)
         return false
       }
 
       const dbFiles = this.findDatabaseFiles(workDir)
+
       return dbFiles.length > 0
     } catch (error) {
-      logger.debug('Error checking decrypted data:', error)
+      logger.error('Error checking decrypted data:', error)
       return false
     }
   }
@@ -311,9 +313,8 @@ export class WeChatDatabaseService extends EventEmitter implements IWeChatDataba
         }
       }
     } catch (error) {
-      logger.debug(`Error reading directory ${dir}:`, error)
+      logger.error(`Error reading directory ${dir}:`, error)
     }
-
     return files
   }
 
