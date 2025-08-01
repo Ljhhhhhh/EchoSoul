@@ -144,7 +144,6 @@ const InitializationPage: React.FC = () => {
     window.api.initialization.onCompleted(() => {
       // 保存初始化完成状态到本地存储
       setInitializationCompleted()
-      console.log('初始化完成，状态已保存到本地存储')
 
       // 初始化完成后导航到主应用Dashboard
       setTimeout(() => {
@@ -217,14 +216,16 @@ const InitializationPage: React.FC = () => {
                 <div className="flex-shrink-0">{getStatusIcon(currentStep.status)}</div>
               </div>
 
-              {/* 进度条 */}
-              {currentStep.status === 'in_progress' && (
+              {/* 总体进度 */}
+              {state && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>当前进度</span>
-                    <span>{currentStep.progress}%</span>
+                    <span>总体进度</span>
+                    <span>
+                      {completedSteps} / {totalSteps}
+                    </span>
                   </div>
-                  <Progress value={currentStep.progress} className="h-2" />
+                  <Progress value={state.overallProgress} className="h-2" />
                 </div>
               )}
 
@@ -236,22 +237,6 @@ const InitializationPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        )}
-
-        {/* 总体进度 */}
-        {state && (
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>总体进度</span>
-              <span>
-                {completedSteps} / {totalSteps}
-              </span>
-            </div>
-            <Progress value={state.overallProgress} className="h-2" />
-            <p className="text-xs text-center text-muted-foreground">
-              {state.overallProgress}% 完成
-            </p>
-          </div>
         )}
 
         {/* 操作按钮 */}

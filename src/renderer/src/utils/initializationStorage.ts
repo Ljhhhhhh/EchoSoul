@@ -56,6 +56,9 @@ export function setInitializationCompleted(): void {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
     console.log('初始化完成状态已保存到本地存储')
+
+    // 触发自定义事件通知状态变化
+    window.dispatchEvent(new CustomEvent('initializationStatusChanged'))
   } catch (error) {
     console.error('保存初始化状态失败:', error)
   }
@@ -68,6 +71,9 @@ export function clearInitializationStatus(): void {
   try {
     localStorage.removeItem(STORAGE_KEY)
     console.log('初始化状态已从本地存储清除')
+
+    // 触发自定义事件通知状态变化
+    window.dispatchEvent(new CustomEvent('initializationStatusChanged'))
   } catch (error) {
     console.error('清除初始化状态失败:', error)
   }

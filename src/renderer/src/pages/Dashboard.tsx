@@ -1,114 +1,17 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Sparkles, FileText, TrendingUp, Users, MessageCircle, Clock, Loader2 } from 'lucide-react'
+import { Sparkles, FileText, TrendingUp, Users, MessageCircle, Clock } from 'lucide-react'
 import { reports } from '../data/reports'
-import {
-  isInitializationCompletedLocally,
-  clearInitializationStatus
-} from '@/utils/initializationStorage'
-
-// 初始化状态类型
-type InitializationStatus = 'checking' | 'completed' | 'incomplete'
 
 const Dashboard = (): React.ReactElement => {
-  const navigate = useNavigate()
-  const [initializationStatus, setInitializationStatus] =
-    useState<InitializationStatus>('completed')
-
   const recentReports = reports.slice(0, 3)
   const totalReports = reports.length
   const totalMessages = reports.reduce((sum, report) => sum + report.messageCount, 0)
 
-  // 检查工作目录下是否有解密后的数据
-  const checkDecryptedData = async () => {
-    try {
-      console.log('🔍 [前端] 开始调用 hasDecryptedData API')
-      const hasDecryptedData = await window.api.initialization.hasDecryptedData()
-      console.log(`🔍 [前端] hasDecryptedData API 返回结果: ${hasDecryptedData}`)
-      return hasDecryptedData
-    } catch (error) {
-      console.error('🔍 [前端] 检查解密数据失败:', error)
-      return false
-    }
-  }
-
-  // 快速检查初始化状态
-  useEffect(() => {
-    const quickCheck = async () => {
-      // 第一步：快速检查本地存储
-      const isCompletedLocally = isInitializationCompletedLocally()
-
-      if (isCompletedLocally) {
-        setInitializationStatus('completed')
-
-        // 第二步：验证工作目录下是否有解密数据
-        const hasData = await checkDecryptedData()
-
-        if (!hasData) {
-          // 清除错误的本地标记，避免下次启动时再次出现不一致
-          clearInitializationStatus()
-          setInitializationStatus('incomplete')
-          setTimeout(() => {
-            navigate('/initialization')
-          }, 1000)
-        }
-      } else {
-        setInitializationStatus('incomplete')
-        setTimeout(() => {
-          navigate('/initialization')
-        }, 500)
-      }
-    }
-    quickCheck()
-  }, [navigate])
-
-  // 在检查期间显示加载遮罩
-  if (initializationStatus === 'checking') {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="space-y-6 text-center">
-          <div className="flex items-center justify-center w-20 h-20 mx-auto shadow-lg rounded-2xl bg-primary">
-            <Sparkles className="w-10 h-10 text-primary-foreground" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">EchoSoul</h2>
-            <p className="text-muted-foreground">正在检查初始化状态...</p>
-          </div>
-          <div className="flex items-center justify-center space-x-2">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground">请稍候</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 如果未完成初始化，显示跳转提示
-  if (initializationStatus === 'incomplete') {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="space-y-6 text-center">
-          <div className="flex items-center justify-center w-20 h-20 mx-auto shadow-lg rounded-2xl bg-amber-500">
-            <Sparkles className="w-10 h-10 text-white" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">需要初始化</h2>
-            <p className="text-muted-foreground">正在跳转到初始化页面...</p>
-          </div>
-          <div className="flex items-center justify-center space-x-2">
-            <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
-            <span className="text-sm text-muted-foreground">即将跳转</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 正常渲染Dashboard内容
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
       <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
