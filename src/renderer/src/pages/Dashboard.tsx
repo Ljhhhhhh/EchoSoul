@@ -13,8 +13,8 @@ const Dashboard = (): React.ReactElement => {
   const totalMessages = reports.reduce((sum, report) => sum + report.messageCount, 0)
 
   return (
-    <div className="flex flex-col h-full w-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="flex items-center sticky top-0 z-10 gap-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm px-6 py-4">
+    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
         <SidebarTrigger />
         <div>
           <h1 className="text-2xl font-bold text-gray-800">欢迎回来</h1>
@@ -22,18 +22,18 @@ const Dashboard = (): React.ReactElement => {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="mx-auto space-y-8 max-w-7xl">
           {/* Quick Actions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            className="grid grid-cols-1 gap-6 md:grid-cols-2"
           >
-            <Card className="border-orange-200 bg-gradient-to-br from-orange-100/50 to-amber-100/50 hover:shadow-lg transition-all duration-300">
+            <Card className="transition-all duration-300 border-orange-200 bg-gradient-to-br from-orange-100/50 to-amber-100/50 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-orange-800">
-                  <Sparkles className="h-5 w-5" />
+                  <Sparkles className="w-5 h-5" />
                   生成新报告
                 </CardTitle>
                 <CardDescription className="text-orange-700/80">
@@ -42,17 +42,17 @@ const Dashboard = (): React.ReactElement => {
               </CardHeader>
               <CardContent>
                 <Link to="/generate">
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg">
+                  <Button className="w-full text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
                     开始分析
                   </Button>
                 </Link>
               </CardContent>
             </Card>
 
-            <Card className="border-blue-200 bg-gradient-to-br from-blue-100/50 to-indigo-100/50 hover:shadow-lg transition-all duration-300">
+            <Card className="transition-all duration-300 border-blue-200 bg-gradient-to-br from-blue-100/50 to-indigo-100/50 hover:shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-800">
-                  <FileText className="h-5 w-5" />
+                  <FileText className="w-5 h-5" />
                   查看历史报告
                 </CardTitle>
                 <CardDescription className="text-blue-700/80">
@@ -63,7 +63,7 @@ const Dashboard = (): React.ReactElement => {
                 <Link to="/history">
                   <Button
                     variant="outline"
-                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                    className="w-full text-blue-700 border-blue-300 hover:bg-blue-50"
                   >
                     查看历史
                   </Button>
@@ -77,12 +77,12 @@ const Dashboard = (): React.ReactElement => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="grid grid-cols-1 gap-6 md:grid-cols-3"
           >
             <Card className="border-green-200 bg-gradient-to-br from-green-100/50 to-emerald-100/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-800">
+                  <TrendingUp className="w-4 h-4" />
                   总报告数
                 </CardTitle>
               </CardHeader>
@@ -94,8 +94,8 @@ const Dashboard = (): React.ReactElement => {
 
             <Card className="border-purple-200 bg-gradient-to-br from-purple-100/50 to-pink-100/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-purple-800 flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-800">
+                  <MessageCircle className="w-4 h-4" />
                   分析消息数
                 </CardTitle>
               </CardHeader>
@@ -109,8 +109,8 @@ const Dashboard = (): React.ReactElement => {
 
             <Card className="border-teal-200 bg-gradient-to-br from-teal-100/50 to-cyan-100/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-teal-800 flex items-center gap-2">
-                  <Users className="h-4 w-4" />
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-teal-800">
+                  <Users className="w-4 h-4" />
                   活跃联系人
                 </CardTitle>
               </CardHeader>
@@ -139,7 +139,7 @@ const Dashboard = (): React.ReactElement => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {recentReports.map((report, index) => (
                 <motion.div
                   key={report.id}
@@ -148,29 +148,29 @@ const Dashboard = (): React.ReactElement => {
                   transition={{ delay: 0.3 + index * 0.1 }}
                 >
                   <Link to={`/report/${report.id}`}>
-                    <Card className="hover:shadow-lg transition-all duration-300 border-gray-200 hover:border-orange-200 bg-white hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
+                    <Card className="transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
                       <CardHeader>
                         <CardTitle className="text-lg text-gray-800 line-clamp-1">
                           {report.title}
                         </CardTitle>
                         <CardDescription className="flex items-center gap-4 text-sm">
                           <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="w-3 h-3" />
                             {report.createdAt}
                           </span>
                           <span className="flex items-center gap-1">
-                            <MessageCircle className="h-3 w-3" />
+                            <MessageCircle className="w-3 h-3" />
                             {report.messageCount}条消息
                           </span>
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-gray-600 line-clamp-2">{report.summary}</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                        <div className="flex items-center gap-2 mt-3">
+                          <span className="px-2 py-1 text-xs text-orange-700 bg-orange-100 rounded-full">
                             {report.analysisType}
                           </span>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          <span className="px-2 py-1 text-xs text-blue-700 bg-blue-100 rounded-full">
                             {report.targetType}
                           </span>
                         </div>
