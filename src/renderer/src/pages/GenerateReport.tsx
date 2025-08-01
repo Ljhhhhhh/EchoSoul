@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Sparkles, Calendar, Users, MessageSquare, Wand2 } from 'lucide-react'
 import { useToast } from '../hooks/use-toast'
 
-const GenerateReport = () => {
+const GenerateReport = (): React.ReactElement => {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [isGenerating, setIsGenerating] = useState(false)
@@ -52,7 +52,7 @@ const GenerateReport = () => {
 
   const contacts = ['张三', '李四', '王五', '赵六', '工作群', '家庭群', '朋友群', '同学群']
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setIsGenerating(true)
 
@@ -67,7 +67,7 @@ const GenerateReport = () => {
     }, 3000)
   }
 
-  const handleContactToggle = (contact: string) => {
+  const handleContactToggle = (contact: string): void => {
     setFormData((prev) => ({
       ...prev,
       selectedContacts: prev.selectedContacts.includes(contact)
@@ -77,8 +77,8 @@ const GenerateReport = () => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="flex items-center sticky top-0 z-10 gap-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm px-6 py-4">
+    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
         <SidebarTrigger />
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">生成分析报告</h1>
@@ -86,7 +86,7 @@ const GenerateReport = () => {
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Time Range Selection */}
@@ -94,7 +94,7 @@ const GenerateReport = () => {
               <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-800">
-                    <Calendar className="h-5 w-5" />
+                    <Calendar className="w-5 h-5" />
                     选择时间范围
                   </CardTitle>
                   <CardDescription>选择要分析的聊天记录时间范围</CardDescription>
@@ -119,7 +119,7 @@ const GenerateReport = () => {
                   </Select>
 
                   {formData.timeRange === 'custom' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
                         <Label htmlFor="startDate">开始日期</Label>
                         <Input
@@ -157,7 +157,7 @@ const GenerateReport = () => {
               <Card className="border-green-200 bg-gradient-to-br from-green-50/50 to-emerald-50/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-800">
-                    <Users className="h-5 w-5" />
+                    <Users className="w-5 h-5" />
                     选择分析对象
                   </CardTitle>
                   <CardDescription>选择要分析的联系人或群聊</CardDescription>
@@ -181,8 +181,8 @@ const GenerateReport = () => {
 
                   {formData.targetType === 'specific' && (
                     <div>
-                      <Label className="text-sm font-medium mb-3 block">选择联系人</Label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <Label className="block mb-3 text-sm font-medium">选择联系人</Label>
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                         {contacts.map((contact) => (
                           <div key={contact} className="flex items-center space-x-2">
                             <Checkbox
@@ -211,13 +211,13 @@ const GenerateReport = () => {
               <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-purple-800">
-                    <MessageSquare className="h-5 w-5" />
+                    <MessageSquare className="w-5 h-5" />
                     选择分析类型
                   </CardTitle>
                   <CardDescription>选择你想要的分析维度和提示词</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {analysisTypes.map((type) => (
                       <div
                         key={type.value}
@@ -230,7 +230,7 @@ const GenerateReport = () => {
                           setFormData((prev) => ({ ...prev, analysisType: type.value }))
                         }
                       >
-                        <h3 className="font-medium text-gray-800 mb-1">{type.label}</h3>
+                        <h3 className="mb-1 font-medium text-gray-800">{type.label}</h3>
                         <p className="text-sm text-gray-600">{type.description}</p>
                       </div>
                     ))}
@@ -264,16 +264,16 @@ const GenerateReport = () => {
               <Button
                 type="submit"
                 disabled={isGenerating || !formData.timeRange || !formData.analysisType}
-                className="w-full max-w-md bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg h-12 text-lg"
+                className="w-full h-12 max-w-md text-lg text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
               >
                 {isGenerating ? (
                   <>
-                    <Wand2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Wand2 className="w-5 h-5 mr-2 animate-spin" />
                     正在生成报告...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-5 w-5" />
+                    <Sparkles className="w-5 h-5 mr-2" />
                     生成分析报告
                   </>
                 )}

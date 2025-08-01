@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,10 +15,10 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Settings as SettingsIcon, Database, Brain, Shield, Bell, Palette } from 'lucide-react'
+import { Settings as SettingsIcon, Database, Brain, Shield } from 'lucide-react'
 import { useToast } from '../hooks/use-toast'
 
-const Settings = () => {
+const Settings = (): React.ReactElement => {
   const { toast } = useToast()
   const [settings, setSettings] = useState({
     chatlogUrl: 'http://localhost:8080',
@@ -30,14 +30,14 @@ const Settings = () => {
     theme: 'warm'
   })
 
-  const handleSave = () => {
+  const handleSave = (): void => {
     toast({
       title: '设置已保存',
       description: '你的配置已成功更新。'
     })
   }
 
-  const testConnection = async (type: 'chatlog' | 'ai') => {
+  const testConnection = async (type: 'chatlog' | 'ai'): Promise<void> => {
     toast({
       title: type === 'chatlog' ? '测试 Chatlog 连接' : '测试 AI 服务',
       description: '连接测试成功！'

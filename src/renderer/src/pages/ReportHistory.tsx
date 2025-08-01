@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { Search, Filter, Clock, MessageCircle, Download, Eye } from 'lucide-react'
 import { reports } from '../data/reports'
 
-const ReportHistory = () => {
+const ReportHistory = (): React.ReactElement => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
 
@@ -38,30 +38,30 @@ const ReportHistory = () => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="flex items-center sticky top-0 z-10 gap-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm px-6 py-4">
+    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
         <SidebarTrigger />
         <div className="flex-1">
           <h1 className="text-2xl font-semibold text-gray-800">历史报告</h1>
           <p className="text-sm text-gray-600">查看和管理你的所有分析报告</p>
         </div>
         <Link to="/generate">
-          <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">
+          <Button className="text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
             生成新报告
           </Button>
         </Link>
       </header>
 
-      <main className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="mx-auto space-y-6 max-w-7xl">
           {/* Search and Filter */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row gap-4"
+            className="flex flex-col gap-4 md:flex-row"
           >
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <Input
                 placeholder="搜索报告..."
                 value={searchTerm}
@@ -71,7 +71,7 @@ const ReportHistory = () => {
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full md:w-48">
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="筛选类型" />
               </SelectTrigger>
               <SelectContent>
@@ -87,7 +87,7 @@ const ReportHistory = () => {
           </motion.div>
 
           {/* Reports Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredReports.map((report, index) => (
               <motion.div
                 key={report.id}
@@ -95,21 +95,21 @@ const ReportHistory = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="hover:shadow-lg transition-all duration-300 border-gray-200 hover:border-orange-200 bg-white hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30 h-full">
+                <Card className="h-full transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg text-gray-800 line-clamp-2 flex-1">
+                      <CardTitle className="flex-1 text-lg text-gray-800 line-clamp-2">
                         {report.title}
                       </CardTitle>
                     </div>
                     <CardDescription className="space-y-2">
                       <div className="flex items-center gap-4 text-sm">
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                          <Clock className="w-3 h-3" />
                           {report.createdAt}
                         </span>
                         <span className="flex items-center gap-1">
-                          <MessageCircle className="h-3 w-3" />
+                          <MessageCircle className="w-3 h-3" />
                           {report.messageCount}条消息
                         </span>
                       </div>
@@ -132,12 +132,12 @@ const ReportHistory = () => {
                     <div className="flex gap-2">
                       <Link to={`/report/${report.id}`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full">
-                          <Eye className="h-4 w-4 mr-2" />
+                          <Eye className="w-4 h-4 mr-2" />
                           查看详情
                         </Button>
                       </Link>
                       <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
+                        <Download className="w-4 h-4" />
                       </Button>
                     </div>
                   </CardContent>
@@ -150,15 +150,15 @@ const ReportHistory = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12"
+              className="py-12 text-center"
             >
-              <div className="text-gray-400 mb-4">
-                <Search className="h-16 w-16 mx-auto" />
+              <div className="mb-4 text-gray-400">
+                <Search className="w-16 h-16 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-600 mb-2">没有找到匹配的报告</h3>
-              <p className="text-gray-500 mb-4">尝试调整搜索条件或生成新的报告</p>
+              <h3 className="mb-2 text-lg font-medium text-gray-600">没有找到匹配的报告</h3>
+              <p className="mb-4 text-gray-500">尝试调整搜索条件或生成新的报告</p>
               <Link to="/generate">
-                <Button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white">
+                <Button className="text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
                   生成新报告
                 </Button>
               </Link>

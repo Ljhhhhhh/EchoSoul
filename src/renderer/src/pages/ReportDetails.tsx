@@ -1,4 +1,3 @@
-import React from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -18,21 +17,21 @@ import {
 } from 'lucide-react'
 import { reports } from '../data/reports'
 
-const ReportDetails = () => {
+const ReportDetails = (): React.ReactElement => {
   const { id } = useParams()
   const navigate = useNavigate()
   const report = reports.find((r) => r.id === id)
 
   if (!report) {
     return (
-      <div className="flex flex-col h-full w-full">
-        <header className="flex items-center sticky top-0 z-10 gap-4 border-b bg-white px-6 py-4">
+      <div className="flex flex-col w-full h-full">
+        <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 bg-white border-b">
           <SidebarTrigger />
           <h1 className="text-2xl font-semibold">报告未找到</h1>
         </header>
-        <main className="flex-1 flex items-center justify-center">
+        <main className="flex items-center justify-center flex-1">
           <div className="text-center">
-            <p className="text-gray-600 mb-4">抱歉，找不到该报告</p>
+            <p className="mb-4 text-gray-600">抱歉，找不到该报告</p>
             <Link to="/history">
               <Button>返回历史报告</Button>
             </Link>
@@ -52,8 +51,8 @@ const ReportDetails = () => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="flex items-center sticky top-0 z-10 gap-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm px-6 py-4">
+    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
         <SidebarTrigger />
         <Button
           variant="ghost"
@@ -69,17 +68,17 @@ const ReportDetails = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
-            <Share2 className="h-4 w-4 mr-2" />
+            <Share2 className="w-4 h-4 mr-2" />
             分享
           </Button>
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="w-4 h-4 mr-2" />
             导出
           </Button>
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Report Overview */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -87,8 +86,8 @@ const ReportDetails = () => {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-2xl text-orange-800 mb-2">{report.title}</CardTitle>
-                    <CardDescription className="text-orange-700/80 text-base">
+                    <CardTitle className="mb-2 text-2xl text-orange-800">{report.title}</CardTitle>
+                    <CardDescription className="text-base text-orange-700/80">
                       {report.summary}
                     </CardDescription>
                   </div>
@@ -103,11 +102,11 @@ const ReportDetails = () => {
                   </Badge>
                   <Badge variant="outline">{report.targetType}</Badge>
                   <div className="flex items-center gap-1 text-sm text-orange-700">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="w-4 h-4" />
                     {report.timeRange}
                   </div>
                   <div className="flex items-center gap-1 text-sm text-orange-700">
-                    <MessageCircle className="h-4 w-4" />
+                    <MessageCircle className="w-4 h-4" />
                     {report.messageCount}条消息
                   </div>
                 </div>
@@ -121,17 +120,17 @@ const ReportDetails = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">核心洞察</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <h2 className="mb-4 text-xl font-semibold text-gray-800">核心洞察</h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               <Card className="border-pink-200 bg-gradient-to-br from-pink-100/50 to-rose-100/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-pink-800">
-                    <Heart className="h-5 w-5" />
+                    <Heart className="w-5 h-5" />
                     情感状态
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-pink-900 mb-1">积极乐观</div>
+                  <div className="mb-1 text-2xl font-bold text-pink-900">积极乐观</div>
                   <p className="text-sm text-pink-700/80">整体情感倾向积极，表现出较强的正面情绪</p>
                 </CardContent>
               </Card>
@@ -139,12 +138,12 @@ const ReportDetails = () => {
               <Card className="border-blue-200 bg-gradient-to-br from-blue-100/50 to-indigo-100/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-blue-800">
-                    <Users className="h-5 w-5" />
+                    <Users className="w-5 h-5" />
                     社交模式
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-900 mb-1">主动交流</div>
+                  <div className="mb-1 text-2xl font-bold text-blue-900">主动交流</div>
                   <p className="text-sm text-blue-700/80">在对话中表现主动，善于引导话题</p>
                 </CardContent>
               </Card>
@@ -152,12 +151,12 @@ const ReportDetails = () => {
               <Card className="border-green-200 bg-gradient-to-br from-green-100/50 to-emerald-100/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-800">
-                    <TrendingUp className="h-5 w-5" />
+                    <TrendingUp className="w-5 h-5" />
                     成长趋势
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-900 mb-1">持续提升</div>
+                  <div className="mb-1 text-2xl font-bold text-green-900">持续提升</div>
                   <p className="text-sm text-green-700/80">沟通能力和情商水平呈现上升趋势</p>
                 </CardContent>
               </Card>
@@ -173,15 +172,15 @@ const ReportDetails = () => {
             <Card className="border-gray-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-800">
-                  <Brain className="h-5 w-5" />
+                  <Brain className="w-5 h-5" />
                   详细分析
                 </CardTitle>
               </CardHeader>
               <CardContent className="prose prose-gray max-w-none">
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">沟通风格分析</h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">沟通风格分析</h3>
+                    <p className="leading-relaxed text-gray-600">
                       通过对你最近一个月的聊天记录分析，发现你在与朋友交流时表现出温暖、关怀的特质。
                       你经常主动询问朋友的近况，表现出很强的同理心。在群聊中，你往往扮演调节气氛的角色，
                       善于用幽默化解尴尬，让大家感到轻松愉快。
@@ -189,8 +188,8 @@ const ReportDetails = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">情感表达特点</h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">情感表达特点</h3>
+                    <p className="leading-relaxed text-gray-600">
                       你的情感表达相对含蓄但真诚。在表达关心时，你更倾向于通过行动和细节来体现，
                       而不是直接的情感宣泄。这种表达方式让人感到舒适，不会给对方造成压力。
                       同时，你也善于倾听，经常给朋友提供情感支持。
@@ -198,8 +197,8 @@ const ReportDetails = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">成长建议</h3>
-                    <ul className="text-gray-600 space-y-2">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">成长建议</h3>
+                    <ul className="space-y-2 text-gray-600">
                       <li>• 可以尝试更直接地表达自己的情感和需求，这有助于建立更深层的连接</li>
                       <li>• 在处理冲突时，可以更主动地寻求解决方案，而不是回避</li>
                       <li>• 继续保持你的同理心和关怀特质，这是你最大的优势</li>
@@ -208,7 +207,7 @@ const ReportDetails = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">关键词云</h3>
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">关键词云</h3>
                     <div className="flex flex-wrap gap-2">
                       {[
                         '温暖',

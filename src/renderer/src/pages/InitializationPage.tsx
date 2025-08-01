@@ -178,7 +178,7 @@ const InitializationPage: React.FC = () => {
     getDiagnostics()
 
     // 注册事件监听器
-    window.api.initialization.onStateChanged((newState: any) => {
+    window.api.initialization.onStateChanged((newState: InitializationState) => {
       setState(newState)
     })
 
@@ -194,7 +194,7 @@ const InitializationPage: React.FC = () => {
     })
 
     // 启动初始化
-    const startInitialization = async () => {
+    const startInitialization = async (): Promise<void> => {
       try {
         await window.api.initialization.start()
       } catch (error) {

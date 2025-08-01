@@ -1,8 +1,7 @@
-import React from 'react'
 import { Navigate } from 'react-router-dom'
 
 // Redirect to dashboard as the main entry point
-function Index() {
+function Index(): React.ReactElement {
   return <Navigate to="/" replace />
 }
 
