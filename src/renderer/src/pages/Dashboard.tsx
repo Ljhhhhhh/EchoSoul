@@ -1,16 +1,104 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Sparkles, FileText, TrendingUp, Users, MessageCircle, Clock } from 'lucide-react'
+import {
+  Sparkles,
+  FileText,
+  TrendingUp,
+  Users,
+  MessageCircle,
+  Clock,
+  RefreshCw
+} from 'lucide-react'
 import { reports } from '../data/reports'
+import { toast } from 'sonner'
 
 const Dashboard = (): React.ReactElement => {
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isStartingService, setIsStartingService] = useState(false)
   const recentReports = reports.slice(0, 3)
   const totalReports = reports.length
   const totalMessages = reports.reduce((sum, report) => sum + report.messageCount, 0)
+
+  // 检查并自动启动chatlog服务
+  const checkAndStartChatlogService = async () => {
+    try {
+      // 首先检查服务状态
+      const status = await window.api.chatlog.status()
+      if (status === 'running') {
+        console.log('Chatlog服务已在运行')
+        return
+      }
+
+      // 检查初始化状态
+      const initStatus = await window.api.chatlog.checkInitialization()
+      const { keyObtained, databaseDecrypted, canStartServer } = initStatus
+
+      // 只有在可以启动服务时才启动
+      if (canStartServer) {
+        console.log('检测到可以启动chatlog服务，正在启动...')
+        setIsStartingService(true)
+
+        const startResult = await window.api.chatlog.start()
+        if (startResult) {
+          toast.success('Chatlog服务启动成功', {
+            description: '现在可以正常使用聊天记录分析功能'
+          })
+          console.log('Chatlog服务启动成功')
+        } else {
+          toast.error('Chatlog服务启动失败', {
+            description: '请检查配置或手动重试'
+          })
+          console.error('Chatlog服务启动失败')
+        }
+      } else if (!keyObtained || !databaseDecrypted) {
+        console.log('初始化未完成，跳过自动启动服务')
+      } else {
+        console.log('Chatlog服务已在运行')
+      }
+    } catch (error) {
+      console.error('检查chatlog服务状态失败:', error)
+    } finally {
+      setIsStartingService(false)
+    }
+  }
+
+  // 组件挂载时检查并启动服务
+  useEffect(() => {
+    // 延迟一点时间确保应用完全加载
+    const timer = setTimeout(() => {
+      checkAndStartChatlogService()
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // 更新数据函数
+  const handleUpdateData = async () => {
+    setIsUpdating(true)
+    try {
+      const result = await window.api.chatlog.decryptDatabase()
+      if (result.success) {
+        toast.success('数据更新成功', {
+          description: '微信聊天记录已成功解密并更新'
+        })
+      } else {
+        toast.error('数据更新失败', {
+          description: result.message || '解密数据库时发生错误'
+        })
+      }
+    } catch (error) {
+      console.error('更新数据失败:', error)
+      toast.error('数据更新失败', {
+        description: '发生未知错误，请稍后重试'
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
@@ -20,6 +108,16 @@ const Dashboard = (): React.ReactElement => {
           <h1 className="text-2xl font-bold text-gray-800">欢迎回来</h1>
           <p className="text-sm text-gray-600">让AI帮你发现聊天中的深层洞察</p>
         </div>
+        <Button
+          onClick={handleUpdateData}
+          disabled={isUpdating || isStartingService}
+          variant="outline"
+          size="sm"
+          className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
+          {isUpdating ? '更新中...' : '更新数据'}
+        </Button>
       </header>
 
       <main className="flex-1 p-6 overflow-auto">

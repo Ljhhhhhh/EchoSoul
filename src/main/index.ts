@@ -11,6 +11,33 @@ import { registerInitializationHandlers, cleanupInitializationManager } from './
 
 const logger = createLogger('main')
 
+/**
+ * 检查并自动启动chatlog服务
+ */
+async function checkAndAutoStartChatlogService(appServices: AppServices): Promise<void> {
+  try {
+    // 检查初始化状态
+    const initStatus = await appServices.chatlog.checkInitialization()
+    const { keyObtained, databaseDecrypted, canStartServer } = initStatus
+
+    // 只有在可以启动服务时才启动
+    if (canStartServer) {
+      const startResult = await appServices.chatlog.startService()
+      if (startResult) {
+        logger.info('Chatlog service auto-started successfully')
+      } else {
+        logger.warn('Failed to auto-start chatlog service')
+      }
+    } else if (!keyObtained || !databaseDecrypted) {
+      logger.info('Initialization not completed, skipping auto-start')
+    } else {
+      logger.info('Chatlog service is already running')
+    }
+  } catch (error) {
+    logger.error('Error during chatlog service auto-start check:', error)
+  }
+}
+
 // 初始化服务
 const appServices = new AppServices()
 
@@ -50,18 +77,29 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.echosoul')
+  try {
+    // Set app user model id for windows
+    electronApp.setAppUserModelId('com.echosoul')
 
-  logger.info('Initializing EchoSoul application')
+    logger.info('Initializing EchoSoul application')
 
-  await appServices.initialize()
+    await appServices.initialize()
+    logger.info('AppServices initialization completed, proceeding to setup IPC handlers...')
 
-  // 设置IPC处理器
-  setupIpcHandlers(appServices)
+    // 设置IPC处理器
+    setupIpcHandlers(appServices)
+    logger.info('IPC handlers setup completed, proceeding to auto-start check...')
 
-  // 注册初始化处理器
-  registerInitializationHandlers()
+    // 检查并自动启动chatlog服务
+    logger.info('About to check and auto-start chatlog service...')
+    await checkAndAutoStartChatlogService(appServices)
+    logger.info('Chatlog service auto-start check completed')
+
+    // 注册初始化处理器
+    registerInitializationHandlers()
+  } catch (error) {
+    logger.error('Error during app initialization:', error)
+  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

@@ -25,7 +25,11 @@ interface ChatlogAPI {
   stop: () => Promise<boolean>
   getContacts: () => Promise<{ success: boolean; contacts?: any; error?: string }>
   getWechatKey: () => Promise<{ success: boolean; wechatKey?: string; error?: string }>
-  checkInitialization: () => Promise<{ success: boolean; initialized: boolean; error?: string }>
+  checkInitialization: () => Promise<{
+    keyObtained: boolean
+    databaseDecrypted: boolean
+    canStartServer: boolean
+  }>
 }
 
 interface CustomAPI {

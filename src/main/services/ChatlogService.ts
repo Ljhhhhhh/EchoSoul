@@ -204,18 +204,18 @@ export class ChatlogService {
         : false
 
       // 检查服务状态
-      let canStartServer = false
+      let isServiceRunning = false
       if (databaseDecrypted) {
         // 检查进程服务状态或API服务状态
         const processStatus = this.serviceContainer.processService.getStatus()
         const apiStatus = await this.serviceContainer.apiService.checkServiceStatus()
-        canStartServer = processStatus === 'running' || apiStatus
+        isServiceRunning = processStatus === 'running' || apiStatus
       }
 
       return {
         keyObtained,
         databaseDecrypted,
-        canStartServer
+        canStartServer: databaseDecrypted && !isServiceRunning
       }
     } catch (error) {
       logger.debug('Error checking initialization:', error)
