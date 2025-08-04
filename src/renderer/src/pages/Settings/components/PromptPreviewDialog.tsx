@@ -1,0 +1,69 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
+import { PromptTemplate } from '../types'
+import { PROMPT_CATEGORIES } from '../constants'
+
+interface PromptPreviewDialogProps {
+  prompt: PromptTemplate
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export const PromptPreviewDialog: React.FC<PromptPreviewDialogProps> = ({
+  prompt,
+  open,
+  onOpenChange
+}) => {
+  const category = PROMPT_CATEGORIES.find(cat => cat.value === prompt.category)
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center gap-2 mb-2">
+            <DialogTitle>{prompt.name}</DialogTitle>
+            {prompt.isBuiltIn && (
+              <Badge variant="secondary" className="text-xs">
+                内置
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-xs">
+              {category?.label}
+            </Badge>
+          </div>
+          <DialogDescription className="text-left">
+            {prompt.description}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">提示词内容</h4>
+            <div className="p-4 bg-gray-50 rounded-lg border">
+              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
+                {prompt.content}
+              </pre>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
+            <div>
+              <span className="font-medium">创建时间：</span>
+              {new Date(prompt.createdAt).toLocaleString('zh-CN')}
+            </div>
+            <div>
+              <span className="font-medium">更新时间：</span>
+              {new Date(prompt.updatedAt).toLocaleString('zh-CN')}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
