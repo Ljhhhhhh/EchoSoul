@@ -25,6 +25,8 @@ export default tseslint.config(
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginReactRefresh.configs.vite.rules,
+      // TypeScript 项目中禁用 PropTypes 检查，因为 TypeScript 已经提供了类型检查
+      'react/prop-types': 'off',
       // 允许返回any类型和不设置返回类型
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',

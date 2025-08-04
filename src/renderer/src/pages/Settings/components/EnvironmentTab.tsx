@@ -56,9 +56,7 @@ export const EnvironmentTab: React.FC<EnvironmentTabProps> = ({
             <h4 className="mb-2 font-medium text-blue-800">连接状态</h4>
             <div className="flex items-center gap-2">
               <Badge className="text-green-700 bg-green-100">已配置</Badge>
-              <span className="text-sm text-blue-700">
-                成功找到解密数据目录，可以读取聊天记录
-              </span>
+              <span className="text-sm text-blue-700">成功找到解密数据目录，可以读取聊天记录</span>
             </div>
           </div>
 

@@ -30,7 +30,7 @@ export const usePromptManagement = ({
   } = useToastNotifications()
 
   const generatePromptId = (): string => {
-    return `prompt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    return `prompt-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
   }
 
   const validatePrompt = (prompt: NewPromptTemplate): boolean => {

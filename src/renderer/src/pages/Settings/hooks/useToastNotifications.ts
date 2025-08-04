@@ -1,5 +1,4 @@
 import { useToast } from '../../../hooks/use-toast'
-import { AiConfig } from '../types'
 
 export const useToastNotifications = () => {
   const { toast } = useToast()

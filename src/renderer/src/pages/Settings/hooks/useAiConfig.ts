@@ -20,17 +20,17 @@ export const useAiConfig = ({
 }: UseAiConfigProps) => {
   const [showAddConfig, setShowAddConfig] = useState(false)
   const [newConfig, setNewConfig] = useState<NewAiConfig>(DEFAULT_NEW_CONFIG)
-  const { 
-    showAiTestSuccess, 
-    showConfigSwitchSuccess, 
-    showConfigAddSuccess, 
-    showConfigDeleteSuccess, 
-    showConfigNameError 
+  const {
+    showAiTestSuccess,
+    showConfigSwitchSuccess,
+    showConfigAddSuccess,
+    showConfigDeleteSuccess,
+    showConfigNameError
   } = useToastNotifications()
 
   const handleProviderChange = (provider: string) => {
     const template = PROVIDER_TEMPLATES[provider]
-    setNewConfig(prev => ({
+    setNewConfig((prev) => ({
       ...prev,
       provider,
       model: template.defaultModel,
@@ -64,7 +64,7 @@ export const useAiConfig = ({
   }
 
   const handleRemoveConfig = (configId: string) => {
-    const config = aiConfigs.find(c => c.id === configId)
+    const config = aiConfigs.find((c) => c.id === configId)
     onRemoveConfig(configId)
     if (config) {
       showConfigDeleteSuccess(config.name)
@@ -72,7 +72,7 @@ export const useAiConfig = ({
   }
 
   const handleSwitchConfig = (configId: string) => {
-    const config = aiConfigs.find(c => c.id === configId)
+    const config = aiConfigs.find((c) => c.id === configId)
     onSwitchConfig(configId)
     if (config) {
       showConfigSwitchSuccess(config.name)
@@ -80,14 +80,14 @@ export const useAiConfig = ({
   }
 
   const handleTestConnection = async (configId: string) => {
-    const config = aiConfigs.find(c => c.id === configId)
+    const config = aiConfigs.find((c) => c.id === configId)
     if (config) {
       showAiTestSuccess(config.name)
     }
   }
 
   const updateNewConfig = (field: keyof NewAiConfig, value: string) => {
-    setNewConfig(prev => ({ ...prev, [field]: value }))
+    setNewConfig((prev) => ({ ...prev, [field]: value }))
   }
 
   return {

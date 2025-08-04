@@ -34,7 +34,6 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
     handleUpdatePrompt,
     handleRemovePrompt,
     handleDuplicatePrompt,
-    updateNewPrompt,
     getUserPrompts,
     getBuiltInPrompts
   } = usePromptManagement({

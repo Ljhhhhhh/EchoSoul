@@ -42,11 +42,7 @@ export const AiConfigCard: React.FC<AiConfigCardProps> = ({
               checked={config.enabled}
               onCheckedChange={(checked) => onUpdate(config.id, 'enabled', checked)}
             />
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onRemove(config.id)}
-            >
+            <Button variant="destructive" size="sm" onClick={() => onRemove(config.id)}>
               删除
             </Button>
           </div>

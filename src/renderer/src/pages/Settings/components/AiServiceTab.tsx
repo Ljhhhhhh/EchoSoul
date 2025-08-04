@@ -120,7 +120,7 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
             {aiConfigs.length === 0 && (
               <div className="py-8 text-center text-gray-500">
                 <p>暂无 AI 配置</p>
-                <p className="text-sm">点击"添加配置"按钮开始添加</p>
+                <p className="text-sm">点击&ldquo;添加配置&rdquo;按钮开始添加</p>
               </div>
             )}
           </div>

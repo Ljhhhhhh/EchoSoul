@@ -10,10 +10,7 @@ interface PrivacyTabProps {
   onAutoBackupChange: (enabled: boolean) => void
 }
 
-export const PrivacyTab: React.FC<PrivacyTabProps> = ({
-  autoBackup,
-  onAutoBackupChange
-}) => {
+export const PrivacyTab: React.FC<PrivacyTabProps> = ({ autoBackup, onAutoBackupChange }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -34,10 +31,7 @@ export const PrivacyTab: React.FC<PrivacyTabProps> = ({
               <Label className="text-base font-medium">自动备份报告</Label>
               <p className="text-sm text-gray-600">定期备份你的分析报告到本地</p>
             </div>
-            <Switch
-              checked={autoBackup}
-              onCheckedChange={onAutoBackupChange}
-            />
+            <Switch checked={autoBackup} onCheckedChange={onAutoBackupChange} />
           </div>
 
           <div className="p-4 rounded-lg bg-green-100/50">

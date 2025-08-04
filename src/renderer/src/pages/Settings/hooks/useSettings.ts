@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { SettingsState, PromptTemplate } from '../types'
+import { SettingsState, PromptTemplate, AiConfig } from '../types'
 import { DEFAULT_SETTINGS, BUILT_IN_PROMPTS } from '../constants'
 
 export const useSettings = () => {
@@ -36,7 +36,7 @@ export const useSettings = () => {
     setSettings((prev) => ({ ...prev, theme }))
   }
 
-  const addAiConfig = (config: any) => {
+  const addAiConfig = (config: AiConfig) => {
     setSettings((prev) => ({
       ...prev,
       aiConfigs: [...prev.aiConfigs, config],

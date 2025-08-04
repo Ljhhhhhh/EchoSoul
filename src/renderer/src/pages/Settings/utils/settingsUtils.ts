@@ -40,19 +40,19 @@ export const createDefaultConfig = (
  * 检查配置名称是否已存在
  */
 export const isConfigNameExists = (name: string, configs: AiConfig[]): boolean => {
-  return configs.some(config => config.name.toLowerCase() === name.toLowerCase())
+  return configs.some((config) => config.name.toLowerCase() === name.toLowerCase())
 }
 
 /**
  * 获取启用的配置列表
  */
 export const getEnabledConfigs = (configs: AiConfig[]): AiConfig[] => {
-  return configs.filter(config => config.enabled)
+  return configs.filter((config) => config.enabled)
 }
 
 /**
  * 根据 ID 查找配置
  */
 export const findConfigById = (id: string, configs: AiConfig[]): AiConfig | undefined => {
-  return configs.find(config => config.id === id)
+  return configs.find((config) => config.id === id)
 }

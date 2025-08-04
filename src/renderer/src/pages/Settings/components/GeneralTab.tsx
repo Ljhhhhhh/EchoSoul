@@ -45,10 +45,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
               <Label className="text-base font-medium">桌面通知</Label>
               <p className="text-sm text-gray-600">报告生成完成时显示通知</p>
             </div>
-            <Switch
-              checked={notifications}
-              onCheckedChange={onNotificationsChange}
-            />
+            <Switch checked={notifications} onCheckedChange={onNotificationsChange} />
           </div>
 
           <div>
