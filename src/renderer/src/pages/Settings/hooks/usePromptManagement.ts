@@ -20,7 +20,6 @@ export const usePromptManagement = ({
   const [editingPrompt, setEditingPrompt] = useState<PromptTemplate | null>(null)
   const [newPrompt, setNewPrompt] = useState<NewPromptTemplate>(DEFAULT_NEW_PROMPT)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const {
     showPromptAddSuccess,
@@ -82,7 +81,7 @@ export const usePromptManagement = ({
   }
 
   const handleRemovePrompt = (promptId: string) => {
-    const prompt = promptTemplates.find(p => p.id === promptId)
+    const prompt = promptTemplates.find((p) => p.id === promptId)
     if (prompt && !prompt.isBuiltIn) {
       onRemovePrompt(promptId)
       showPromptDeleteSuccess(prompt.name)
@@ -104,26 +103,22 @@ export const usePromptManagement = ({
   }
 
   const updateNewPrompt = (field: keyof NewPromptTemplate, value: string) => {
-    setNewPrompt(prev => ({ ...prev, [field]: value }))
+    setNewPrompt((prev) => ({ ...prev, [field]: value }))
   }
 
-  const filteredPrompts = promptTemplates.filter(prompt => {
-    const matchesSearch = prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         prompt.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || prompt.category === selectedCategory
-    return matchesSearch && matchesCategory
+  const filteredPrompts = promptTemplates.filter((prompt) => {
+    const matchesSearch =
+      prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prompt.content.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSearch
   })
 
-  const getPromptsByCategory = (category: string) => {
-    return promptTemplates.filter(prompt => prompt.category === category)
-  }
-
   const getUserPrompts = () => {
-    return promptTemplates.filter(prompt => !prompt.isBuiltIn)
+    return promptTemplates.filter((prompt) => !prompt.isBuiltIn)
   }
 
   const getBuiltInPrompts = () => {
-    return promptTemplates.filter(prompt => prompt.isBuiltIn)
+    return promptTemplates.filter((prompt) => prompt.isBuiltIn)
   }
 
   return {
@@ -135,15 +130,12 @@ export const usePromptManagement = ({
     setNewPrompt,
     searchQuery,
     setSearchQuery,
-    selectedCategory,
-    setSelectedCategory,
     filteredPrompts,
     handleAddPrompt,
     handleUpdatePrompt,
     handleRemovePrompt,
     handleDuplicatePrompt,
     updateNewPrompt,
-    getPromptsByCategory,
     getUserPrompts,
     getBuiltInPrompts
   }

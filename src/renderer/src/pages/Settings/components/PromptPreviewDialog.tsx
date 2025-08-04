@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { PromptTemplate } from '../types'
-import { PROMPT_CATEGORIES } from '../constants'
 
 interface PromptPreviewDialogProps {
   prompt: PromptTemplate
@@ -20,8 +19,6 @@ export const PromptPreviewDialog: React.FC<PromptPreviewDialogProps> = ({
   open,
   onOpenChange
 }) => {
-  const category = PROMPT_CATEGORIES.find(cat => cat.value === prompt.category)
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -33,25 +30,19 @@ export const PromptPreviewDialog: React.FC<PromptPreviewDialogProps> = ({
                 内置
               </Badge>
             )}
-            <Badge variant="outline" className="text-xs">
-              {category?.label}
-            </Badge>
           </div>
-          <DialogDescription className="text-left">
-            {prompt.description}
-          </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">提示词内容</h4>
-            <div className="p-4 bg-gray-50 rounded-lg border">
-              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
+            <h4 className="mb-2 text-sm font-medium text-gray-700">提示词内容</h4>
+            <div className="p-4 border rounded-lg bg-gray-50">
+              <pre className="font-mono text-sm text-gray-800 whitespace-pre-wrap">
                 {prompt.content}
               </pre>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
             <div>
               <span className="font-medium">创建时间：</span>

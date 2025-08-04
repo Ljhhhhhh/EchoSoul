@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PromptTemplate } from '../types'
-import { PROMPT_CATEGORIES } from '../constants'
 import { Edit, Copy, Trash2, Eye } from 'lucide-react'
 import { useState } from 'react'
 import { PromptPreviewDialog } from './PromptPreviewDialog'
@@ -21,9 +20,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
   onDelete
 }) => {
   const [showPreview, setShowPreview] = useState(false)
-  
-  const category = PROMPT_CATEGORIES.find(cat => cat.value === prompt.category)
-  
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -34,11 +31,13 @@ export const PromptCard: React.FC<PromptCardProps> = ({
 
   return (
     <>
-      <Card className={`transition-all duration-200 hover:shadow-md ${
-        prompt.isBuiltIn 
-          ? 'border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50' 
-          : 'border-gray-200 hover:border-purple-200'
-      }`}>
+      <Card
+        className={`transition-all duration-200 hover:shadow-md ${
+          prompt.isBuiltIn
+            ? 'border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50'
+            : 'border-gray-200 hover:border-purple-200'
+        }`}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -49,13 +48,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
                     内置
                   </Badge>
                 )}
-                <Badge variant="outline" className="text-xs">
-                  {category?.label}
-                </Badge>
               </div>
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {prompt.description}
-              </p>
             </div>
             <div className="flex items-center gap-1 ml-2">
               <Button
@@ -107,11 +100,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
         </CardContent>
       </Card>
 
-      <PromptPreviewDialog
-        prompt={prompt}
-        open={showPreview}
-        onOpenChange={setShowPreview}
-      />
+      <PromptPreviewDialog prompt={prompt} open={showPreview} onOpenChange={setShowPreview} />
     </>
   )
 }

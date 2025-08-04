@@ -42,9 +42,7 @@ export type ConnectionTestType = 'chatlog' | 'ai'
 export interface PromptTemplate {
   id: string
   name: string
-  description: string
   content: string
-  category: 'emotion' | 'personality' | 'relationship' | 'work' | 'custom'
   isBuiltIn: boolean
   createdAt: string
   updatedAt: string
@@ -52,15 +50,7 @@ export interface PromptTemplate {
 
 export interface NewPromptTemplate {
   name: string
-  description: string
   content: string
-  category: 'emotion' | 'personality' | 'relationship' | 'work' | 'custom'
-}
-
-export interface PromptCategory {
-  value: string
-  label: string
-  description: string
 }
 
 export type TabValue = 'environment' | 'ai' | 'privacy' | 'general' | 'prompts'

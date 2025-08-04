@@ -10,15 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { PromptTemplate, NewPromptTemplate } from '../types'
-import { PROMPT_CATEGORIES } from '../constants'
 import { useState, useEffect } from 'react'
 
 interface PromptFormDialogProps {
@@ -36,9 +28,7 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
 }) => {
   const [formData, setFormData] = useState<NewPromptTemplate>({
     name: '',
-    description: '',
-    content: '',
-    category: 'custom'
+    content: ''
   })
 
   const isEditing = !!editingPrompt
@@ -47,16 +37,12 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
     if (editingPrompt) {
       setFormData({
         name: editingPrompt.name,
-        description: editingPrompt.description,
-        content: editingPrompt.content,
-        category: editingPrompt.category
+        content: editingPrompt.content
       })
     } else {
       setFormData({
         name: '',
-        description: '',
-        content: '',
-        category: 'custom'
+        content: ''
       })
     }
   }, [editingPrompt, open])
@@ -78,14 +64,9 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? '编辑提示词' : '添加新提示词'}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? '编辑提示词' : '添加新提示词'}</DialogTitle>
           <DialogDescription>
-            {isEditing 
-              ? '修改提示词的信息和内容' 
-              : '创建一个新的自定义提示词，用于生成个性化分析报告'
-            }
+            {isEditing ? '修改提示词的内容' : '创建一个新的自定义提示词，用于生成个性化分析报告'}
           </DialogDescription>
         </DialogHeader>
 
@@ -95,41 +76,9 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="例如：深度情感分析"
             />
-          </div>
-
-          <div>
-            <Label htmlFor="description">描述</Label>
-            <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="简要描述这个提示词的用途"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="category">分类</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as any }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PROMPT_CATEGORIES.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    <div>
-                      <div className="font-medium">{category.label}</div>
-                      <div className="text-xs text-gray-500">{category.description}</div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div>
@@ -137,7 +86,7 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
             <Textarea
               id="content"
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
               placeholder="输入详细的提示词内容，描述你希望AI如何分析聊天记录..."
               rows={8}
               className="font-mono text-sm"
@@ -152,10 +101,7 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
           <Button variant="outline" onClick={handleCancel}>
             取消
           </Button>
-          <Button 
-            onClick={handleSave}
-            disabled={!formData.name.trim() || !formData.content.trim()}
-          >
+          <Button onClick={handleSave} disabled={!formData.name.trim() || !formData.content.trim()}>
             {isEditing ? '保存修改' : '添加提示词'}
           </Button>
         </DialogFooter>

@@ -32,3 +32,5 @@ $ pnpm build:mac
 # For Linux
 $ pnpm build:linux
 ```
+
+<!-- TODO: resource/chatlog 下的资源需要确保权限 比如 chmod -R 777  -->
