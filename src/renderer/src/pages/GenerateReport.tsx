@@ -2,11 +2,11 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import {
   Command,
   CommandEmpty,
@@ -23,20 +22,25 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Sparkles,
   Calendar,
   Users,
-  MessageSquare,
   Wand2,
   X,
   UserPlus,
   UsersIcon,
   Clock,
   Bookmark,
-  Trash2
+  Trash2,
+  FileText,
+  TrendingUp,
+  ChevronDown,
+  Check
 } from 'lucide-react'
 import { useToast } from '../hooks/use-toast'
+import { PromptTemplate } from '../pages/Settings/types'
 
 // 条件记录类型定义
 interface SavedCondition {
@@ -71,6 +75,11 @@ const GenerateReport = (): React.ReactElement => {
   const [savedConditions, setSavedConditions] = useState<SavedCondition[]>([])
   const [showSavedConditions, setShowSavedConditions] = useState(false)
 
+  // UI状态管理
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptTemplate | null>(null)
+  const [contactSearchTerm, setContactSearchTerm] = useState('')
+  const [isContactPopoverOpen, setIsContactPopoverOpen] = useState(false)
+
   const timeRanges = [
     { value: 'yesterday', label: '昨天' },
     { value: 'last_week', label: '最近一周' },
@@ -79,108 +88,136 @@ const GenerateReport = (): React.ReactElement => {
     { value: 'custom', label: '自定义时间' }
   ]
 
-  const analysisTypes = [
-    { value: 'emotion', label: '情感分析' },
-    { value: 'personality', label: '人格分析' },
-    { value: 'relationship', label: '关系分析' },
-    { value: 'work_atmosphere', label: '工作氛围' },
-    { value: 'eq_improvement', label: '情商提升' },
-    { value: 'thinking_traps', label: '思维陷阱' },
-    { value: 'custom', label: '自定义分析' }
+  // 模拟Prompt数据
+  const mockPrompts: PromptTemplate[] = [
+    {
+      id: '1',
+      name: '情感分析专家',
+      content: '请分析聊天记录中的情感变化趋势，识别主要情绪状态...',
+      isBuiltIn: true,
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01'
+    },
+    {
+      id: '2',
+      name: '关系洞察师',
+      content: '深度分析聊天双方的关系模式，包括互动频率、话题偏好...',
+      isBuiltIn: true,
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01'
+    },
+    {
+      id: '3',
+      name: '沟通模式分析',
+      content: '分析沟通风格、表达习惯和互动模式...',
+      isBuiltIn: true,
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01'
+    },
+    {
+      id: '4',
+      name: '工作氛围评估',
+      content: '评估团队协作氛围、工作效率和团队凝聚力...',
+      isBuiltIn: true,
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01'
+    }
   ]
 
   // 生成模拟联系人数据
   const generateMockContacts = () => {
-    const personalContacts = []
-    const groupChats = []
+    const personalContacts = Array.from({ length: 50 }, (_, i) => ({
+      id: `person_${i + 1}`,
+      name: `联系人 ${i + 1}`,
+      type: 'personal' as const
+    }))
 
-    // 生成个人联系人
-    const surnames = [
-      '张',
-      '李',
-      '王',
-      '刘',
-      '陈',
-      '杨',
-      '赵',
-      '黄',
-      '周',
-      '吴',
-      '徐',
-      '孙',
-      '胡',
-      '朱',
-      '高',
-      '林',
-      '何',
-      '郭',
-      '马',
-      '罗'
-    ]
-    const names = [
-      '伟',
-      '芳',
-      '娜',
-      '秀英',
-      '敏',
-      '静',
-      '丽',
-      '强',
-      '磊',
-      '军',
-      '洋',
-      '勇',
-      '艳',
-      '杰',
-      '娟',
-      '涛',
-      '明',
-      '超',
-      '秀兰',
-      '霞'
-    ]
-
-    for (let i = 0; i < 500; i++) {
-      const surname = surnames[Math.floor(Math.random() * surnames.length)]
-      const name = names[Math.floor(Math.random() * names.length)]
-      personalContacts.push({
-        id: `person_${i}`,
-        name: `${surname}${name}${i > 100 ? i : ''}`,
-        type: 'person',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${surname}${name}${i}`,
-        lastChat: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-      })
-    }
-
-    // 生成群聊
-    const groupTypes = [
-      '工作群',
-      '家庭群',
-      '朋友群',
-      '同学群',
-      '兴趣群',
-      '学习群',
-      '运动群',
-      '游戏群'
-    ]
-    const groupNames = ['讨论组', '交流群', '分享群', '聊天群', '互助群', '活动群']
-
-    for (let i = 0; i < 200; i++) {
-      const type = groupTypes[Math.floor(Math.random() * groupTypes.length)]
-      const name = groupNames[Math.floor(Math.random() * groupNames.length)]
-      groupChats.push({
-        id: `group_${i}`,
-        name: `${type}_${name}${i > 50 ? i : ''}`,
-        type: 'group',
-        memberCount: Math.floor(Math.random() * 200) + 3,
-        lastChat: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-      })
-    }
+    const groupChats = Array.from({ length: 20 }, (_, i) => ({
+      id: `group_${i + 1}`,
+      name: `群聊 ${i + 1}`,
+      type: 'group' as const,
+      memberCount: Math.floor(Math.random() * 50) + 3
+    }))
 
     return { personalContacts, groupChats }
   }
 
   const { personalContacts, groupChats } = useMemo(() => generateMockContacts(), [])
+
+  // 过滤联系人
+  const filteredContacts = useMemo(() => {
+    const allContacts = [...personalContacts, ...groupChats]
+    if (!contactSearchTerm) return allContacts
+
+    return allContacts.filter((contact) =>
+      contact.name.toLowerCase().includes(contactSearchTerm.toLowerCase())
+    )
+  }, [personalContacts, groupChats, contactSearchTerm])
+
+  // 获取已选择的联系人信息
+  const selectedContactsInfo = useMemo(() => {
+    const allContacts = [...personalContacts, ...groupChats]
+    return formData.selectedContacts
+      .map((id) => allContacts.find((contact) => contact.id === id))
+      .filter(Boolean)
+  }, [formData.selectedContacts, personalContacts, groupChats])
+
+  // 动态计算数据统计
+  const calculateDataStats = useMemo(() => {
+    if (!formData.timeRange || formData.selectedContacts.length === 0) {
+      return { messageCount: 0, daysCovered: 0, contactsInvolved: 0 }
+    }
+
+    // 根据时间范围计算天数
+    let daysCovered = 1
+    switch (formData.timeRange) {
+      case 'yesterday':
+        daysCovered = 1
+        break
+      case 'last_week':
+        daysCovered = 7
+        break
+      case 'last_month':
+        daysCovered = 30
+        break
+      case 'last_3_months':
+        daysCovered = 90
+        break
+      case 'custom':
+        daysCovered = 7
+        break
+    }
+
+    // 根据分析对象计算联系人数量
+    let contactsInvolved = 0
+    let baseMessageCount = 50
+
+    if (formData.targetType === 'all') {
+      contactsInvolved = personalContacts.length + groupChats.length
+    } else if (formData.targetType === 'groups') {
+      contactsInvolved = groupChats.length
+      baseMessageCount = 120
+    } else {
+      contactsInvolved = formData.selectedContacts.length
+      // 检查是否包含群聊，群聊消息更多
+      const hasGroups = formData.selectedContacts.some((id) => groupChats.some((g) => g.id === id))
+      if (hasGroups) {
+        baseMessageCount = 80
+      }
+    }
+
+    const messageCount = Math.round(
+      contactsInvolved * daysCovered * baseMessageCount * (0.8 + Math.random() * 0.4)
+    )
+
+    return { messageCount, daysCovered, contactsInvolved }
+  }, [
+    formData.timeRange,
+    formData.targetType,
+    formData.selectedContacts,
+    personalContacts,
+    groupChats
+  ])
 
   // 从localStorage加载保存的条件
   useEffect(() => {
@@ -188,7 +225,6 @@ const GenerateReport = (): React.ReactElement => {
     if (saved) {
       try {
         setSavedConditions(JSON.parse(saved))
-        // 如果有保存的条件，默认展开快速选择区域
         setShowSavedConditions(true)
       } catch (error) {
         console.error('Failed to load saved conditions:', error)
@@ -205,8 +241,7 @@ const GenerateReport = (): React.ReactElement => {
   // 生成条件名称
   const generateConditionName = (data: typeof formData): string => {
     const timeLabel = timeRanges.find((t) => t.value === data.timeRange)?.label || '自定义时间'
-    const analysisLabel =
-      analysisTypes.find((t) => t.value === data.analysisType)?.label || '未知分析'
+    const analysisLabel = selectedPrompt?.name || '未选择分析类型'
 
     let targetLabel = '全部聊天'
     if (data.targetType === 'specific') {
@@ -229,7 +264,6 @@ const GenerateReport = (): React.ReactElement => {
       usageCount: 1
     }
 
-    // 检查是否已存在相同条件
     const existingIndex = savedConditions.findIndex(
       (condition) =>
         condition.timeRange === formData.timeRange &&
@@ -241,11 +275,9 @@ const GenerateReport = (): React.ReactElement => {
 
     let updatedConditions: SavedCondition[]
     if (existingIndex >= 0) {
-      // 更新使用次数
       updatedConditions = [...savedConditions]
       updatedConditions[existingIndex].usageCount += 1
     } else {
-      // 添加新条件，最多保存10个
       updatedConditions = [newCondition, ...savedConditions].slice(0, 10)
     }
 
@@ -264,7 +296,6 @@ const GenerateReport = (): React.ReactElement => {
       customPrompt: condition.customPrompt
     })
 
-    // 更新使用次数
     const updatedConditions = savedConditions.map((c) =>
       c.id === condition.id ? { ...c, usageCount: c.usageCount + 1 } : c
     )
@@ -286,14 +317,39 @@ const GenerateReport = (): React.ReactElement => {
     })
   }
 
+  // 添加联系人
+  const addContact = (contactId: string) => {
+    if (!formData.selectedContacts.includes(contactId)) {
+      setFormData((prev) => ({
+        ...prev,
+        selectedContacts: [...prev.selectedContacts, contactId]
+      }))
+    }
+    setContactSearchTerm('')
+  }
+
+  // 移除联系人
+  const removeContact = (contactId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedContacts: prev.selectedContacts.filter((id) => id !== contactId)
+    }))
+  }
+
+  // 清空所有联系人
+  const clearAllContacts = () => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedContacts: []
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setIsGenerating(true)
 
-    // 保存当前条件
     saveCurrentCondition()
 
-    // Simulate API call
     setTimeout(() => {
       setIsGenerating(false)
       toast({
@@ -304,46 +360,19 @@ const GenerateReport = (): React.ReactElement => {
     }, 3000)
   }
 
-  const handleContactToggle = (contactId: string): void => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedContacts: prev.selectedContacts.includes(contactId)
-        ? prev.selectedContacts.filter((c) => c !== contactId)
-        : [...prev.selectedContacts, contactId]
-    }))
-  }
-
-  const handleSelectAll = (): void => {
-    const allContactIds = [...personalContacts.map((c) => c.id), ...groupChats.map((c) => c.id)]
-    setFormData((prev) => ({
-      ...prev,
-      selectedContacts: allContactIds
-    }))
-  }
-
-  const handleClearAll = (): void => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedContacts: []
-    }))
-  }
-
-  const getContactById = (id: string) => {
-    return personalContacts.find((c) => c.id === id) || groupChats.find((c) => c.id === id)
-  }
-
   return (
-    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
-        <SidebarTrigger />
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">生成分析报告</h1>
-          <p className="text-sm text-gray-600">配置你的个性化聊天分析</p>
-        </div>
-      </header>
-
+    <div className="flex h-screen bg-gray-50">
       <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-4xl mx-auto">
+          {/* 页面标题 */}
+          <div className="flex items-center gap-4 mb-6">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">生成分析报告</h1>
+              <p className="text-gray-600">配置你的个性化聊天分析</p>
+            </div>
+          </div>
+
           {/* 快速选择区域 */}
           {savedConditions.length > 0 && (
             <motion.div
@@ -416,305 +445,443 @@ const GenerateReport = (): React.ReactElement => {
                           </div>
                         ))}
                     </div>
-                    {savedConditions.length > 6 && (
-                      <div className="mt-3 text-center">
-                        <span className="text-sm text-gray-500">
-                          显示最常用的 6 个条件，共 {savedConditions.length} 个
-                        </span>
-                      </div>
-                    )}
                   </CardContent>
                 )}
               </Card>
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Time Range Selection */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-800">
-                    <Calendar className="w-5 h-5" />
-                    选择时间范围
-                  </CardTitle>
-                  <CardDescription>选择要分析的聊天记录时间范围</CardDescription>
+          {/* 主要配置区域 */}
+          <div className="grid grid-cols-3 gap-8">
+            {/* 左侧：配置区域 */}
+            <div className="col-span-2">
+              <Card className="bg-white border-gray-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl text-gray-800">分析配置</CardTitle>
+                  <CardDescription>配置你的聊天记录分析参数</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <Select
-                    value={formData.timeRange}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, timeRange: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择时间范围" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeRanges.map((range) => (
-                        <SelectItem key={range.value} value={range.value}>
-                          {range.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {formData.timeRange === 'custom' && (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <Label htmlFor="startDate">开始日期</Label>
-                        <Input
-                          id="startDate"
-                          type="date"
-                          value={formData.customStartDate}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, customStartDate: e.target.value }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="endDate">结束日期</Label>
-                        <Input
-                          id="endDate"
-                          type="date"
-                          value={formData.customEndDate}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, customEndDate: e.target.value }))
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Contact Selection */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card className="border-green-200 bg-gradient-to-br from-green-50/50 to-emerald-50/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800">
-                    <Users className="w-5 h-5" />
-                    选择分析对象
-                  </CardTitle>
-                  <CardDescription>选择要分析的联系人或群聊</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Select
-                    value={formData.targetType}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, targetType: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="选择分析范围" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">全部聊天</SelectItem>
-                      <SelectItem value="specific">特定联系人</SelectItem>
-                      <SelectItem value="groups">群聊</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {formData.targetType === 'specific' && (
-                    <div className="space-y-4">
-                      {/* 已选择的联系人标签展示 */}
-                      {formData.selectedContacts.length > 0 && (
-                        <div>
-                          <Label className="block mb-2 text-sm font-medium">
-                            已选择 ({formData.selectedContacts.length})
+                <CardContent className="space-y-8">
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* 时间范围选择 */}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
+                            <Calendar className="w-5 h-5 text-blue-500" />
+                            时间范围
                           </Label>
-                          <div className="flex flex-wrap gap-2 p-3 overflow-y-auto rounded-lg bg-gray-50 max-h-32">
-                            {formData.selectedContacts.map((contactId) => {
-                              const contact = getContactById(contactId)
-                              return contact ? (
-                                <Badge
-                                  key={contactId}
-                                  variant="secondary"
-                                  className="flex items-center gap-1 px-2 py-1"
+                          <Select
+                            value={formData.timeRange}
+                            onValueChange={(value) =>
+                              setFormData((prev) => ({ ...prev, timeRange: value }))
+                            }
+                          >
+                            <SelectTrigger className="w-48">
+                              <SelectValue placeholder="选择时间范围" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeRanges.map((range) => (
+                                <SelectItem key={range.value} value={range.value}>
+                                  {range.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {formData.timeRange === 'custom' && (
+                          <div className="flex items-center gap-4 ml-[116px]">
+                            <div>
+                              <Label htmlFor="startDate" className="text-xs text-gray-500">
+                                开始日期
+                              </Label>
+                              <Input
+                                id="startDate"
+                                type="date"
+                                value={formData.customStartDate}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    customStartDate: e.target.value
+                                  }))
+                                }
+                                className="w-40"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="endDate" className="text-xs text-gray-500">
+                                结束日期
+                              </Label>
+                              <Input
+                                id="endDate"
+                                type="date"
+                                value={formData.customEndDate}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    customEndDate: e.target.value
+                                  }))
+                                }
+                                className="w-40"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* 联系人选择 */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
+                            <Users className="w-5 h-5 text-green-500" />
+                            分析对象
+                          </Label>
+                          <div className="flex-1">
+                            <Popover
+                              open={isContactPopoverOpen}
+                              onOpenChange={setIsContactPopoverOpen}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={isContactPopoverOpen}
+                                  className="w-full justify-between h-auto min-h-[40px] px-3 py-2"
                                 >
-                                  {contact.type === 'group' ? (
-                                    <UsersIcon className="w-3 h-3" />
-                                  ) : (
-                                    <UserPlus className="w-3 h-3" />
-                                  )}
-                                  {contact.name}
-                                  <X
-                                    className="w-3 h-3 ml-1 cursor-pointer hover:text-red-500"
-                                    onClick={() => handleContactToggle(contactId)}
+                                  <div className="flex items-center flex-1 gap-2">
+                                    {selectedContactsInfo.length === 0 ? (
+                                      <>
+                                        <Users className="w-4 h-4 text-gray-400" />
+                                        <span className="text-gray-500">搜索联系人或群聊...</span>
+                                      </>
+                                    ) : (
+                                      <div className="flex flex-wrap flex-1 gap-1">
+                                        {selectedContactsInfo.slice(0, 3).map((contact) => (
+                                          <Badge
+                                            key={contact.id}
+                                            variant="secondary"
+                                            className="flex items-center gap-1 text-xs"
+                                          >
+                                            {contact.type === 'group' ? (
+                                              <UsersIcon className="w-3 h-3" />
+                                            ) : (
+                                              <UserPlus className="w-3 h-3" />
+                                            )}
+                                            <span className="truncate max-w-16">
+                                              {contact.name}
+                                            </span>
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-auto p-0 ml-1 hover:bg-transparent"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                removeContact(contact.id)
+                                              }}
+                                            >
+                                              <X className="w-3 h-3" />
+                                            </Button>
+                                          </Badge>
+                                        ))}
+                                        {selectedContactsInfo.length > 3 && (
+                                          <Badge variant="outline" className="text-xs">
+                                            +{selectedContactsInfo.length - 3} 更多
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <ChevronDown className="w-4 h-4 ml-2 opacity-50 shrink-0" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="p-0 w-80" align="start">
+                                <Command>
+                                  <CommandInput
+                                    placeholder="搜索联系人或群聊..."
+                                    value={contactSearchTerm}
+                                    onValueChange={setContactSearchTerm}
                                   />
-                                </Badge>
-                              ) : null
-                            })}
+                                  <CommandList className="max-h-64">
+                                    <CommandEmpty>没有找到匹配的联系人</CommandEmpty>
+
+                                    {/* 快捷选项 */}
+                                    <CommandGroup heading="快捷选择">
+                                      <CommandItem
+                                        onSelect={() => {
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            selectedContacts: [],
+                                            targetType: 'all'
+                                          }))
+                                          setIsContactPopoverOpen(false)
+                                        }}
+                                        className="cursor-pointer"
+                                      >
+                                        <Users className="w-4 h-4 mr-2" />
+                                        <span>全部聊天</span>
+                                      </CommandItem>
+                                      <CommandItem
+                                        onSelect={() => {
+                                          const groupIds = groupChats.map((g) => g.id)
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            selectedContacts: groupIds,
+                                            targetType: 'groups'
+                                          }))
+                                          setIsContactPopoverOpen(false)
+                                        }}
+                                        className="cursor-pointer"
+                                      >
+                                        <UsersIcon className="w-4 h-4 mr-2" />
+                                        <span>所有群聊</span>
+                                      </CommandItem>
+                                    </CommandGroup>
+
+                                    {/* 个人联系人 */}
+                                    {filteredContacts.filter((c) => c.type === 'personal').length >
+                                      0 && (
+                                      <CommandGroup heading="个人联系人">
+                                        {filteredContacts
+                                          .filter((c) => c.type === 'personal')
+                                          .slice(0, 15)
+                                          .map((contact) => (
+                                            <CommandItem
+                                              key={contact.id}
+                                              onSelect={() => {
+                                                if (
+                                                  formData.selectedContacts.includes(contact.id)
+                                                ) {
+                                                  removeContact(contact.id)
+                                                } else {
+                                                  addContact(contact.id)
+                                                }
+                                              }}
+                                              className="cursor-pointer"
+                                            >
+                                              <UserPlus className="w-4 h-4 mr-2" />
+                                              <span>{contact.name}</span>
+                                              {formData.selectedContacts.includes(contact.id) && (
+                                                <Check className="w-4 h-4 ml-auto text-green-600" />
+                                              )}
+                                            </CommandItem>
+                                          ))}
+                                      </CommandGroup>
+                                    )}
+
+                                    {/* 群聊 */}
+                                    {filteredContacts.filter((c) => c.type === 'group').length >
+                                      0 && (
+                                      <CommandGroup heading="群聊">
+                                        {filteredContacts
+                                          .filter((c) => c.type === 'group')
+                                          .slice(0, 15)
+                                          .map((group) => (
+                                            <CommandItem
+                                              key={group.id}
+                                              onSelect={() => {
+                                                if (formData.selectedContacts.includes(group.id)) {
+                                                  removeContact(group.id)
+                                                } else {
+                                                  addContact(group.id)
+                                                }
+                                              }}
+                                              className="cursor-pointer"
+                                            >
+                                              <UsersIcon className="w-4 h-4 mr-2" />
+                                              <span>{group.name}</span>
+                                              <span className="ml-auto mr-2 text-xs text-gray-500">
+                                                {(group as any).memberCount} 人
+                                              </span>
+                                              {formData.selectedContacts.includes(group.id) && (
+                                                <Check className="w-4 h-4 text-green-600" />
+                                              )}
+                                            </CommandItem>
+                                          ))}
+                                      </CommandGroup>
+                                    )}
+                                  </CommandList>
+
+                                  {/* 底部操作 */}
+                                  {selectedContactsInfo.length > 0 && (
+                                    <div className="p-2 border-t">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          clearAllContacts()
+                                          setContactSearchTerm('')
+                                        }}
+                                        className="w-full text-xs text-gray-500 hover:text-red-500"
+                                      >
+                                        <Trash2 className="w-3 h-3 mr-1" />
+                                        清空所有选择
+                                      </Button>
+                                    </div>
+                                  )}
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
-                      )}
-
-                      {/* 批量操作按钮 */}
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleSelectAll}
-                          className="text-xs"
-                        >
-                          全选
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleClearAll}
-                          className="text-xs"
-                        >
-                          清空
-                        </Button>
                       </div>
+                    </motion.div>
 
-                      {/* 联系人搜索和选择 */}
-                      <div>
-                        <Label className="block mb-2 text-sm font-medium">搜索并选择联系人</Label>
-                        <Command className="border rounded-lg">
-                          <CommandInput placeholder="搜索联系人或群聊..." />
-                          <CommandList className="max-h-64">
-                            <CommandEmpty>未找到相关联系人</CommandEmpty>
-
-                            <CommandGroup heading="个人联系人">
-                              {personalContacts.slice(0, 100).map((contact) => (
-                                <CommandItem
-                                  key={contact.id}
-                                  onSelect={() => handleContactToggle(contact.id)}
-                                  className="flex items-center justify-between"
-                                >
+                    {/* Prompt选择 */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
+                            <FileText className="w-5 h-5 text-purple-500" />
+                            分析模板
+                          </Label>
+                          <Select
+                            value={selectedPrompt?.id || ''}
+                            onValueChange={(value) => {
+                              const prompt = mockPrompts.find((p) => p.id === value)
+                              setSelectedPrompt(prompt || null)
+                              setFormData((prev) => ({ ...prev, analysisType: value }))
+                            }}
+                          >
+                            <SelectTrigger className="w-80">
+                              <SelectValue placeholder="选择分析模板" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {mockPrompts.map((prompt) => (
+                                <SelectItem key={prompt.id} value={prompt.id}>
                                   <div className="flex items-center gap-2">
-                                    <UserPlus className="w-4 h-4" />
-                                    <span>{contact.name}</span>
+                                    <FileText className="w-4 h-4" />
+                                    <span>{prompt.name}</span>
+                                    {prompt.isBuiltIn && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        内置
+                                      </Badge>
+                                    )}
                                   </div>
-                                  {formData.selectedContacts.includes(contact.id) && (
-                                    <Badge variant="default" className="text-xs">
-                                      已选择
-                                    </Badge>
-                                  )}
-                                </CommandItem>
+                                </SelectItem>
                               ))}
-                            </CommandGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                            <CommandGroup heading="群聊">
-                              {groupChats.slice(0, 50).map((contact) => (
-                                <CommandItem
-                                  key={contact.id}
-                                  onSelect={() => handleContactToggle(contact.id)}
-                                  className="flex items-center justify-between"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <UsersIcon className="w-4 h-4" />
-                                    <div className="flex flex-col">
-                                      <span>{contact.name}</span>
-                                      <span className="text-xs text-gray-500">
-                                        {contact.memberCount} 人
-                                      </span>
-                                    </div>
-                                  </div>
-                                  {formData.selectedContacts.includes(contact.id) && (
-                                    <Badge variant="default" className="text-xs">
-                                      已选择
-                                    </Badge>
-                                  )}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
+                        {selectedPrompt && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="ml-[116px] p-4 bg-purple-50 border border-purple-200 rounded-lg"
+                          >
+                            <div className="text-sm text-purple-700">
+                              <div className="mb-1 font-medium">模板预览：</div>
+                              <div className="text-purple-600 line-clamp-2">
+                                {selectedPrompt.content}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    </motion.div>
+                  </form>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
 
-            {/* Analysis Type Selection */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-purple-800">
-                    <MessageSquare className="w-5 h-5" />
-                    选择分析类型
-                  </CardTitle>
-                  <CardDescription>选择分析类型</CardDescription>
+            {/* 右侧：预览和操作区域 */}
+            <div className="space-y-4">
+              <Card className="sticky top-6">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">配置预览</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-3">
-                    {analysisTypes.map((type) => (
-                      <button
-                        key={type.value}
-                        type="button"
-                        className={`px-4 py-2 rounded-full border-2 transition-all font-medium text-sm ${
-                          formData.analysisType === type.value
-                            ? 'border-purple-400 bg-purple-100 text-purple-800'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-purple-200 hover:bg-purple-50'
-                        }`}
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, analysisType: type.value }))
-                        }
-                      >
-                        {type.label}
-                      </button>
-                    ))}
+                  {/* 当前配置摘要 */}
+                  <div className="p-3 rounded-lg bg-gray-50">
+                    <div className="space-y-1 text-sm">
+                      <div>
+                        <span className="text-gray-500">时间：</span>
+                        <span className="font-medium">
+                          {timeRanges.find((t) => t.value === formData.timeRange)?.label ||
+                            '未选择'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">对象：</span>
+                        <span className="font-medium">
+                          {formData.selectedContacts.length === 0 && '未选择'}
+                          {formData.targetType === 'all' && '全部聊天'}
+                          {formData.targetType === 'groups' && '所有群聊'}
+                          {formData.selectedContacts.length > 0 &&
+                            formData.targetType !== 'all' &&
+                            formData.targetType !== 'groups' &&
+                            `${formData.selectedContacts.length} 个联系人`}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">模板：</span>
+                        <span className="font-medium">{selectedPrompt?.name || '未选择'}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {formData.analysisType === 'custom' && (
-                    <div>
-                      <Label htmlFor="customPrompt">自定义提示词</Label>
-                      <Textarea
-                        id="customPrompt"
-                        placeholder="请输入你的自定义分析提示词..."
-                        value={formData.customPrompt}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, customPrompt: e.target.value }))
-                        }
-                        rows={4}
-                      />
-                    </div>
+                  {/* 数据统计预览 */}
+                  {formData.timeRange && formData.selectedContacts.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 border border-blue-200 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        <div className="text-sm font-medium text-blue-800">预计数据量</div>
+                      </div>
+                      <div className="mb-1 text-2xl font-bold text-blue-900">
+                        {calculateDataStats.messageCount.toLocaleString()} 条消息
+                      </div>
+                      <div className="text-sm text-blue-600">
+                        覆盖 {calculateDataStats.daysCovered} 天，
+                        {calculateDataStats.contactsInvolved} 个联系人
+                      </div>
+                    </motion.div>
                   )}
+
+                  {/* 生成按钮 */}
+                  <Button
+                    type="submit"
+                    disabled={
+                      isGenerating ||
+                      !formData.timeRange ||
+                      !selectedPrompt ||
+                      formData.selectedContacts.length === 0
+                    }
+                    className="w-full h-12 text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+                    onClick={handleSubmit}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Wand2 className="w-4 h-4 mr-2 animate-spin" />
+                        正在生成报告...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        生成分析报告
+                      </>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            {/* Generate Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex justify-center"
-            >
-              <Button
-                type="submit"
-                disabled={isGenerating || !formData.timeRange || !formData.analysisType}
-                className="w-full h-12 max-w-md text-lg text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-              >
-                {isGenerating ? (
-                  <>
-                    <Wand2 className="w-5 h-5 mr-2 animate-spin" />
-                    正在生成报告...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    生成分析报告
-                  </>
-                )}
-              </Button>
-            </motion.div>
-          </form>
+            </div>
+          </div>
         </div>
       </main>
     </div>
