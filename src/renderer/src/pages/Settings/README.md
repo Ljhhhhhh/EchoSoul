@@ -28,40 +28,49 @@ Settings/
 ## 设计原则
 
 ### 1. 单一职责原则
+
 - 每个文件和组件都有明确的职责
 - 类型定义、常量、组件、逻辑分离
 
 ### 2. 可复用性
+
 - 组件设计为可复用的独立单元
 - 通过 props 传递数据和回调函数
 
 ### 3. 状态管理
+
 - 使用自定义 hooks 管理复杂状态逻辑
 - 状态提升到合适的层级
 
 ### 4. 类型安全
+
 - 完整的 TypeScript 类型定义
 - 接口和类型的统一管理
 
 ## 主要组件说明
 
 ### index.tsx
+
 主入口文件，负责：
+
 - 组合各个标签页组件
 - 管理全局状态
 - 处理保存操作
 
 ### 标签页组件
+
 - **EnvironmentTab**: 环境配置（Chatlog 数据目录）
 - **AiServiceTab**: AI 服务配置（多模型管理）
 - **PrivacyTab**: 隐私安全设置
 - **GeneralTab**: 通用设置（主题、通知等）
 
 ### AI 配置组件
+
 - **AiConfigCard**: 单个 AI 配置的展示和编辑
 - **AddAiConfigForm**: 添加新 AI 配置的表单
 
 ### 自定义 Hooks
+
 - **useSettings**: 管理所有设置状态
 - **useAiConfig**: 处理 AI 配置的增删改查逻辑
 - **useToastNotifications**: 统一管理通知消息
@@ -72,23 +81,26 @@ Settings/
 import Settings from '@/pages/Settings'
 
 // 在路由中使用
-<Route path="/settings" element={<Settings />} />
+;<Route path="/settings" element={<Settings />} />
 ```
 
 ## 扩展指南
 
 ### 添加新的设置项
+
 1. 在 `types.ts` 中添加类型定义
 2. 在 `constants.ts` 中添加默认值
 3. 在相应的标签页组件中添加 UI
 4. 在 `useSettings` hook 中添加状态管理逻辑
 
 ### 添加新的标签页
+
 1. 创建新的标签页组件
 2. 在 `index.tsx` 中导入并使用
 3. 更新 TabsList 添加新的 TabsTrigger
 
 ### 添加新的工具函数
+
 在 `utils/settingsUtils.ts` 中添加相关的工具函数
 
 ## 重构收益

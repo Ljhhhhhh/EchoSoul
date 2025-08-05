@@ -45,12 +45,12 @@ export const usePromptManagement = ({
     return true
   }
 
-  const handleAddPrompt = () => {
-    if (!validatePrompt(newPrompt)) return
+  const handleAddPrompt = (promptData: NewPromptTemplate) => {
+    if (!validatePrompt(promptData)) return
 
     const promptTemplate: PromptTemplate = {
       id: generatePromptId(),
-      ...newPrompt,
+      ...promptData,
       isBuiltIn: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -59,23 +59,22 @@ export const usePromptManagement = ({
     onAddPrompt(promptTemplate)
     setNewPrompt(DEFAULT_NEW_PROMPT)
     setShowAddPrompt(false)
-    showPromptAddSuccess(newPrompt.name)
+    showPromptAddSuccess(promptData.name)
   }
 
-  const handleUpdatePrompt = (updatedPrompt: Partial<PromptTemplate>) => {
+  const handleUpdatePrompt = (updatedPrompt: NewPromptTemplate | Partial<PromptTemplate>) => {
     if (!editingPrompt) return
 
     // 验证必填字段
-    if (updatedPrompt.name !== undefined && !updatedPrompt.name.trim()) {
-      showPromptNameError()
-      return
-    }
-    if (updatedPrompt.content !== undefined && !updatedPrompt.content.trim()) {
-      showPromptContentError()
-      return
+    if (!validatePrompt(updatedPrompt as NewPromptTemplate)) return
+
+    const updateData: Partial<PromptTemplate> = {
+      name: updatedPrompt.name,
+      content: updatedPrompt.content,
+      updatedAt: new Date().toISOString()
     }
 
-    onUpdatePrompt(editingPrompt.id, updatedPrompt)
+    onUpdatePrompt(editingPrompt.id, updateData)
     setEditingPrompt(null)
     showPromptUpdateSuccess(updatedPrompt.name || editingPrompt.name)
   }

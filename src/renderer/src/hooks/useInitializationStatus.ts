@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { isInitializationCompletedLocally, clearInitializationStatus } from '@/utils/initializationStorage'
+import {
+  isInitializationCompletedLocally,
+  clearInitializationStatus
+} from '@/utils/initializationStorage'
 
 export type InitializationStatus = 'checking' | 'completed' | 'incomplete'
 

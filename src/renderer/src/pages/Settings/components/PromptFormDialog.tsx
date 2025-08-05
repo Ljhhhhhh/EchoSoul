@@ -64,9 +64,9 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? '编辑提示词' : '添加新提示词'}</DialogTitle>
+          <DialogTitle>{isEditing ? '编辑提示词' : '添加提示词'}</DialogTitle>
           <DialogDescription>
-            {isEditing ? '修改提示词的内容' : '创建一个新的自定义提示词，用于生成个性化分析报告'}
+            {isEditing ? '修改提示词的内容' : '创建一个自定义提示词，生成个性化分析报告'}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,8 +91,8 @@ export const PromptFormDialog: React.FC<PromptFormDialogProps> = ({
               rows={8}
               className="font-mono text-sm"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              提示：可以使用换行符和编号来组织提示词结构，让AI更好地理解你的需求
+            <p className="mt-1 text-xs text-gray-500">
+              提示：可以使用markdown格式来编写提示词，让AI更好地理解你的需求
             </p>
           </div>
         </div>

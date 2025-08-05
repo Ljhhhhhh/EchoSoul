@@ -7,16 +7,19 @@
 ## 🔧 技术实现
 
 ### 1. **API层面**
+
 - 在 `InitializationAPI` 接口中添加了 `hasDecryptedData()` 方法
 - 在 preload 中添加了对应的 IPC 调用
 - 在主进程中添加了 IPC 处理器
 
 ### 2. **服务层面**
+
 - `InitializationManager.hasDecryptedData()` - 管理器层面的接口
 - `InitializationOrchestrator.hasDecryptedData()` - 编排器层面的实现
 - `WeChatDatabaseService.checkDecryptedData()` - 底层数据检查（已存在）
 
 ### 3. **前端逻辑**
+
 - 简化了 Dashboard 的状态类型：`'checking' | 'completed' | 'incomplete'`
 - 移除了复杂的重试机制和验证失败UI
 - 实现了简单的两步检查：
@@ -32,7 +35,7 @@ const isCompletedLocally = isInitializationCompletedLocally()
 if (isCompletedLocally) {
   console.log('本地状态显示已完成初始化，快速进入Dashboard')
   setInitializationStatus('completed')
-  
+
   // 第二步：验证工作目录下是否有解密数据
   const hasData = await checkDecryptedData()
   if (!hasData) {
@@ -54,12 +57,14 @@ if (isCompletedLocally) {
 ## 🎯 解决的问题
 
 ### 原问题
+
 - 每次启动都要调用 `window.api.initialization.getState()`
 - chatlog 服务可能还在启动中，导致验证失败
 - 复杂的重试机制增加了代码复杂度
 - 用户体验不够流畅
 
 ### 新方案优势
+
 - ✅ **瞬间启动**：直接检查本地存储，立即显示Dashboard
 - ✅ **可靠验证**：检查实际的解密数据文件，不依赖服务状态
 - ✅ **简单逻辑**：移除复杂的重试和错误处理
@@ -68,6 +73,7 @@ if (isCompletedLocally) {
 ## 🔍 底层实现
 
 ### WeChatDatabaseService.checkDecryptedData()
+
 ```javascript
 async checkDecryptedData(workDir: string): Promise<boolean> {
   try {
@@ -85,6 +91,7 @@ async checkDecryptedData(workDir: string): Promise<boolean> {
 ```
 
 ### 文件检查逻辑
+
 - 检查工作目录是否存在
 - 递归查找 `.db` 文件
 - 返回是否找到数据库文件
@@ -92,10 +99,12 @@ async checkDecryptedData(workDir: string): Promise<boolean> {
 ## 🚀 性能优化效果
 
 ### 启动时间对比
+
 - **原方案**：需要等待 chatlog 服务启动 + 多次重试 = 3-17秒
 - **新方案**：本地存储检查 + 文件系统检查 = <100ms
 
 ### 用户体验
+
 - **瞬间响应**：用户立即看到Dashboard界面
 - **准确判断**：基于实际数据文件，不会误报
 - **简洁流程**：无复杂的验证状态和重试提示
@@ -103,6 +112,7 @@ async checkDecryptedData(workDir: string): Promise<boolean> {
 ## ✅ 测试验证
 
 应用已成功启动并运行：
+
 - IPC 处理器正确注册
 - 初始化服务正常工作
 - chatlog 服务成功启动
@@ -111,6 +121,7 @@ async checkDecryptedData(workDir: string): Promise<boolean> {
 ## 📝 总结
 
 这个方案完美解决了您提出的问题：
+
 1. **取消了复杂的重试验证机制**
 2. **改为直接检查工作目录下的解密数据**
 3. **实现了快速、可靠的初始化状态判断**
