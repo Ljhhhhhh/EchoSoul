@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, app } from 'electron'
 import { AppServices } from '../services/AppServices'
 import { createLogger } from '../utils/logger'
 import type {
@@ -349,6 +349,17 @@ export function setupIpcHandlers(services: AppServices) {
       }
     })
   }
+
+  // 应用控制
+  ipcMain.handle('app:quit', async (): Promise<void> => {
+    try {
+      logger.info('Received quit request from renderer')
+      app.quit()
+    } catch (error) {
+      logger.error('Failed to quit application:', error)
+      throw error
+    }
+  })
 
   logger.info('IPC handlers setup completed')
 }

@@ -32,9 +32,14 @@ interface ChatlogAPI {
   }>
 }
 
+interface AppAPI {
+  quit: () => Promise<void>
+}
+
 interface CustomAPI {
   initialization: InitializationAPI
   chatlog: ChatlogAPI
+  app: AppAPI
 }
 
 declare global {

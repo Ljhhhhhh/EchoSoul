@@ -40,6 +40,11 @@ const api = {
     getContacts: () => ipcRenderer.invoke('chatlog:get-contacts'),
     getWechatKey: () => ipcRenderer.invoke('chatlog:get-wechat-key'),
     checkInitialization: () => ipcRenderer.invoke('chatlog:check-initialization')
+  },
+
+  // 应用控制相关的API
+  app: {
+    quit: () => ipcRenderer.invoke('app:quit')
   }
 }
 
