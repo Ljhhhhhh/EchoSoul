@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -14,9 +14,44 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Sparkles, Calendar, Users, MessageSquare, Wand2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '@/components/ui/command'
+import {
+  Sparkles,
+  Calendar,
+  Users,
+  MessageSquare,
+  Wand2,
+  X,
+  UserPlus,
+  UsersIcon,
+  Clock,
+  Bookmark,
+  Trash2
+} from 'lucide-react'
 import { useToast } from '../hooks/use-toast'
+
+// 条件记录类型定义
+interface SavedCondition {
+  id: string
+  name: string
+  timeRange: string
+  customStartDate: string
+  customEndDate: string
+  targetType: string
+  selectedContacts: string[]
+  analysisType: string
+  customPrompt: string
+  createdAt: string
+  usageCount: number
+}
 
 const GenerateReport = (): React.ReactElement => {
   const navigate = useNavigate()
@@ -32,6 +67,10 @@ const GenerateReport = (): React.ReactElement => {
     customPrompt: ''
   })
 
+  // 条件记录相关状态
+  const [savedConditions, setSavedConditions] = useState<SavedCondition[]>([])
+  const [showSavedConditions, setShowSavedConditions] = useState(false)
+
   const timeRanges = [
     { value: 'yesterday', label: '昨天' },
     { value: 'last_week', label: '最近一周' },
@@ -41,20 +80,218 @@ const GenerateReport = (): React.ReactElement => {
   ]
 
   const analysisTypes = [
-    { value: 'emotion', label: '情感分析', description: '分析聊天中的情感变化和情绪模式' },
-    { value: 'personality', label: '人格分析', description: '深入了解你的性格特征和行为模式' },
-    { value: 'relationship', label: '关系分析', description: '分析与特定联系人的互动模式' },
-    { value: 'work_atmosphere', label: '工作氛围', description: '分析工作群聊的氛围和团队动态' },
-    { value: 'eq_improvement', label: '情商提升', description: '发现提升情商的机会和建议' },
-    { value: 'thinking_traps', label: '思维陷阱', description: '识别认知偏差和思维盲点' },
-    { value: 'custom', label: '自定义分析', description: '使用自定义提示词进行分析' }
+    { value: 'emotion', label: '情感分析' },
+    { value: 'personality', label: '人格分析' },
+    { value: 'relationship', label: '关系分析' },
+    { value: 'work_atmosphere', label: '工作氛围' },
+    { value: 'eq_improvement', label: '情商提升' },
+    { value: 'thinking_traps', label: '思维陷阱' },
+    { value: 'custom', label: '自定义分析' }
   ]
 
-  const contacts = ['张三', '李四', '王五', '赵六', '工作群', '家庭群', '朋友群', '同学群']
+  // 生成模拟联系人数据
+  const generateMockContacts = () => {
+    const personalContacts = []
+    const groupChats = []
+
+    // 生成个人联系人
+    const surnames = [
+      '张',
+      '李',
+      '王',
+      '刘',
+      '陈',
+      '杨',
+      '赵',
+      '黄',
+      '周',
+      '吴',
+      '徐',
+      '孙',
+      '胡',
+      '朱',
+      '高',
+      '林',
+      '何',
+      '郭',
+      '马',
+      '罗'
+    ]
+    const names = [
+      '伟',
+      '芳',
+      '娜',
+      '秀英',
+      '敏',
+      '静',
+      '丽',
+      '强',
+      '磊',
+      '军',
+      '洋',
+      '勇',
+      '艳',
+      '杰',
+      '娟',
+      '涛',
+      '明',
+      '超',
+      '秀兰',
+      '霞'
+    ]
+
+    for (let i = 0; i < 500; i++) {
+      const surname = surnames[Math.floor(Math.random() * surnames.length)]
+      const name = names[Math.floor(Math.random() * names.length)]
+      personalContacts.push({
+        id: `person_${i}`,
+        name: `${surname}${name}${i > 100 ? i : ''}`,
+        type: 'person',
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${surname}${name}${i}`,
+        lastChat: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      })
+    }
+
+    // 生成群聊
+    const groupTypes = [
+      '工作群',
+      '家庭群',
+      '朋友群',
+      '同学群',
+      '兴趣群',
+      '学习群',
+      '运动群',
+      '游戏群'
+    ]
+    const groupNames = ['讨论组', '交流群', '分享群', '聊天群', '互助群', '活动群']
+
+    for (let i = 0; i < 200; i++) {
+      const type = groupTypes[Math.floor(Math.random() * groupTypes.length)]
+      const name = groupNames[Math.floor(Math.random() * groupNames.length)]
+      groupChats.push({
+        id: `group_${i}`,
+        name: `${type}_${name}${i > 50 ? i : ''}`,
+        type: 'group',
+        memberCount: Math.floor(Math.random() * 200) + 3,
+        lastChat: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+      })
+    }
+
+    return { personalContacts, groupChats }
+  }
+
+  const { personalContacts, groupChats } = useMemo(() => generateMockContacts(), [])
+
+  // 从localStorage加载保存的条件
+  useEffect(() => {
+    const saved = localStorage.getItem('savedReportConditions')
+    if (saved) {
+      try {
+        setSavedConditions(JSON.parse(saved))
+        // 如果有保存的条件，默认展开快速选择区域
+        setShowSavedConditions(true)
+      } catch (error) {
+        console.error('Failed to load saved conditions:', error)
+      }
+    }
+  }, [])
+
+  // 保存条件到localStorage
+  const saveConditionsToStorage = (conditions: SavedCondition[]) => {
+    localStorage.setItem('savedReportConditions', JSON.stringify(conditions))
+    setSavedConditions(conditions)
+  }
+
+  // 生成条件名称
+  const generateConditionName = (data: typeof formData): string => {
+    const timeLabel = timeRanges.find((t) => t.value === data.timeRange)?.label || '自定义时间'
+    const analysisLabel =
+      analysisTypes.find((t) => t.value === data.analysisType)?.label || '未知分析'
+
+    let targetLabel = '全部聊天'
+    if (data.targetType === 'specific') {
+      targetLabel =
+        data.selectedContacts.length > 0 ? `${data.selectedContacts.length}个联系人` : '特定联系人'
+    } else if (data.targetType === 'groups') {
+      targetLabel = '群聊'
+    }
+
+    return `${timeLabel} · ${targetLabel} · ${analysisLabel}`
+  }
+
+  // 保存当前条件
+  const saveCurrentCondition = () => {
+    const newCondition: SavedCondition = {
+      id: Date.now().toString(),
+      name: generateConditionName(formData),
+      ...formData,
+      createdAt: new Date().toISOString(),
+      usageCount: 1
+    }
+
+    // 检查是否已存在相同条件
+    const existingIndex = savedConditions.findIndex(
+      (condition) =>
+        condition.timeRange === formData.timeRange &&
+        condition.targetType === formData.targetType &&
+        condition.analysisType === formData.analysisType &&
+        JSON.stringify(condition.selectedContacts.sort()) ===
+          JSON.stringify(formData.selectedContacts.sort())
+    )
+
+    let updatedConditions: SavedCondition[]
+    if (existingIndex >= 0) {
+      // 更新使用次数
+      updatedConditions = [...savedConditions]
+      updatedConditions[existingIndex].usageCount += 1
+    } else {
+      // 添加新条件，最多保存10个
+      updatedConditions = [newCondition, ...savedConditions].slice(0, 10)
+    }
+
+    saveConditionsToStorage(updatedConditions)
+  }
+
+  // 应用保存的条件
+  const applySavedCondition = (condition: SavedCondition) => {
+    setFormData({
+      timeRange: condition.timeRange,
+      customStartDate: condition.customStartDate,
+      customEndDate: condition.customEndDate,
+      targetType: condition.targetType,
+      selectedContacts: condition.selectedContacts,
+      analysisType: condition.analysisType,
+      customPrompt: condition.customPrompt
+    })
+
+    // 更新使用次数
+    const updatedConditions = savedConditions.map((c) =>
+      c.id === condition.id ? { ...c, usageCount: c.usageCount + 1 } : c
+    )
+    saveConditionsToStorage(updatedConditions)
+
+    toast({
+      title: '条件已应用',
+      description: `已应用"${condition.name}"的配置`
+    })
+  }
+
+  // 删除保存的条件
+  const deleteSavedCondition = (id: string) => {
+    const updatedConditions = savedConditions.filter((c) => c.id !== id)
+    saveConditionsToStorage(updatedConditions)
+    toast({
+      title: '已删除',
+      description: '条件记录已删除'
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setIsGenerating(true)
+
+    // 保存当前条件
+    saveCurrentCondition()
 
     // Simulate API call
     setTimeout(() => {
@@ -67,13 +304,32 @@ const GenerateReport = (): React.ReactElement => {
     }, 3000)
   }
 
-  const handleContactToggle = (contact: string): void => {
+  const handleContactToggle = (contactId: string): void => {
     setFormData((prev) => ({
       ...prev,
-      selectedContacts: prev.selectedContacts.includes(contact)
-        ? prev.selectedContacts.filter((c) => c !== contact)
-        : [...prev.selectedContacts, contact]
+      selectedContacts: prev.selectedContacts.includes(contactId)
+        ? prev.selectedContacts.filter((c) => c !== contactId)
+        : [...prev.selectedContacts, contactId]
     }))
+  }
+
+  const handleSelectAll = (): void => {
+    const allContactIds = [...personalContacts.map((c) => c.id), ...groupChats.map((c) => c.id)]
+    setFormData((prev) => ({
+      ...prev,
+      selectedContacts: allContactIds
+    }))
+  }
+
+  const handleClearAll = (): void => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedContacts: []
+    }))
+  }
+
+  const getContactById = (id: string) => {
+    return personalContacts.find((c) => c.id === id) || groupChats.find((c) => c.id === id)
   }
 
   return (
@@ -88,6 +344,91 @@ const GenerateReport = (): React.ReactElement => {
 
       <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-4xl mx-auto">
+          {/* 快速选择区域 */}
+          {savedConditions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <Card className="border-orange-200 bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-lg text-orange-800">
+                      <Clock className="w-5 h-5" />
+                      快速选择
+                    </CardTitle>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowSavedConditions(!showSavedConditions)}
+                      className="text-orange-600 hover:text-orange-700"
+                    >
+                      {showSavedConditions ? '收起' : '展开'}
+                    </Button>
+                  </div>
+                  <CardDescription>使用之前保存的分析条件快速生成报告</CardDescription>
+                </CardHeader>
+                {showSavedConditions && (
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {savedConditions
+                        .sort((a, b) => b.usageCount - a.usageCount)
+                        .slice(0, 6)
+                        .map((condition) => (
+                          <div
+                            key={condition.id}
+                            className="relative p-3 transition-all border border-orange-200 rounded-lg cursor-pointer group bg-white/50 hover:bg-white/80"
+                            onClick={() => applySavedCondition(condition)}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-medium text-gray-800 truncate">
+                                  {condition.name}
+                                </h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    <Bookmark className="w-3 h-3 mr-1" />
+                                    使用 {condition.usageCount} 次
+                                  </Badge>
+                                  <span className="text-xs text-gray-400">
+                                    {new Date(condition.createdAt).toLocaleDateString('zh-CN', {
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-1 text-gray-400 transition-opacity opacity-0 group-hover:opacity-100 hover:text-red-500"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  deleteSavedCondition(condition.id)
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                    {savedConditions.length > 6 && (
+                      <div className="mt-3 text-center">
+                        <span className="text-sm text-gray-500">
+                          显示最常用的 6 个条件，共 {savedConditions.length} 个
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+            </motion.div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Time Range Selection */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -180,21 +521,115 @@ const GenerateReport = (): React.ReactElement => {
                   </Select>
 
                   {formData.targetType === 'specific' && (
-                    <div>
-                      <Label className="block mb-3 text-sm font-medium">选择联系人</Label>
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        {contacts.map((contact) => (
-                          <div key={contact} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={contact}
-                              checked={formData.selectedContacts.includes(contact)}
-                              onCheckedChange={() => handleContactToggle(contact)}
-                            />
-                            <Label htmlFor={contact} className="text-sm">
-                              {contact}
-                            </Label>
+                    <div className="space-y-4">
+                      {/* 已选择的联系人标签展示 */}
+                      {formData.selectedContacts.length > 0 && (
+                        <div>
+                          <Label className="block mb-2 text-sm font-medium">
+                            已选择 ({formData.selectedContacts.length})
+                          </Label>
+                          <div className="flex flex-wrap gap-2 p-3 overflow-y-auto rounded-lg bg-gray-50 max-h-32">
+                            {formData.selectedContacts.map((contactId) => {
+                              const contact = getContactById(contactId)
+                              return contact ? (
+                                <Badge
+                                  key={contactId}
+                                  variant="secondary"
+                                  className="flex items-center gap-1 px-2 py-1"
+                                >
+                                  {contact.type === 'group' ? (
+                                    <UsersIcon className="w-3 h-3" />
+                                  ) : (
+                                    <UserPlus className="w-3 h-3" />
+                                  )}
+                                  {contact.name}
+                                  <X
+                                    className="w-3 h-3 ml-1 cursor-pointer hover:text-red-500"
+                                    onClick={() => handleContactToggle(contactId)}
+                                  />
+                                </Badge>
+                              ) : null
+                            })}
                           </div>
-                        ))}
+                        </div>
+                      )}
+
+                      {/* 批量操作按钮 */}
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSelectAll}
+                          className="text-xs"
+                        >
+                          全选
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleClearAll}
+                          className="text-xs"
+                        >
+                          清空
+                        </Button>
+                      </div>
+
+                      {/* 联系人搜索和选择 */}
+                      <div>
+                        <Label className="block mb-2 text-sm font-medium">搜索并选择联系人</Label>
+                        <Command className="border rounded-lg">
+                          <CommandInput placeholder="搜索联系人或群聊..." />
+                          <CommandList className="max-h-64">
+                            <CommandEmpty>未找到相关联系人</CommandEmpty>
+
+                            <CommandGroup heading="个人联系人">
+                              {personalContacts.slice(0, 100).map((contact) => (
+                                <CommandItem
+                                  key={contact.id}
+                                  onSelect={() => handleContactToggle(contact.id)}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <UserPlus className="w-4 h-4" />
+                                    <span>{contact.name}</span>
+                                  </div>
+                                  {formData.selectedContacts.includes(contact.id) && (
+                                    <Badge variant="default" className="text-xs">
+                                      已选择
+                                    </Badge>
+                                  )}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+
+                            <CommandGroup heading="群聊">
+                              {groupChats.slice(0, 50).map((contact) => (
+                                <CommandItem
+                                  key={contact.id}
+                                  onSelect={() => handleContactToggle(contact.id)}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <UsersIcon className="w-4 h-4" />
+                                    <div className="flex flex-col">
+                                      <span>{contact.name}</span>
+                                      <span className="text-xs text-gray-500">
+                                        {contact.memberCount} 人
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {formData.selectedContacts.includes(contact.id) && (
+                                    <Badge variant="default" className="text-xs">
+                                      已选择
+                                    </Badge>
+                                  )}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
                       </div>
                     </div>
                   )}
@@ -214,25 +649,25 @@ const GenerateReport = (): React.ReactElement => {
                     <MessageSquare className="w-5 h-5" />
                     选择分析类型
                   </CardTitle>
-                  <CardDescription>选择你想要的分析维度和提示词</CardDescription>
+                  <CardDescription>选择分析类型</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="flex flex-wrap gap-3">
                     {analysisTypes.map((type) => (
-                      <div
+                      <button
                         key={type.value}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        type="button"
+                        className={`px-4 py-2 rounded-full border-2 transition-all font-medium text-sm ${
                           formData.analysisType === type.value
-                            ? 'border-purple-400 bg-purple-100/50'
-                            : 'border-gray-200 hover:border-purple-200 hover:bg-purple-50/30'
+                            ? 'border-purple-400 bg-purple-100 text-purple-800'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-purple-200 hover:bg-purple-50'
                         }`}
                         onClick={() =>
                           setFormData((prev) => ({ ...prev, analysisType: type.value }))
                         }
                       >
-                        <h3 className="mb-1 font-medium text-gray-800">{type.label}</h3>
-                        <p className="text-sm text-gray-600">{type.description}</p>
-                      </div>
+                        {type.label}
+                      </button>
                     ))}
                   </div>
 
