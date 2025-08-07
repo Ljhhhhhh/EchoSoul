@@ -81,6 +81,14 @@ export function setupIpcHandlers(services: AppServices) {
       return []
     }
   })
+  ipcMain.handle('chatlog:get-chatroom-list', async () => {
+    try {
+      return await services.chatlog.getChatroomList()
+    } catch (error) {
+      logger.error('Failed to get chatroom list:', error)
+      return []
+    }
+  })
 
   ipcMain.handle('chatlog:get-wechat-key', async () => {
     try {

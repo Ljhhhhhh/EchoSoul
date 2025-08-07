@@ -21,8 +21,10 @@ export interface GetMessagesParams {
 
 export interface GetContactsParams {
   type?: 'individual' | 'group' | 'all'
-  limit?: number
-  offset?: number
+  keyword?: string
+  format?: 'json' | 'text'
+
+  // keyword=vip&format=json
 }
 
 export interface ChatroomInfo {
@@ -92,27 +94,51 @@ export class ChatlogHttpClient {
     try {
       const queryParams = new URLSearchParams()
 
-      if (params?.type && params.type !== 'all') {
-        queryParams.set('type', params.type)
+      if (!params?.format) {
+        queryParams.set('format', 'json')
       }
-      if (params?.limit) {
-        queryParams.set('limit', params.limit.toString())
-      }
-      if (params?.offset) {
-        queryParams.set('offset', params.offset.toString())
+
+      if (params?.keyword) {
+        queryParams.set('keyword', params?.keyword)
       }
 
       const url = `/api/v1/contact${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
 
-      const data = await this.httpClient.get<any[]>(url, {
+      logger.debug(`GET request to ${url}`)
+
+      const data = await this.httpClient.get<{ items: any[] }>(url, {
         retries: this.defaultRetries,
         retryDelay: this.defaultRetryDelay
       })
 
-      return this.normalizeContacts(data)
+      return data.items
     } catch (error) {
       logger.error('Failed to get contacts:', error)
       throw new Error(`获取联系人失败: ${this.getErrorMessage(error)}`)
+    }
+  }
+
+  async getChatroomList(params?: GetContactsParams): Promise<ChatroomInfo[]> {
+    try {
+      const queryParams = new URLSearchParams()
+
+      if (!params?.format) {
+        queryParams.set('format', 'json')
+      }
+
+      if (params?.keyword) {
+        queryParams.set('keyword', params?.keyword)
+      }
+
+      const url = `/api/v1/contact${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const data = await this.httpClient.get<{ items: any[] }>(url, {
+        retries: this.defaultRetries,
+        retryDelay: this.defaultRetryDelay
+      })
+      return data.items
+    } catch (error) {
+      logger.error('Failed to get chatroom list:', error)
+      throw new Error(`获取群聊列表失败: ${this.getErrorMessage(error)}`)
     }
   }
 
@@ -193,19 +219,6 @@ export class ChatlogHttpClient {
       logger.error('Failed to get sessions:', error)
       throw new Error(`获取会话列表失败: ${this.getErrorMessage(error)}`)
     }
-  }
-
-  /**
-   * 标准化联系人数据
-   */
-  private normalizeContacts(data: any[]): Contact[] {
-    return data.map((item) => ({
-      id: item.id || item.wxid,
-      name: item.name || item.nickname || item.id || item.wxid,
-      type: item.type === 'chatroom' ? 'group' : 'individual',
-      avatar: item.avatar,
-      lastMessageTime: item.lastMessageTime
-    }))
   }
 
   /**

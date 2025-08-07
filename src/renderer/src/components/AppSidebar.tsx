@@ -147,12 +147,19 @@ export function AppSidebar(): React.ReactElement {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleQuitApp}
-                    className="p-0 transition-all duration-300 ease-out group/quit hover:bg-transparent"
+                    className="group/quit relative overflow-hidden rounded-lg border border-orange-100/50 bg-gradient-to-r from-orange-50/30 to-red-50/30 p-3 transition-all duration-300 ease-out hover:border-red-200 hover:from-red-50 hover:to-red-100 hover:shadow-md hover:shadow-red-100/50 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
                   >
-                    <LogOut className="w-4 h-4 transition-all duration-300 ease-out group-hover/quit:scale-110 group-hover/quit:rotate-12 group-hover/quit:text-orange-600" />
-                    <span className="transition-all duration-300 ease-out group-hover/quit:translate-x-1 group-hover/quit:text-orange-700 group-hover/quit:font-medium">
+                    <LogOut className="w-4 h-4 text-gray-600 transition-all duration-300 ease-out group-hover/quit:text-red-600 group-hover/quit:rotate-12 group-hover/quit:scale-110" />
+                    <span className="text-sm font-medium text-gray-700 transition-all duration-300 ease-out group-hover/quit:text-red-700">
                       退出软件
                     </span>
+
+                    {/* 微光效果 */}
+                    <div className="absolute inset-0 transition-transform duration-700 ease-out -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover/quit:translate-x-full"></div>
+
+                    {/* 背景粒子效果 */}
+                    <div className="absolute w-1 h-1 transition-all duration-500 ease-out rounded-full top-1 right-1 bg-red-300/0 group-hover/quit:bg-red-300/60 group-hover/quit:animate-pulse"></div>
+                    <div className="absolute w-1 h-1 transition-all duration-700 ease-out delay-100 rounded-full bottom-1 left-1 bg-red-300/0 group-hover/quit:bg-red-300/40 group-hover/quit:animate-ping"></div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

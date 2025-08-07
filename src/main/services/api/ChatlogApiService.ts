@@ -141,6 +141,35 @@ export class ChatlogApiService extends EventEmitter implements IChatlogApiServic
   }
 
   /**
+   * 获取群聊列表
+   */
+  async getChatroomList(): Promise<ApiResult<ChatroomInfo[]>> {
+    try {
+      logger.debug('Getting chatroom list')
+
+      const chatrooms = await this.httpClient.getChatroomList()
+
+      this.emit('chatroomsRetrieved', chatrooms)
+
+      return {
+        success: true,
+        data: chatrooms,
+        message: `Retrieved ${chatrooms.length} chatrooms`
+      }
+    } catch (error) {
+      logger.error('Failed to get chatroom list:', error)
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.emit('error', { operation: 'getChatroomList', error: errorMessage })
+
+      return {
+        success: false,
+        error: errorMessage
+      }
+    }
+  }
+
+  /**
    * 获取聊天消息
    */
   async getMessages(params: GetMessagesParams): Promise<ApiResult<ChatMessage[]>> {

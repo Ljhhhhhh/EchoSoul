@@ -3,6 +3,7 @@ import type { ChatMessage, Contact, ChatlogStatus } from '../../types'
 import { ConfigService } from './ConfigService'
 import { createServiceContainer, ServiceContainer } from './ServiceFactory'
 import { getChatlogProgramPath } from '../utils/resourceManager'
+import { ChatroomInfo } from './api'
 
 const logger = createLogger('ChatlogService')
 
@@ -96,6 +97,19 @@ export class ChatlogService {
       return result.success ? result.data || [] : []
     } catch (error) {
       logger.error('Failed to get contacts:', error)
+      return []
+    }
+  }
+
+  /**
+   * 获取群聊列表
+   */
+  async getChatroomList(): Promise<ChatroomInfo[]> {
+    try {
+      const result = await this.serviceContainer.apiService.getChatroomList()
+      return result.success ? result.data || [] : []
+    } catch (error) {
+      logger.error('Failed to get chatroom list:', error)
       return []
     }
   }
