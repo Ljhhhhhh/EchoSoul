@@ -38,6 +38,7 @@ const api = {
     start: () => ipcRenderer.invoke('chatlog:start'),
     stop: () => ipcRenderer.invoke('chatlog:stop'),
     getContacts: () => ipcRenderer.invoke('chatlog:get-contacts'),
+    getChatroomList: () => ipcRenderer.invoke('chatlog:get-chatroom-list'),
     getWechatKey: () => ipcRenderer.invoke('chatlog:get-wechat-key'),
     checkInitialization: () => ipcRenderer.invoke('chatlog:check-initialization')
   },

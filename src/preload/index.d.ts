@@ -24,6 +24,7 @@ interface ChatlogAPI {
   start: () => Promise<boolean>
   stop: () => Promise<boolean>
   getContacts: () => Promise<{ success: boolean; contacts?: any; error?: string }>
+  getChatroomList: () => Promise<{ success: boolean; chatrooms?: any; error?: string }>
   getWechatKey: () => Promise<{ success: boolean; wechatKey?: string; error?: string }>
   checkInitialization: () => Promise<{
     keyObtained: boolean

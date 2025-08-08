@@ -45,8 +45,16 @@ import { PromptTemplate } from '../pages/Settings/types'
 
 // 类型定义
 interface Contact {
-  userName: string
-  nickName?: string
+  id: string // 唯一标识符，个人联系人使用userName，群聊使用name
+  userName?: string // 个人联系人的用户名
+  name?: string // 群聊的名称标识
+  nickName: string // 显示名称
+  alias?: string // 别名
+  remark?: string // 备注
+  isFriend?: boolean // 是否为好友（仅个人联系人）
+  type: 'individual' | 'group' // 联系人类型
+  users?: Array<{ userName: string; displayName: string }> // 群聊成员（仅群聊）
+  memberCount?: number // 成员数量（仅群聊）
 }
 
 // 条件记录类型定义
@@ -143,14 +151,53 @@ const GenerateReport = (): React.ReactElement => {
 
     try {
       // 调用IPC获取联系人数据
-      const contacts = await window.api.chatlog.getContacts()
-      console.log('Fetched contacts:', contacts)
+      const contactsData = await window.api.chatlog.getContacts()
+      const chatroomsData = await window.api.chatlog.getChatroomList()
 
-      if (Array.isArray(contacts)) {
-        setContacts(contacts)
-      } else {
-        throw new Error('获取联系人数据失败')
+      console.log('Fetched chatrooms:', chatroomsData)
+
+      const allContacts: Contact[] = []
+
+      // 处理个人联系人数据
+      if (Array.isArray(contactsData)) {
+        console.log('Fetched contacts:', contactsData)
+        const personalContacts = contactsData
+          .filter((contact) => contact.userName && contact.userName.trim() !== '') // 过滤掉用户名为空的数据
+          .map((contact) => ({
+            id: contact.userName,
+            userName: contact.userName,
+            nickName: contact.nickName || contact.userName,
+            alias: contact.alias,
+            remark: contact.remark,
+            isFriend: contact.isFriend,
+            type: 'individual' as const
+          }))
+        allContacts.push(...personalContacts)
       }
+
+      // 处理群聊数据
+      if (Array.isArray(chatroomsData)) {
+        const groupContacts = chatroomsData
+          .filter((chatroom) => {
+            // 过滤掉nickName为空或者users.length为0的数据
+            const hasValidNickName = chatroom.nickName && chatroom.nickName.trim() !== ''
+            const hasValidUsers =
+              chatroom.users && Array.isArray(chatroom.users) && chatroom.users.length > 0
+            return hasValidNickName && hasValidUsers
+          })
+          .map((chatroom) => ({
+            id: chatroom.name,
+            name: chatroom.name,
+            nickName: chatroom.nickName,
+            remark: chatroom.remark,
+            type: 'group' as const,
+            users: chatroom.users || [],
+            memberCount: chatroom.users ? chatroom.users.length : 0
+          }))
+        allContacts.push(...groupContacts)
+      }
+
+      setContacts(allContacts)
     } catch (error) {
       console.error('Failed to fetch contacts:', error)
       setContactsError(error instanceof Error ? error.message : '获取联系人失败')
@@ -161,24 +208,92 @@ const GenerateReport = (): React.ReactElement => {
     }
   }
 
-  // 分离个人联系人和群聊
+  // 分离个人联系人和群聊 - 使用稳定的依赖
   const { personalContacts, groupChats } = useMemo(() => {
+    console.log('Recalculating contact separation...')
     const personal = contacts.filter((contact) => contact.type === 'individual')
     const groups = contacts.filter((contact) => contact.type === 'group')
     return { personalContacts: personal, groupChats: groups }
   }, [contacts])
 
-  // 过滤联系人
+  // 预处理搜索数据 - 提前准备搜索字段，避免重复计算
+  const searchableContacts = useMemo(() => {
+    console.log('Preparing searchable contacts...')
+    return [...personalContacts, ...groupChats].map((contact) => ({
+      ...contact,
+      // 预处理搜索字段，避免运行时重复计算
+      searchFields: {
+        nickName: (contact.nickName || '').toLowerCase(),
+        alias: (contact.alias || '').toLowerCase(),
+        remark: (contact.remark || '').toLowerCase(),
+        // 对于群聊，预处理成员搜索字段
+        groupMembers:
+          contact.type === 'group' && contact.users
+            ? contact.users.map((user) => ({
+                userName: (user.userName || '').toLowerCase(),
+                displayName: (user.displayName || '').toLowerCase()
+              }))
+            : []
+      }
+    }))
+  }, [personalContacts, groupChats])
+
+  // 优化的搜索过滤逻辑
   const filteredContacts = useMemo(() => {
-    const allContacts = [...personalContacts, ...groupChats]
-    if (!contactSearchTerm) return allContacts
+    console.log('=== 开始过滤联系人 ===')
+    console.log('搜索词:', contactSearchTerm)
+    console.log('可搜索联系人数量:', searchableContacts.length)
 
-    return allContacts.filter((contact) =>
-      contact.nickName.toLowerCase().includes(contactSearchTerm.toLowerCase())
-    )
-  }, [personalContacts, groupChats, contactSearchTerm])
+    if (!contactSearchTerm || contactSearchTerm.trim() === '') {
+      console.log('无搜索词，返回全部联系人')
+      console.log('返回的联系人:', searchableContacts)
+      return searchableContacts
+    }
 
-  // 获取已选择的联系人信息
+    const searchTerm = contactSearchTerm.toLowerCase().trim()
+    console.log('处理后的搜索词:', searchTerm)
+
+    const filtered = searchableContacts.filter((contact) => {
+      // 使用预处理的搜索字段
+      const { nickName, alias, remark, groupMembers } = contact.searchFields
+
+      // 搜索显示名称、别名、备注
+      const nameMatch = nickName.includes(searchTerm)
+      const aliasMatch = alias.includes(searchTerm)
+      const remarkMatch = remark.includes(searchTerm)
+
+      if (nameMatch || aliasMatch || remarkMatch) {
+        console.log(`✅ 找到匹配联系人: ${contact.nickName} (${contact.type})`, {
+          nameMatch,
+          aliasMatch,
+          remarkMatch
+        })
+        return true
+      }
+
+      // 搜索群聊成员
+      if (contact.type === 'group' && groupMembers.length > 0) {
+        const memberMatch = groupMembers.some(
+          (member) =>
+            member.userName.includes(searchTerm) || member.displayName.includes(searchTerm)
+        )
+        if (memberMatch) {
+          console.log(`✅ 通过群成员找到匹配: ${contact.nickName}`)
+          return true
+        }
+      }
+
+      return false
+    })
+
+    console.log('过滤后的联系人数量:', filtered.length)
+    console.log('过滤后的联系人详情:', filtered)
+    console.log('=== 过滤联系人结束 ===')
+
+    return filtered
+  }, [searchableContacts, contactSearchTerm])
+
+  // 获取已选择的联系人信息 - 使用原始联系人数据
   const selectedContactsInfo = useMemo(() => {
     const allContacts = [...personalContacts, ...groupChats]
     return formData.selectedContacts
@@ -255,6 +370,14 @@ const GenerateReport = (): React.ReactElement => {
       }
     }
   }, [])
+
+  // 组件加载调试
+  useEffect(() => {
+    console.log('=== GenerateReport组件加载调试 ===')
+    console.log('contacts原始数据:', contacts)
+    console.log('personalContacts:', personalContacts)
+    console.log('groupChats:', groupChats)
+  }, [contacts, personalContacts, groupChats])
 
   // 获取联系人数据
   useEffect(() => {
@@ -603,7 +726,7 @@ const GenerateReport = (): React.ReactElement => {
                                               <UserPlus className="w-3 h-3" />
                                             )}
                                             <span className="truncate max-w-16">
-                                              {contact.name}
+                                              {contact.nickName}
                                             </span>
                                             <Button
                                               type="button"
@@ -631,7 +754,7 @@ const GenerateReport = (): React.ReactElement => {
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="p-0 w-80" align="start">
-                                <Command>
+                                <Command shouldFilter={false}>
                                   <CommandInput
                                     placeholder="搜索联系人或群聊..."
                                     value={contactSearchTerm}
@@ -665,6 +788,7 @@ const GenerateReport = (): React.ReactElement => {
                                         {/* 快捷选项 */}
                                         <CommandGroup heading="快捷选择">
                                           <CommandItem
+                                            value="全部聊天"
                                             onSelect={() => {
                                               setFormData((prev) => ({
                                                 ...prev,
@@ -679,6 +803,7 @@ const GenerateReport = (): React.ReactElement => {
                                             <span>全部聊天</span>
                                           </CommandItem>
                                           <CommandItem
+                                            value="所有群聊"
                                             onSelect={() => {
                                               const groupIds = groupChats.map((g) => g.id)
                                               setFormData((prev) => ({
@@ -696,71 +821,101 @@ const GenerateReport = (): React.ReactElement => {
                                         </CommandGroup>
 
                                         {/* 个人联系人 */}
-                                        {filteredContacts.filter((c) => c.type === 'individual')
-                                          .length > 0 && (
-                                          <CommandGroup heading="个人联系人">
-                                            {filteredContacts
-                                              .filter((c) => c.type === 'individual')
-                                              .slice(0, 15)
-                                              .map((contact) => (
-                                                <CommandItem
-                                                  key={contact.id}
-                                                  onSelect={() => {
-                                                    if (
-                                                      formData.selectedContacts.includes(contact.id)
-                                                    ) {
-                                                      removeContact(contact.id)
-                                                    } else {
-                                                      addContact(contact.id)
-                                                    }
-                                                  }}
-                                                  className="cursor-pointer"
-                                                >
-                                                  <UserPlus className="w-4 h-4 mr-2" />
-                                                  <span>{contact.name}</span>
-                                                  {formData.selectedContacts.includes(
-                                                    contact.id
-                                                  ) && (
-                                                    <Check className="w-4 h-4 ml-auto text-green-600" />
-                                                  )}
-                                                </CommandItem>
-                                              ))}
-                                          </CommandGroup>
-                                        )}
+                                        {(() => {
+                                          const individualContacts = filteredContacts.filter(
+                                            (c) => c.type === 'individual'
+                                          )
+                                          console.log('=== 个人联系人渲染调试 ===')
+                                          console.log('filteredContacts在渲染时:', filteredContacts)
+                                          console.log(
+                                            'individualContacts.length:',
+                                            individualContacts.length
+                                          )
+                                          console.log('individualContacts详细:', individualContacts)
+                                          console.log(
+                                            '条件判断结果:',
+                                            individualContacts.length > 0
+                                          )
+
+                                          return (
+                                            individualContacts.length > 0 && (
+                                              <CommandGroup heading="个人联系人">
+                                                {individualContacts.slice(0, 20).map((contact) => {
+                                                  console.log('正在渲染联系人:', contact)
+                                                  return (
+                                                    <CommandItem
+                                                      key={contact.id}
+                                                      value={`${contact.remark || contact.nickName || contact.alias || contact.userName}`}
+                                                      onSelect={() => {
+                                                        if (
+                                                          formData.selectedContacts.includes(
+                                                            contact.id
+                                                          )
+                                                        ) {
+                                                          removeContact(contact.id)
+                                                        } else {
+                                                          addContact(contact.id)
+                                                        }
+                                                      }}
+                                                      className="cursor-pointer"
+                                                    >
+                                                      <UserPlus className="w-4 h-4 mr-2" />
+                                                      <span>
+                                                        {contact.remark || contact.nickName}
+                                                      </span>
+                                                      {formData.selectedContacts.includes(
+                                                        contact.id
+                                                      ) && (
+                                                        <Check className="w-4 h-4 ml-auto text-green-600" />
+                                                      )}
+                                                    </CommandItem>
+                                                  )
+                                                })}
+                                              </CommandGroup>
+                                            )
+                                          )
+                                        })()}
 
                                         {/* 群聊 */}
-                                        {filteredContacts.filter((c) => c.type === 'group').length >
-                                          0 && (
-                                          <CommandGroup heading="群聊">
-                                            {filteredContacts
-                                              .filter((c) => c.type === 'group')
-                                              .slice(0, 15)
-                                              .map((group) => (
-                                                <CommandItem
-                                                  key={group.id}
-                                                  onSelect={() => {
-                                                    if (
-                                                      formData.selectedContacts.includes(group.id)
-                                                    ) {
-                                                      removeContact(group.id)
-                                                    } else {
-                                                      addContact(group.id)
-                                                    }
-                                                  }}
-                                                  className="cursor-pointer"
-                                                >
-                                                  <UsersIcon className="w-4 h-4 mr-2" />
-                                                  <span>{group.name}</span>
-                                                  <span className="ml-auto mr-2 text-xs text-gray-500">
-                                                    {(group as any).memberCount} 人
-                                                  </span>
-                                                  {formData.selectedContacts.includes(group.id) && (
-                                                    <Check className="w-4 h-4 text-green-600" />
-                                                  )}
-                                                </CommandItem>
-                                              ))}
-                                          </CommandGroup>
-                                        )}
+                                        {(() => {
+                                          const groupContacts = filteredContacts.filter(
+                                            (c) => c.type === 'group'
+                                          )
+
+                                          return (
+                                            groupContacts.length > 0 && (
+                                              <CommandGroup heading="群聊">
+                                                {groupContacts.slice(0, 15).map((group) => (
+                                                  <CommandItem
+                                                    key={group.id}
+                                                    value={`${group.nickName || group.name}`}
+                                                    onSelect={() => {
+                                                      if (
+                                                        formData.selectedContacts.includes(group.id)
+                                                      ) {
+                                                        removeContact(group.id)
+                                                      } else {
+                                                        addContact(group.id)
+                                                      }
+                                                    }}
+                                                    className="cursor-pointer"
+                                                  >
+                                                    <UsersIcon className="w-4 h-4 mr-2" />
+                                                    <span>{group.nickName}</span>
+                                                    <span className="ml-auto mr-2 text-xs text-gray-500">
+                                                      {group.memberCount || 0} 人
+                                                    </span>
+                                                    {formData.selectedContacts.includes(
+                                                      group.id
+                                                    ) && (
+                                                      <Check className="w-4 h-4 text-green-600" />
+                                                    )}
+                                                  </CommandItem>
+                                                ))}
+                                              </CommandGroup>
+                                            )
+                                          )
+                                        })()}
                                       </>
                                     )}
                                   </CommandList>

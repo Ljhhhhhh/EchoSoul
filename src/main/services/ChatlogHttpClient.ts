@@ -130,7 +130,7 @@ export class ChatlogHttpClient {
         queryParams.set('keyword', params?.keyword)
       }
 
-      const url = `/api/v1/contact${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const url = `/api/v1/chatroom${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const data = await this.httpClient.get<{ items: any[] }>(url, {
         retries: this.defaultRetries,
         retryDelay: this.defaultRetryDelay
