@@ -240,18 +240,11 @@ const GenerateReport = (): React.ReactElement => {
 
   // 优化的搜索过滤逻辑
   const filteredContacts = useMemo(() => {
-    console.log('=== 开始过滤联系人 ===')
-    console.log('搜索词:', contactSearchTerm)
-    console.log('可搜索联系人数量:', searchableContacts.length)
-
     if (!contactSearchTerm || contactSearchTerm.trim() === '') {
-      console.log('无搜索词，返回全部联系人')
-      console.log('返回的联系人:', searchableContacts)
       return searchableContacts
     }
 
     const searchTerm = contactSearchTerm.toLowerCase().trim()
-    console.log('处理后的搜索词:', searchTerm)
 
     const filtered = searchableContacts.filter((contact) => {
       // 使用预处理的搜索字段
@@ -263,11 +256,6 @@ const GenerateReport = (): React.ReactElement => {
       const remarkMatch = remark.includes(searchTerm)
 
       if (nameMatch || aliasMatch || remarkMatch) {
-        console.log(`✅ 找到匹配联系人: ${contact.nickName} (${contact.type})`, {
-          nameMatch,
-          aliasMatch,
-          remarkMatch
-        })
         return true
       }
 
@@ -278,17 +266,12 @@ const GenerateReport = (): React.ReactElement => {
             member.userName.includes(searchTerm) || member.displayName.includes(searchTerm)
         )
         if (memberMatch) {
-          console.log(`✅ 通过群成员找到匹配: ${contact.nickName}`)
           return true
         }
       }
 
       return false
     })
-
-    console.log('过滤后的联系人数量:', filtered.length)
-    console.log('过滤后的联系人详情:', filtered)
-    console.log('=== 过滤联系人结束 ===')
 
     return filtered
   }, [searchableContacts, contactSearchTerm])
@@ -824,17 +807,6 @@ const GenerateReport = (): React.ReactElement => {
                                         {(() => {
                                           const individualContacts = filteredContacts.filter(
                                             (c) => c.type === 'individual'
-                                          )
-                                          console.log('=== 个人联系人渲染调试 ===')
-                                          console.log('filteredContacts在渲染时:', filteredContacts)
-                                          console.log(
-                                            'individualContacts.length:',
-                                            individualContacts.length
-                                          )
-                                          console.log('individualContacts详细:', individualContacts)
-                                          console.log(
-                                            '条件判断结果:',
-                                            individualContacts.length > 0
                                           )
 
                                           return (
