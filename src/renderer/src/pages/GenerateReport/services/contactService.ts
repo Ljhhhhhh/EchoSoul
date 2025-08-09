@@ -5,76 +5,91 @@ import type { Contact } from '../types'
 
 export class ContactService {
   /**
-   * 获取联系人数据
+   * 获取好友联系人数据
    *
-   * 重要变更：
-   * - 现在只调用 getContacts() 接口，该接口已包含群聊和好友数据
-   * - 通过 userName 是否以 '@chatroom' 结尾来区分群聊和好友
-   * - 群聊显示名称使用 nickName，好友显示名称优先使用 remark
-   * - 统一使用 userName 作为唯一标识符
+   * 数据结构：{userName, alias, remark, nickName, isFriend}
+   * 转换为统一的 Contact 格式
    */
   static async fetchContacts(): Promise<Contact[]> {
     try {
-      const contactsData = await window.api.chatlog.getContacts()
+      const result = await window.api.chatlog.getContacts()
+      console.log('获取到的原始好友数据:', result)
 
-      console.log('获取到的联系人数据:', contactsData)
+      const contactsData = (result || []).map((contact: any) => ({
+        id: contact.userName, // 使用 userName 作为唯一标识
+        userName: contact.userName,
+        nickName: contact.nickName || contact.userName,
+        alias: contact.alias || '',
+        remark: contact.remark || '',
+        isFriend: contact.isFriend,
+        type: 'individual' as const
+      }))
 
-      if (!Array.isArray(contactsData)) {
-        return []
-      }
-
-      const allContacts: Contact[] = contactsData
-        .filter((contact) => contact.userName && contact.userName.trim() !== '')
-        .map((contact) => {
-          // 根据 userName 是否以 '@chatroom' 结尾判断是否为群聊
-          const isGroup = contact.userName.endsWith('@chatroom')
-
-          if (isGroup) {
-            // 群聊处理：显示名称使用 nickName
-            return {
-              id: contact.userName, // 统一使用 userName 作为 ID
-              userName: contact.userName,
-              name: contact.userName, // 群聊的 name 字段
-              nickName: contact.nickName || contact.userName, // 群聊显示名称
-              remark: contact.remark,
-              type: 'group' as const,
-              memberCount: contact.users ? contact.users.length : 0
-            }
-          } else {
-            // 个人联系人处理：显示名称优先使用 remark
-            return {
-              id: contact.userName, // 统一使用 userName 作为 ID
-              userName: contact.userName,
-              // 好友的显示名称：remark > nickName > userName
-              nickName: contact.remark,
-              alias: contact.alias,
-              remark: contact.remark,
-              isFriend: contact.isFriend,
-              type: 'individual' as const
-            }
-          }
-        })
-        .filter((contact) => {
-          // 过滤掉群成员数量为0的群聊
-          if (contact.type === 'group') {
-            return true // contact.memberCount > 0
-          }
-          // 过滤掉没有显示名称的个人联系人
-          if (contact.type === 'individual') {
-            return contact.nickName && contact.nickName.trim() !== ''
-          }
-          return true
-        })
-
-      return allContacts
+      return contactsData
     } catch (error) {
       console.error('Failed to fetch contacts:', error)
-      throw new Error(error instanceof Error ? error.message : '获取联系人失败')
+      throw new Error(error instanceof Error ? error.message : '获取好友失败')
     }
   }
 
   /**
-   * 分离个人联系人和群聊
+   * 获取群聊数据
+   *
+   * 数据结构：{name, owner, remark, nickName, userCount}
+   * 转换为统一的 Contact 格式
+   */
+  static async fetchChatRooms(): Promise<Contact[]> {
+    try {
+      const chatRoomList = await window.api.chatlog.getChatroomList()
+      console.log('获取到的原始群聊数据:', chatRoomList)
+
+      const groupChatsData = (chatRoomList || []).map((chatRoom: any) => ({
+        id: chatRoom.name, // 使用 name 作为唯一标识
+        name: chatRoom.name,
+        nickName: chatRoom.nickName || chatRoom.name,
+        remark: chatRoom.remark || '',
+        owner: chatRoom.owner,
+        memberCount: chatRoom.userCount || 0,
+        type: 'group' as const
+      }))
+
+      return groupChatsData
+    } catch (error) {
+      console.error('Failed to fetch chat rooms:', error)
+      throw new Error(error instanceof Error ? error.message : '获取群聊失败')
+    }
+  }
+
+  /**
+   * 获取所有联系人数据（好友 + 群聊）
+   */
+  static async fetchAllContacts(): Promise<{
+    allContacts: Contact[]
+    personalContacts: Contact[]
+    groupChats: Contact[]
+  }> {
+    try {
+      const [personalContacts, groupChats] = await Promise.all([
+        this.fetchContacts(),
+        this.fetchChatRooms()
+      ])
+
+      const allContacts = [...personalContacts, ...groupChats]
+
+      return {
+        allContacts,
+        personalContacts,
+        groupChats
+      }
+    } catch (error) {
+      console.error('Failed to fetch all contacts:', error)
+      throw new Error(error instanceof Error ? error.message : '获取联系人数据失败')
+    }
+  }
+
+  /**
+   * 分离个人联系人和群聊（已废弃，现在直接从不同接口获取）
+   * @deprecated 使用 fetchAllContacts() 替代
    */
   static separateContacts(contacts: Contact[]) {
     const personalContacts = contacts.filter((contact) => contact.type === 'individual')
@@ -93,6 +108,7 @@ export class ContactService {
         alias: (contact.alias || '').toLowerCase(),
         remark: (contact.remark || '').toLowerCase(),
         userName: (contact.userName || '').toLowerCase(),
+        name: (contact.name || '').toLowerCase(), // 添加对群聊 name 字段的搜索支持
         groupMembers:
           contact.type === 'group' && contact.users
             ? contact.users.map((user) => ({
@@ -106,6 +122,7 @@ export class ContactService {
 
   /**
    * 搜索联系人
+   * 注意：现在传入的 searchableContacts 应该是单一类型的联系人（好友或群聊）
    */
   static searchContacts(searchableContacts: any[], searchTerm: string) {
     if (!searchTerm || searchTerm.trim() === '') {
@@ -115,26 +132,80 @@ export class ContactService {
     const term = searchTerm.toLowerCase().trim()
 
     return searchableContacts.filter((contact) => {
-      const { nickName, alias, remark, userName, groupMembers } = contact.searchFields
+      const { nickName, alias, remark, userName, name, groupMembers } = contact.searchFields
 
-      // 搜索显示名称、别名、备注、用户名
-      if (
+      // 由于传入的数据已经是单一类型，直接按类型进行搜索
+      if (contact.type === 'individual') {
+        // 好友：优先按 remark 搜索，然后是 nickName、alias、userName
+        return (
+          remark.includes(term) ||
+          nickName.includes(term) ||
+          alias.includes(term) ||
+          userName.includes(term)
+        )
+      } else {
+        // 群聊：优先按 nickName 搜索，然后是 name、remark
+        if (nickName.includes(term) || name.includes(term) || remark.includes(term)) {
+          return true
+        }
+
+        // 搜索群聊成员
+        if (groupMembers.length > 0) {
+          return groupMembers.some(
+            (member: any) => member.userName.includes(term) || member.displayName.includes(term)
+          )
+        }
+      }
+
+      return false
+    })
+  }
+
+  /**
+   * 搜索好友联系人
+   */
+  static searchPersonalContacts(searchableContacts: any[], searchTerm: string) {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return searchableContacts
+    }
+
+    const term = searchTerm.toLowerCase().trim()
+
+    return searchableContacts.filter((contact) => {
+      const { nickName, alias, remark, userName } = contact.searchFields
+      // 好友：优先按 remark 搜索，然后是 nickName、alias、userName
+      return (
+        remark.includes(term) ||
         nickName.includes(term) ||
         alias.includes(term) ||
-        remark.includes(term) ||
         userName.includes(term)
-      ) {
+      )
+    })
+  }
+
+  /**
+   * 搜索群聊
+   */
+  static searchGroupChats(searchableContacts: any[], searchTerm: string) {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return searchableContacts
+    }
+
+    const term = searchTerm.toLowerCase().trim()
+
+    return searchableContacts.filter((contact) => {
+      const { nickName, name, remark, groupMembers } = contact.searchFields
+
+      // 群聊：优先按 nickName 搜索，然后是 name、remark
+      if (nickName.includes(term) || name.includes(term) || remark.includes(term)) {
         return true
       }
 
       // 搜索群聊成员
-      if (contact.type === 'group' && groupMembers.length > 0) {
-        const memberMatch = groupMembers.some(
+      if (groupMembers.length > 0) {
+        return groupMembers.some(
           (member: any) => member.userName.includes(term) || member.displayName.includes(term)
         )
-        if (memberMatch) {
-          return true
-        }
       }
 
       return false

@@ -10,7 +10,6 @@ export interface Contact {
   alias?: string // 别名
   remark?: string // 备注
   isFriend?: boolean // 是否为好友（仅个人联系人）
-  owner?: string // 群主（仅群聊）
   type: 'individual' | 'group' // 联系人类型
   users?: Array<{ userName: string; displayName: string }> // 群聊成员（仅群聊）
   memberCount?: number // 成员数量（仅群聊）
@@ -32,9 +31,6 @@ export interface ContactsState {
   contacts: Contact[]
   personalContacts: Contact[]
   groupChats: Contact[]
-  searchableContacts: ContactSearchable[] // 保持向后兼容
-  searchablePersonalContacts: ContactSearchable[] // 好友搜索数据
-  searchableGroupChats: ContactSearchable[] // 群聊搜索数据
   isLoading: boolean
   error: string | null
 }

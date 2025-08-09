@@ -10,6 +10,9 @@ export const useContacts = () => {
     contacts: [],
     personalContacts: [],
     groupChats: [],
+    searchableContacts: [],
+    searchablePersonalContacts: [],
+    searchableGroupChats: [],
     isLoading: false,
     error: null
   })
@@ -19,13 +22,19 @@ export const useContacts = () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      const contacts = await ContactService.fetchContacts()
-      const { personalContacts, groupChats } = ContactService.separateContacts(contacts)
+      const { allContacts, personalContacts, groupChats } = await ContactService.fetchAllContacts()
+
+      console.log('Fetched all contacts:', allContacts)
+      console.log('Personal contacts:', personalContacts)
+      console.log('Group chats:', groupChats)
 
       setState({
-        contacts,
+        contacts: allContacts,
         personalContacts,
         groupChats,
+        searchableContacts: [],
+        searchablePersonalContacts: [],
+        searchableGroupChats: [],
         isLoading: false,
         error: null
       })
@@ -43,7 +52,16 @@ export const useContacts = () => {
     fetchContacts()
   }, [])
 
-  // 预处理搜索数据
+  // 预处理搜索数据 - 分别为好友和群聊提供搜索数据
+  const searchablePersonalContacts = useMemo(() => {
+    return ContactService.prepareSearchableContacts(state.personalContacts)
+  }, [state.personalContacts])
+
+  const searchableGroupChats = useMemo(() => {
+    return ContactService.prepareSearchableContacts(state.groupChats)
+  }, [state.groupChats])
+
+  // 保持向后兼容的合并搜索数据（如果其他地方需要用到）
   const searchableContacts = useMemo(() => {
     return ContactService.prepareSearchableContacts([
       ...state.personalContacts,
@@ -54,6 +72,8 @@ export const useContacts = () => {
   return {
     ...state,
     searchableContacts,
+    searchablePersonalContacts,
+    searchableGroupChats,
     refetch: fetchContacts
   }
 }

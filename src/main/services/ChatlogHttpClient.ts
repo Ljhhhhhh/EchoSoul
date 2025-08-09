@@ -111,7 +111,13 @@ export class ChatlogHttpClient {
         retryDelay: this.defaultRetryDelay
       })
 
-      return data.items
+      // 只返回真实的好友列表
+      const result = data.items.filter(
+        (item) =>
+          !item.userName.endsWith('@chatroom') && item.isFriend && !item.userName.startsWith('gh_')
+      )
+
+      return result
     } catch (error) {
       logger.error('Failed to get contacts:', error)
       throw new Error(`获取联系人失败: ${this.getErrorMessage(error)}`)
@@ -135,7 +141,14 @@ export class ChatlogHttpClient {
         retries: this.defaultRetries,
         retryDelay: this.defaultRetryDelay
       })
-      return data.items
+      const items = data.items
+      return items.map((item) => {
+        const { users, ...restItem } = item
+        return {
+          ...restItem,
+          userCount: users.length
+        }
+      })
     } catch (error) {
       logger.error('Failed to get chatroom list:', error)
       throw new Error(`获取群聊列表失败: ${this.getErrorMessage(error)}`)

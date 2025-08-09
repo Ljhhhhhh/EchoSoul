@@ -1,4 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
+import { Contact } from '@/types/contact'
 
 interface InitializationAPI {
   start: () => Promise<{ success: boolean; error?: string }>
@@ -23,8 +24,8 @@ interface ChatlogAPI {
   status: () => Promise<string>
   start: () => Promise<boolean>
   stop: () => Promise<boolean>
-  getContacts: () => Promise<{ success: boolean; contacts?: any; error?: string }>
-  getChatroomList: () => Promise<{ success: boolean; chatrooms?: any; error?: string }>
+  getContacts: () => Promise<Contact[]>
+  getChatroomList: () => Promise<any[]>
   getWechatKey: () => Promise<{ success: boolean; wechatKey?: string; error?: string }>
   checkInitialization: () => Promise<{
     keyObtained: boolean

@@ -5,7 +5,6 @@ import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Users, Search, X, UserCheck, Users as GroupIcon } from 'lucide-react'
 import { Label } from '../../../../components/ui/label'
-import { Input } from '../../../../components/ui/input'
 import { Button } from '../../../../components/ui/button'
 import { Badge } from '../../../../components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover'
@@ -56,7 +55,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   onRemoveContact,
   onClearAll,
   onTargetTypeChange,
-  maxDisplayContacts = 20,
+  maxDisplayContacts = 200,
   placeholder = '搜索联系人或群聊...'
 }) => {
   // 根据目标类型获取当前可选的联系人
@@ -74,8 +73,8 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
       .filter(Boolean) as Contact[]
   }, [selectedContacts, personalContacts, groupChats])
 
-  // 过滤后的联系人列表
-  const filteredContacts = useMemo(() => {
+  // 过滤后的联系人列表 - 移除 useMemo 以解决中文输入法问题
+  const getFilteredContacts = () => {
     if (!searchTerm.trim()) {
       return currentContacts.slice(0, maxDisplayContacts)
     }
@@ -84,28 +83,35 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
 
     return currentContacts
       .filter((contact) => {
-        // 搜索显示名称、别名、备注
-        const nameMatch = contact.nickName.toLowerCase().includes(term)
-        const aliasMatch = contact.alias?.toLowerCase().includes(term)
-        const remarkMatch = contact.remark?.toLowerCase().includes(term)
+        // 根据联系人类型采用不同的搜索策略
+        if (contact.type === 'individual') {
+          // 好友：优先按 remark 搜索，然后是 nickName、alias、userName
+          const remarkMatch = contact.remark?.toLowerCase().includes(term)
+          const nameMatch = contact.nickName.toLowerCase().includes(term)
+          const aliasMatch = contact.alias?.toLowerCase().includes(term)
+          const userNameMatch = contact.userName?.toLowerCase().includes(term)
 
-        if (nameMatch || aliasMatch || remarkMatch) {
-          return true
-        }
+          if (remarkMatch || nameMatch || aliasMatch || userNameMatch) {
+            return true
+          }
+        } else {
+          console.log('群聊搜索:', contact)
+          // 群聊：优先按 nickName 搜索，然后是 name、remark
+          const nameMatch = contact.nickName.toLowerCase().includes(term)
+          const idMatch = contact.name?.toLowerCase().includes(term)
+          const remarkMatch = contact.remark?.toLowerCase().includes(term)
 
-        // 搜索群聊成员
-        if (contact.type === 'group' && contact.users) {
-          return contact.users.some(
-            (user) =>
-              user.userName.toLowerCase().includes(term) ||
-              user.displayName.toLowerCase().includes(term)
-          )
+          if (nameMatch || idMatch || remarkMatch) {
+            return true
+          }
         }
 
         return false
       })
       .slice(0, maxDisplayContacts)
-  }, [searchTerm, currentContacts, maxDisplayContacts])
+  }
+
+  const filteredContacts = getFilteredContacts()
 
   // 渲染联系人头像
   const renderContactAvatar = (contact: Contact) => {
@@ -127,12 +133,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   const renderContactInfo = (contact: Contact) => (
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium truncate">{contact.nickName}</span>
-        {contact.type === 'group' && (
-          <Badge variant="outline" className="text-xs">
-            群聊 {contact.memberCount}人
-          </Badge>
-        )}
+        <span className="text-sm font-medium truncate">{contact.remark || contact.nickName}</span>
       </div>
     </div>
   )
