@@ -171,13 +171,23 @@ export interface BasicStats {
   topContacts: string[]
 }
 
-// 联系人
+/**
+ * 联系人相关类型定义
+ */
+
 export interface Contact {
-  id: string
+  userName: string
+  alias: string
+  remark: string
+  nickName: string
+  isFriend?: boolean
+}
+
+export interface ChatRoom {
   name: string
-  type: 'individual' | 'group'
-  avatar?: string
-  lastMessageTime?: string
+  remark: string
+  nickName: string
+  users: any[]
 }
 
 // chatlog状态

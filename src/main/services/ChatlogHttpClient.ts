@@ -1,6 +1,8 @@
 import { HttpClient, RequestOptions } from '../utils/HttpClient'
 import { createLogger } from '../utils/logger'
 import type { ChatMessage, Contact } from '@types'
+import { QueryParam } from './api/ChatlogApiService'
+import { ChatRoom } from '../types/contact'
 
 const logger = createLogger('ChatlogHttpClient')
 
@@ -17,23 +19,6 @@ export interface GetMessagesParams {
   talker?: string
   limit?: number
   offset?: number
-}
-
-export interface GetContactsParams {
-  type?: 'individual' | 'group' | 'all'
-  keyword?: string
-  format?: 'json' | 'text'
-
-  // keyword=vip&format=json
-}
-
-export interface ChatroomInfo {
-  id: string
-  name: string
-  memberCount: number
-  members: string[]
-  avatar?: string
-  createTime?: number
 }
 
 export interface SessionInfo {
@@ -90,13 +75,10 @@ export class ChatlogHttpClient {
   /**
    * 获取联系人列表
    */
-  async getContacts(params?: GetContactsParams): Promise<Contact[]> {
+  async getContacts(params?: QueryParam): Promise<Contact[]> {
     try {
       const queryParams = new URLSearchParams()
-
-      if (!params?.format) {
-        queryParams.set('format', 'json')
-      }
+      queryParams.set('format', 'json')
 
       if (params?.keyword) {
         queryParams.set('keyword', params?.keyword)
@@ -124,13 +106,10 @@ export class ChatlogHttpClient {
     }
   }
 
-  async getChatroomList(params?: GetContactsParams): Promise<ChatroomInfo[]> {
+  async getChatroomList(params?: QueryParam): Promise<ChatRoom[]> {
     try {
       const queryParams = new URLSearchParams()
-
-      if (!params?.format) {
-        queryParams.set('format', 'json')
-      }
+      queryParams.set('format', 'json')
 
       if (params?.keyword) {
         queryParams.set('keyword', params?.keyword)
@@ -184,30 +163,6 @@ export class ChatlogHttpClient {
     } catch (error) {
       logger.error('Failed to get messages:', error)
       throw new Error(`获取聊天记录失败: ${this.getErrorMessage(error)}`)
-    }
-  }
-
-  /**
-   * 获取群聊信息
-   */
-  async getChatroomInfo(chatroomId: string): Promise<ChatroomInfo | null> {
-    try {
-      const data = await this.httpClient.get<any>(`/api/v1/chatroom/${chatroomId}`, {
-        retries: this.defaultRetries,
-        retryDelay: this.defaultRetryDelay
-      })
-
-      return {
-        id: data.id || data.wxid,
-        name: data.name || data.nickname,
-        memberCount: data.memberCount || 0,
-        members: data.members || [],
-        avatar: data.avatar,
-        createTime: data.createTime
-      }
-    } catch (error) {
-      logger.error(`Failed to get chatroom info for ${chatroomId}:`, error)
-      return null
     }
   }
 

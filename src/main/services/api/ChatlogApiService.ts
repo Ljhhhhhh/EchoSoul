@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import { createLogger } from '../../utils/logger'
 import { ChatlogHttpClient } from '../ChatlogHttpClient'
-import type { ChatMessage, Contact, ChatlogStatus } from '@types'
+import type { ChatMessage, Contact, ChatRoom, ChatlogStatus } from '@types'
 
 const logger = createLogger('ChatlogApiService')
 
@@ -22,22 +22,6 @@ export interface GetMessagesParams {
   offset?: number
 }
 
-export interface GetContactsParams {
-  type?: 'individual' | 'group' | 'all'
-  limit?: number
-  offset?: number
-}
-
-// 群聊信息
-export interface ChatroomInfo {
-  id: string
-  name: string
-  memberCount: number
-  members: string[]
-  avatar?: string
-  createTime?: number
-}
-
 // 会话信息
 export interface SessionInfo {
   id: string
@@ -45,6 +29,10 @@ export interface SessionInfo {
   lastMessageTime: number
   messageCount: number
   unreadCount?: number
+}
+
+export interface QueryParam {
+  keyword?: string
 }
 
 // API 结果
@@ -58,9 +46,8 @@ export interface ApiResult<T = any> {
 // API 服务接口
 export interface IChatlogApiService {
   checkServiceStatus(): Promise<boolean>
-  getContacts(params?: GetContactsParams): Promise<ApiResult<Contact[]>>
+  getContacts(params?: QueryParam): Promise<ApiResult<Contact[]>>
   getMessages(params: GetMessagesParams): Promise<ApiResult<ChatMessage[]>>
-  getChatroomInfo(chatroomId: string): Promise<ApiResult<ChatroomInfo>>
   getSessions(): Promise<ApiResult<SessionInfo[]>>
   updateServiceUrl(baseUrl: string): void
 }
@@ -114,7 +101,7 @@ export class ChatlogApiService extends EventEmitter implements IChatlogApiServic
   /**
    * 获取联系人列表
    */
-  async getContacts(params?: GetContactsParams): Promise<ApiResult<Contact[]>> {
+  async getContacts(params?: QueryParam): Promise<ApiResult<Contact[]>> {
     try {
       logger.debug('Getting contacts with params:', params)
 
@@ -143,7 +130,7 @@ export class ChatlogApiService extends EventEmitter implements IChatlogApiServic
   /**
    * 获取群聊列表
    */
-  async getChatroomList(): Promise<ApiResult<ChatroomInfo[]>> {
+  async getChatroomList(): Promise<ApiResult<ChatRoom[]>> {
     try {
       logger.debug('Getting chatroom list')
 
@@ -204,46 +191,6 @@ export class ChatlogApiService extends EventEmitter implements IChatlogApiServic
   }
 
   /**
-   * 获取群聊信息
-   */
-  async getChatroomInfo(chatroomId: string): Promise<ApiResult<ChatroomInfo>> {
-    try {
-      logger.debug(`Getting chatroom info for: ${chatroomId}`)
-
-      if (!chatroomId) {
-        throw new Error('Chatroom ID is required')
-      }
-
-      const chatroomInfo = await this.httpClient.getChatroomInfo(chatroomId)
-
-      if (chatroomInfo) {
-        this.emit('chatroomInfoRetrieved', chatroomInfo)
-
-        return {
-          success: true,
-          data: chatroomInfo,
-          message: `Retrieved chatroom info for ${chatroomId}`
-        }
-      } else {
-        return {
-          success: false,
-          error: `Chatroom not found: ${chatroomId}`
-        }
-      }
-    } catch (error) {
-      logger.error(`Failed to get chatroom info for ${chatroomId}:`, error)
-
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.emit('error', { operation: 'getChatroomInfo', error: errorMessage })
-
-      return {
-        success: false,
-        error: errorMessage
-      }
-    }
-  }
-
-  /**
    * 获取会话列表
    */
   async getSessions(): Promise<ApiResult<SessionInfo[]>> {
@@ -271,91 +218,6 @@ export class ChatlogApiService extends EventEmitter implements IChatlogApiServic
       }
     }
   }
-
-  /**
-   * 批量获取多个群聊信息
-   */
-  async getBatchChatroomInfo(chatroomIds: string[]): Promise<ApiResult<ChatroomInfo[]>> {
-    try {
-      logger.debug(`Getting batch chatroom info for ${chatroomIds.length} chatrooms`)
-
-      const results = await Promise.allSettled(
-        chatroomIds.map((id) => this.httpClient.getChatroomInfo(id))
-      )
-
-      const chatroomInfos: ChatroomInfo[] = []
-      const errors: string[] = []
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value) {
-          chatroomInfos.push(result.value)
-        } else {
-          errors.push(`Failed to get info for ${chatroomIds[index]}`)
-        }
-      })
-
-      this.emit('batchChatroomInfoRetrieved', {
-        successful: chatroomInfos.length,
-        failed: errors.length
-      })
-
-      return {
-        success: true,
-        data: chatroomInfos,
-        message: `Retrieved ${chatroomInfos.length}/${chatroomIds.length} chatroom infos`
-      }
-    } catch (error) {
-      logger.error('Failed to get batch chatroom info:', error)
-
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.emit('error', { operation: 'getBatchChatroomInfo', error: errorMessage })
-
-      return {
-        success: false,
-        error: errorMessage
-      }
-    }
-  }
-
-  /**
-   * 搜索联系人
-   */
-  async searchContacts(
-    query: string,
-    type?: 'individual' | 'group'
-  ): Promise<ApiResult<Contact[]>> {
-    try {
-      logger.debug(`Searching contacts with query: ${query}`)
-
-      const contacts = await this.httpClient.getContacts({ type: type || 'all' })
-
-      // 在客户端进行搜索过滤
-      const filteredContacts = contacts.filter(
-        (contact) =>
-          contact.name.toLowerCase().includes(query.toLowerCase()) ||
-          contact.id.toLowerCase().includes(query.toLowerCase())
-      )
-
-      this.emit('contactsSearched', { query, count: filteredContacts.length })
-
-      return {
-        success: true,
-        data: filteredContacts,
-        message: `Found ${filteredContacts.length} contacts matching "${query}"`
-      }
-    } catch (error) {
-      logger.error('Failed to search contacts:', error)
-
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.emit('error', { operation: 'searchContacts', error: errorMessage })
-
-      return {
-        success: false,
-        error: errorMessage
-      }
-    }
-  }
-
   /**
    * 更新服务地址
    */
