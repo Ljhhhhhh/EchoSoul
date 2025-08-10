@@ -2,12 +2,12 @@
  * 重构后的生成报告主页面
  */
 import React from 'react'
-import { SidebarTrigger } from '../../components/ui/sidebar'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { QuickSelectSection } from './components/QuickSelectSection'
 import { TimeRangeSelector } from './components/TimeRangeSelector'
 import { PromptSelector } from './components/PromptSelector'
 import { ConfigPreview } from './components/ConfigPreview'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { useContacts } from './hooks/useContacts'
 import { useConditions } from './hooks/useConditions'
 import { usePrompts } from './hooks/usePrompts'
@@ -68,10 +68,10 @@ const GenerateReport: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+      <main className="overflow-auto flex-1 p-6">
+        <div className="mx-auto max-w-4xl">
           {/* 页面标题 */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex gap-4 items-center mb-6">
             <SidebarTrigger />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">生成分析报告</h1>

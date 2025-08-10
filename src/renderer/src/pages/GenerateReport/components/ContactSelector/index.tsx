@@ -4,11 +4,11 @@
 import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Users, Search, X, UserCheck, Users as GroupIcon } from 'lucide-react'
-import { Label } from '../../../../components/ui/label'
-import { Button } from '../../../../components/ui/button'
-import { Badge } from '../../../../components/ui/badge'
-import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/ui/popover'
-import { ToggleGroup, ToggleGroupItem } from '../../../../components/ui/toggle-group'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   Command,
   CommandInput,
@@ -16,8 +16,8 @@ import {
   CommandItem,
   CommandEmpty,
   CommandGroup
-} from '../../../../components/ui/command'
-import { Avatar, AvatarFallback } from '../../../../components/ui/avatar'
+} from '@renderer/components/ui/command'
+import { Avatar, AvatarFallback } from '@renderer/components/ui/avatar'
 import type { Contact } from '../../types'
 
 interface ContactSelectorProps {
@@ -55,7 +55,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   onRemoveContact,
   onClearAll,
   onTargetTypeChange,
-  maxDisplayContacts = 200,
+  maxDisplayContacts = 20,
   placeholder = '搜索联系人或群聊...'
 }) => {
   // 根据目标类型获取当前可选的联系人
@@ -121,7 +121,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     return (
       <Avatar className="w-8 h-8">
         <AvatarFallback
-          className={isGroup ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}
+          className={isGroup ? 'text-purple-600 bg-purple-100' : 'text-blue-600 bg-blue-100'}
         >
           {isGroup ? <GroupIcon className="w-4 h-4" /> : initial}
         </AvatarFallback>
@@ -132,7 +132,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   // 渲染联系人信息
   const renderContactInfo = (contact: Contact) => (
     <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2">
+      <div className="flex gap-2 items-center">
         <span className="text-sm font-medium truncate">{contact.remark || contact.nickName}</span>
       </div>
     </div>
@@ -146,7 +146,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     >
       <div className="space-y-6">
         {/* 分析对象类型选择 */}
-        <div className="flex items-center gap-4">
+        <div className="flex gap-4 items-center">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
             <Users className="w-5 h-5 text-green-500" />
             分析对象
@@ -160,11 +160,11 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
               }
               className="justify-start"
             >
-              <ToggleGroupItem value="individual" className="flex items-center gap-2">
+              <ToggleGroupItem value="individual" className="flex gap-2 items-center">
                 <Users className="w-4 h-4" />
                 好友聊天
               </ToggleGroupItem>
-              <ToggleGroupItem value="group" className="flex items-center gap-2">
+              <ToggleGroupItem value="group" className="flex gap-2 items-center">
                 <GroupIcon className="w-4 h-4" />
                 群聊
               </ToggleGroupItem>
@@ -173,7 +173,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
         </div>
 
         {/* 联系人选择 */}
-        <div className="flex items-start gap-4">
+        <div className="flex gap-4 items-start">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700 mt-2">
             选择{targetType === 'individual' ? '好友' : '群聊'}
           </Label>
@@ -185,7 +185,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                   role="combobox"
                   className="justify-start w-full font-normal text-left"
                 >
-                  <Search className="w-4 h-4 mr-2 shrink-0" />
+                  <Search className="mr-2 w-4 h-4 shrink-0" />
                   {selectedContacts.length === 0 ? (
                     <span className="text-gray-500">
                       选择{targetType === 'individual' ? '好友' : '群聊'}
@@ -216,7 +216,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                           <CommandItem
                             key={contact.id}
                             onSelect={() => onAddContact(contact.id)}
-                            className="flex items-center gap-3 p-3"
+                            className="flex gap-3 items-center p-3"
                           >
                             {renderContactAvatar(contact)}
                             {renderContactInfo(contact)}
@@ -245,7 +245,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             className="ml-[116px] space-y-3"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-700">
                 已选择{targetType === 'individual' ? '好友' : '群聊'} ({selectedContactsInfo.length}
                 )
@@ -266,7 +266,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                 <Badge
                   key={contact.id}
                   variant="secondary"
-                  className="flex items-center gap-2 py-1 pl-3 pr-1"
+                  className="flex gap-2 items-center py-1 pr-1 pl-3"
                 >
                   <span className="text-xs">{contact.nickName}</span>
                   <Button

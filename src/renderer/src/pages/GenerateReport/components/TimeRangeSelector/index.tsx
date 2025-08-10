@@ -4,15 +4,15 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Calendar } from 'lucide-react'
-import { Label } from '../../../../components/ui/label'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '../../../../components/ui/select'
-import { Input } from '../../../../components/ui/input'
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import type { TimeRange } from '../../types'
 
 interface TimeRangeSelectorProps {
@@ -37,7 +37,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
+        <div className="flex gap-4 items-center">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
             <Calendar className="w-5 h-5 text-blue-500" />
             时间范围

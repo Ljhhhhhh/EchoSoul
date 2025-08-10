@@ -4,15 +4,9 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Clock, Bookmark, Trash2 } from 'lucide-react'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent
-} from '../../../../components/ui/card'
-import { Button } from '../../../../components/ui/button'
-import { Badge } from '../../../../components/ui/badge'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { SavedCondition } from '../../types'
 
 interface QuickSelectSectionProps {
@@ -36,10 +30,10 @@ export const QuickSelectSection: React.FC<QuickSelectSectionProps> = ({
 
   return (
     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-      <Card className="border-orange-200 bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+      <Card className="bg-gradient-to-br border-orange-200 from-orange-50/30 to-amber-50/30">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg text-orange-800">
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex gap-2 items-center text-lg text-orange-800">
               <Clock className="w-5 h-5" />
               快速选择
             </CardTitle>
@@ -61,17 +55,17 @@ export const QuickSelectSection: React.FC<QuickSelectSectionProps> = ({
               {conditions.slice(0, 6).map((condition) => (
                 <div
                   key={condition.id}
-                  className="relative p-3 transition-all border border-orange-200 rounded-lg cursor-pointer group bg-white/50 hover:bg-white/80"
+                  className="relative p-3 rounded-lg border border-orange-200 transition-all cursor-pointer group bg-white/50 hover:bg-white/80"
                   onClick={() => onApplyCondition(condition)}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-gray-800 truncate">
                         {condition.name}
                       </h4>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex gap-2 items-center mt-1">
                         <Badge variant="outline" className="text-xs">
-                          <Bookmark className="w-3 h-3 mr-1" />
+                          <Bookmark className="mr-1 w-3 h-3" />
                           使用 {condition.usageCount} 次
                         </Badge>
                         <span className="text-xs text-gray-400">
@@ -83,7 +77,7 @@ export const QuickSelectSection: React.FC<QuickSelectSectionProps> = ({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-1 text-gray-400 transition-opacity opacity-0 group-hover:opacity-100 hover:text-red-500"
+                      className="p-1 h-auto text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-500"
                       onClick={(e) => {
                         e.stopPropagation()
                         onDeleteCondition(condition.id)
