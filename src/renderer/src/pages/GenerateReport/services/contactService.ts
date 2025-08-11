@@ -12,15 +12,7 @@ export class ContactService {
    */
   static async fetchContacts(): Promise<Contact[]> {
     try {
-      const result = await window.api.chatlog.getContacts()
-
-      const contactsData = (result || []).map((contact: Contact) => ({
-        userName: contact.userName,
-        nickName: contact.nickName,
-        alias: contact.alias,
-        remark: contact.remark
-      }))
-
+      const contactsData = await window.api.chatlog.getContacts()
       return contactsData
     } catch (error) {
       console.error('Failed to fetch contacts:', error)
@@ -37,7 +29,6 @@ export class ContactService {
   static async fetchChatRooms(): Promise<ChatRoom[]> {
     try {
       const chatRoomList = await window.api.chatlog.getChatroomList()
-
       return chatRoomList
     } catch (error) {
       console.error('Failed to fetch chat rooms:', error)

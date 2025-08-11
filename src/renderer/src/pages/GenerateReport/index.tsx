@@ -64,10 +64,10 @@ const GenerateReport: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+      <main className="overflow-auto flex-1 p-6">
+        <div className="mx-auto max-w-4xl">
           {/* 页面标题 */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex gap-4 items-center mb-6">
             <SidebarTrigger />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">生成分析报告</h1>
@@ -107,7 +107,15 @@ const GenerateReport: React.FC = () => {
                     />
 
                     {/* 联系人选择 */}
-                    {/* TODO: */}
+                    {/* TODO: 联系人选择器 */}
+                    <ContactSelector
+                      personalContacts={contactsData.personalContacts}
+                      chatRooms={contactsData.chatRooms}
+                      initSelectedContacts={formState.formData.selectedContacts}
+                      onSelectedContactsUpdate={(value) =>
+                        formState.updateField('selectedContacts', value)
+                      }
+                    />
 
                     {/* Prompt选择 */}
                     <PromptSelector

@@ -1,8 +1,7 @@
 import { HttpClient, RequestOptions } from '../utils/HttpClient'
 import { createLogger } from '../utils/logger'
-import type { ChatMessage, Contact } from '@types'
+import type { ChatMessage, Contact, ChatRoom } from '@types'
 import { QueryParam } from './api/ChatlogApiService'
-import { ChatRoom } from '../types/contact'
 
 const logger = createLogger('ChatlogHttpClient')
 
@@ -96,10 +95,16 @@ export class ChatlogHttpClient {
       // 只返回真实的好友列表
       const result = data.items.filter(
         (item) =>
-          !item.userName.endsWith('@chatroom') && item.isFriend && !item.userName.startsWith('gh_')
+          !!item.userName &&
+          !item.userName.endsWith('@chatroom') &&
+          item.isFriend &&
+          !item.userName.startsWith('gh_')
       )
 
-      return result
+      return result.map((item) => ({
+        ...item,
+        id: item.userName
+      }))
     } catch (error) {
       logger.error('Failed to get contacts:', error)
       throw new Error(`获取联系人失败: ${this.getErrorMessage(error)}`)
@@ -121,13 +126,16 @@ export class ChatlogHttpClient {
         retryDelay: this.defaultRetryDelay
       })
       const items = data.items
-      return items.map((item) => {
-        const { users, ...restItem } = item
-        return {
-          ...restItem,
-          userCount: users.length
-        }
-      })
+      return items
+        .filter((item) => !!item.nickName)
+        .map((item) => {
+          const { users, ...restItem } = item
+          return {
+            ...restItem,
+            id: item.name,
+            userCount: users.length
+          }
+        })
     } catch (error) {
       logger.error('Failed to get chatroom list:', error)
       throw new Error(`获取群聊列表失败: ${this.getErrorMessage(error)}`)

@@ -176,6 +176,7 @@ export interface BasicStats {
  */
 
 export interface Contact {
+  id: string
   userName: string
   alias: string
   remark: string
@@ -184,6 +185,7 @@ export interface Contact {
 }
 
 export interface ChatRoom {
+  id: string
   name: string
   remark: string
   nickName: string

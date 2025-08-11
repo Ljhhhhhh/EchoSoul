@@ -38,7 +38,7 @@ export const useContacts = () => {
     }
   }
 
-  // TODO: 好友
+  // 好友
   const fetchPersonalContacts = async () => {
     try {
       const contacts = await ContactService.fetchContacts()
@@ -48,8 +48,7 @@ export const useContacts = () => {
     }
   }
 
-  // TODO: 群聊
-
+  // 群聊
   const fetchChatRooms = async () => {
     try {
       const chats = await ContactService.fetchChatRooms()
@@ -64,8 +63,5 @@ export const useContacts = () => {
     fetchContacts()
   }, [])
 
-  return {
-    ...state,
-    refetch: fetchContacts
-  }
+  return state
 }
