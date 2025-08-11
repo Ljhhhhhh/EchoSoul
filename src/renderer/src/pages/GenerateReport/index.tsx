@@ -12,18 +12,14 @@ import { useContacts } from './hooks/useContacts'
 import { useConditions } from './hooks/useConditions'
 import { usePrompts } from './hooks/usePrompts'
 import { useFormState } from './hooks/useFormState'
-import { useContactSearch } from './hooks/useContactSearch'
 import { ContactSelector } from './components/ContactSelector'
 
 const GenerateReport: React.FC = () => {
   // 使用自定义Hooks管理状态
   const contactsData = useContacts()
   const promptsData = usePrompts()
-  const formState = useFormState(contactsData.personalContacts, contactsData.groupChats)
+  const formState = useFormState(contactsData.personalContacts, contactsData.chatRooms)
   const conditionsData = useConditions()
-  const contactSearch = useContactSearch({
-    searchableContacts: contactsData.searchableContacts
-  })
 
   // 应用保存的条件
   const handleApplyCondition = (condition: any) => {
@@ -68,10 +64,10 @@ const GenerateReport: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <main className="overflow-auto flex-1 p-6">
-        <div className="mx-auto max-w-4xl">
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="max-w-4xl mx-auto">
           {/* 页面标题 */}
-          <div className="flex gap-4 items-center mb-6">
+          <div className="flex items-center gap-4 mb-6">
             <SidebarTrigger />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">生成分析报告</h1>
@@ -111,24 +107,7 @@ const GenerateReport: React.FC = () => {
                     />
 
                     {/* 联系人选择 */}
-                    <ContactSelector
-                      personalContacts={contactsData.personalContacts}
-                      groupChats={contactsData.groupChats}
-                      selectedContacts={formState.formData.selectedContacts}
-                      searchTerm={contactSearch.searchTerm}
-                      isPopoverOpen={contactSearch.isPopoverOpen}
-                      targetType={formState.formData.targetType as 'individual' | 'group'}
-                      onSearchChange={contactSearch.updateSearchTerm}
-                      onTogglePopover={contactSearch.togglePopover}
-                      onAddContact={formState.addContact}
-                      onRemoveContact={formState.removeContact}
-                      onClearAll={formState.clearAllContacts}
-                      onTargetTypeChange={(type) => {
-                        formState.updateField('targetType', type)
-                        // 切换类型时清空已选联系人，避免混合选择
-                        formState.clearAllContacts()
-                      }}
-                    />
+                    {/* TODO: */}
 
                     {/* Prompt选择 */}
                     <PromptSelector

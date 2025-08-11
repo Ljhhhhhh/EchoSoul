@@ -2,9 +2,6 @@
  * 统一导出所有类型定义
  */
 
-// 联系人相关类型
-export type { Contact, ContactSearchable, ContactsState, ContactSearchState } from './contact'
-
 // 条件相关类型
 export type { SavedCondition, ConditionsState, ConditionActions } from './condition'
 

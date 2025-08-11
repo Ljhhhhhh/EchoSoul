@@ -58,61 +58,6 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   maxDisplayContacts = 20,
   placeholder = '搜索联系人或群聊...'
 }) => {
-  // 根据目标类型获取当前可选的联系人
-  const currentContacts = useMemo(() => {
-    console.log('当前联系人:', targetType, personalContacts)
-    console.log('当前群聊:', groupChats)
-    return targetType === 'individual' ? personalContacts : groupChats
-  }, [targetType, personalContacts, groupChats])
-
-  // 获取已选择的联系人信息
-  const selectedContactsInfo = useMemo(() => {
-    const allContacts = [...personalContacts, ...groupChats]
-    return selectedContacts
-      .map((id) => allContacts.find((contact) => contact.id === id))
-      .filter(Boolean) as Contact[]
-  }, [selectedContacts, personalContacts, groupChats])
-
-  // 过滤后的联系人列表 - 移除 useMemo 以解决中文输入法问题
-  const getFilteredContacts = () => {
-    if (!searchTerm.trim()) {
-      return currentContacts.slice(0, maxDisplayContacts)
-    }
-
-    const term = searchTerm.toLowerCase()
-
-    return currentContacts
-      .filter((contact) => {
-        // 根据联系人类型采用不同的搜索策略
-        if (contact.type === 'individual') {
-          // 好友：优先按 remark 搜索，然后是 nickName、alias、userName
-          const remarkMatch = contact.remark?.toLowerCase().includes(term)
-          const nameMatch = contact.nickName.toLowerCase().includes(term)
-          const aliasMatch = contact.alias?.toLowerCase().includes(term)
-          const userNameMatch = contact.userName?.toLowerCase().includes(term)
-
-          if (remarkMatch || nameMatch || aliasMatch || userNameMatch) {
-            return true
-          }
-        } else {
-          console.log('群聊搜索:', contact)
-          // 群聊：优先按 nickName 搜索，然后是 name、remark
-          const nameMatch = contact.nickName.toLowerCase().includes(term)
-          const idMatch = contact.name?.toLowerCase().includes(term)
-          const remarkMatch = contact.remark?.toLowerCase().includes(term)
-
-          if (nameMatch || idMatch || remarkMatch) {
-            return true
-          }
-        }
-
-        return false
-      })
-      .slice(0, maxDisplayContacts)
-  }
-
-  const filteredContacts = getFilteredContacts()
-
   // 渲染联系人头像
   const renderContactAvatar = (contact: Contact) => {
     const initial = contact.nickName.charAt(0).toUpperCase()
@@ -132,7 +77,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   // 渲染联系人信息
   const renderContactInfo = (contact: Contact) => (
     <div className="flex-1 min-w-0">
-      <div className="flex gap-2 items-center">
+      <div className="flex items-center gap-2">
         <span className="text-sm font-medium truncate">{contact.remark || contact.nickName}</span>
       </div>
     </div>
@@ -146,7 +91,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     >
       <div className="space-y-6">
         {/* 分析对象类型选择 */}
-        <div className="flex gap-4 items-center">
+        <div className="flex items-center gap-4">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
             <Users className="w-5 h-5 text-green-500" />
             分析对象
@@ -160,11 +105,11 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
               }
               className="justify-start"
             >
-              <ToggleGroupItem value="individual" className="flex gap-2 items-center">
+              <ToggleGroupItem value="individual" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 好友聊天
               </ToggleGroupItem>
-              <ToggleGroupItem value="group" className="flex gap-2 items-center">
+              <ToggleGroupItem value="group" className="flex items-center gap-2">
                 <GroupIcon className="w-4 h-4" />
                 群聊
               </ToggleGroupItem>
@@ -173,7 +118,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
         </div>
 
         {/* 联系人选择 */}
-        <div className="flex gap-4 items-start">
+        <div className="flex items-start gap-4">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700 mt-2">
             选择{targetType === 'individual' ? '好友' : '群聊'}
           </Label>
@@ -185,7 +130,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                   role="combobox"
                   className="justify-start w-full font-normal text-left"
                 >
-                  <Search className="mr-2 w-4 h-4 shrink-0" />
+                  <Search className="w-4 h-4 mr-2 shrink-0" />
                   {selectedContacts.length === 0 ? (
                     <span className="text-gray-500">
                       选择{targetType === 'individual' ? '好友' : '群聊'}
@@ -216,7 +161,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                           <CommandItem
                             key={contact.id}
                             onSelect={() => onAddContact(contact.id)}
-                            className="flex gap-3 items-center p-3"
+                            className="flex items-center gap-3 p-3"
                           >
                             {renderContactAvatar(contact)}
                             {renderContactInfo(contact)}
@@ -245,7 +190,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             className="ml-[116px] space-y-3"
           >
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">
                 已选择{targetType === 'individual' ? '好友' : '群聊'} ({selectedContactsInfo.length}
                 )
@@ -266,7 +211,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                 <Badge
                   key={contact.id}
                   variant="secondary"
-                  className="flex gap-2 items-center py-1 pr-1 pl-3"
+                  className="flex items-center gap-2 py-1 pl-3 pr-1"
                 >
                   <span className="text-xs">{contact.nickName}</span>
                   <Button
