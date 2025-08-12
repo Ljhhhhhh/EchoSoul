@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { Users, Search, X, UserCheck, Users as GroupIcon } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
@@ -66,6 +65,28 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   const selectedContact = useMemo(() => {
     return targetType === 'personal' ? selectedPersonName : selectedChatroomName
   }, [targetType, selectedPersonName, selectedChatroomName])
+
+  // 计算属性：获取过滤后的联系人列表
+  const filteredContacts = useMemo(() => {
+    const contacts = targetType === 'personal' ? personalContacts : chatRooms
+    const searchStr = searchTerm.toLocaleLowerCase()
+
+    const list = contacts
+      .filter((contact) => {
+        if (targetType === 'personal') {
+          return (
+            contact.remark.toLocaleLowerCase().includes(searchStr) ||
+            contact.nickName.toLocaleLowerCase().includes(searchStr)
+          )
+        } else {
+          return contact.nickName.toLocaleLowerCase().includes(searchStr)
+        }
+      })
+      .slice(0, 10) // 限制最多显示10条数据
+
+    console.log('list', list)
+    return list
+  }, [targetType, personalContacts, chatRooms, searchTerm])
 
   // 处理分析对象类型变化
   const onTargetTypeChange = (value: 'personal' | 'chatroom') => {
@@ -168,18 +189,15 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                     )}
                   </div>
                   {selectedContact && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-auto hover:bg-red-100 shrink-0"
+                    <div
+                      className="p-1 h-auto hover:bg-red-100 shrink-0 cursor-pointer rounded transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
                         onClearAll()
                       }}
                     >
                       <X className="w-4 h-4 text-gray-500 hover:text-red-500" />
-                    </Button>
+                    </div>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -191,45 +209,34 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                     onValueChange={setSearchTerm}
                   />
                   <CommandList>
-                    <CommandEmpty>
-                      未找到匹配的{targetType === 'personal' ? '好友' : '群聊'}
-                    </CommandEmpty>
-
-                    {(targetType === 'personal' ? personalContacts : chatRooms).length > 0 ? (
-                      <CommandGroup heading={targetType === 'personal' ? '个人联系人' : '群聊'}>
-                        {(targetType === 'personal' ? personalContacts : chatRooms)
-                          .filter((contact) => {
-                            const searchStr = searchTerm.toLocaleLowerCase()
-                            if (targetType === 'personal') {
-                              return (
-                                contact.remark.toLocaleLowerCase().includes(searchStr) ||
-                                contact.nickName.toLocaleLowerCase().includes(searchStr)
-                              )
-                            } else {
-                              return contact.nickName.toLocaleLowerCase().includes(searchStr)
-                            }
-                          })
-                          .slice(0, 10) // 限制最多显示10条数据
-                          .map((contact) => {
-                            const displayValue =
-                              'name' in contact
-                                ? contact.nickName // 群聊显示nickName
-                                : contact.remark || contact.nickName // 个人显示remark
-                            return (
-                              <CommandItem
-                                key={contact.id}
-                                onSelect={() => handleSelectContact(contact)}
-                                className="flex gap-3 items-center p-3"
-                              >
-                                {renderContactAvatar(contact)}
-                                {renderContactInfo(contact)}
-                                {selectedContact === displayValue && (
-                                  <UserCheck className="w-4 h-4 text-green-600" />
-                                )}
-                              </CommandItem>
-                            )
-                          })}
-                      </CommandGroup>
+                    {(targetType === 'personal' ? personalContacts : chatRooms).length > 0 &&
+                    filteredContacts.length > 0 ? (
+                      <div className="overflow-hidden p-1 text-foreground">
+                        {/* 分组标题 */}
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                          {targetType === 'personal' ? '个人联系人' : '群聊'}
+                        </div>
+                        {/* 联系人列表 */}
+                        {filteredContacts.map((contact) => {
+                          const displayValue =
+                            'name' in contact
+                              ? contact.nickName // 群聊显示nickName
+                              : contact.remark || contact.nickName // 个人显示remark
+                          return (
+                            <div
+                              key={contact.id}
+                              onClick={() => handleSelectContact(contact)}
+                              className="flex relative gap-3 items-center p-3 text-sm rounded-sm transition-colors cursor-default outline-none select-none hover:bg-accent hover:text-accent-foreground"
+                            >
+                              {renderContactAvatar(contact)}
+                              {renderContactInfo(contact)}
+                              {selectedContact === displayValue && (
+                                <UserCheck className="w-4 h-4 text-green-600" />
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
                     ) : (
                       <div className="p-4 text-sm text-center text-gray-500">
                         暂无{targetType === 'personal' ? '好友' : '群聊'}数据
