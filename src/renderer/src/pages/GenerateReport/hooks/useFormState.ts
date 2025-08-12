@@ -12,7 +12,7 @@ const initialFormData: FormData = {
   customStartDate: '',
   customEndDate: '',
   targetType: 'individual',
-  selectedContacts: [],
+  selectedContacts: null,
   analysisType: '',
   customPrompt: ''
 }
@@ -49,10 +49,10 @@ export const useFormState = (personalContacts: any[], groupChats: any[]) => {
 
   // 添加联系人
   const addContact = (contactId: string) => {
-    if (!formData.selectedContacts.includes(contactId)) {
+    if (formData.selectedContacts !== contactId) {
       setFormData((prev) => ({
         ...prev,
-        selectedContacts: [...prev.selectedContacts, contactId]
+        selectedContacts: contactId
       }))
     }
   }
@@ -61,13 +61,8 @@ export const useFormState = (personalContacts: any[], groupChats: any[]) => {
   const removeContact = (contactId: string) => {
     setFormData((prev) => ({
       ...prev,
-      selectedContacts: prev.selectedContacts.filter((id) => id !== contactId)
+      selectedContacts: prev.selectedContacts === contactId ? null : contactId
     }))
-  }
-
-  // 清空所有联系人
-  const clearAllContacts = () => {
-    setFormData((prev) => ({ ...prev, selectedContacts: [] }))
   }
 
   // 计算数据统计
@@ -115,7 +110,6 @@ export const useFormState = (personalContacts: any[], groupChats: any[]) => {
     resetForm,
     addContact,
     removeContact,
-    clearAllContacts,
     submitForm
   }
 }

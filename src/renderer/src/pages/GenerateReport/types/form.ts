@@ -7,7 +7,7 @@ export interface FormData {
   customStartDate: string
   customEndDate: string
   targetType: string
-  selectedContacts: string[]
+  selectedContacts: string
   analysisType: string
   customPrompt: string
 }

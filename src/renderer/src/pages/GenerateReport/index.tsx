@@ -2,11 +2,12 @@
  * 重构后的生成报告主页面
  */
 import React from 'react'
+import { Sparkles, Wand2 } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 import { QuickSelectSection } from './components/QuickSelectSection'
 import { TimeRangeSelector } from './components/TimeRangeSelector'
 import { PromptSelector } from './components/PromptSelector'
-import { ConfigPreview } from './components/ConfigPreview'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { useContacts } from './hooks/useContacts'
 import { useConditions } from './hooks/useConditions'
@@ -85,63 +86,66 @@ const GenerateReport: React.FC = () => {
           />
 
           {/* 主要配置区域 */}
-          <div className="grid grid-cols-3 gap-8">
-            {/* 左侧：配置区域 */}
-            <div className="col-span-2">
-              <Card className="bg-white border-gray-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl text-gray-800">分析配置</CardTitle>
-                  <CardDescription>配置你的聊天记录分析参数</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* 时间范围选择 */}
-                    <TimeRangeSelector
-                      timeRange={formState.formData.timeRange}
-                      customStartDate={formState.formData.customStartDate}
-                      customEndDate={formState.formData.customEndDate}
-                      timeRanges={formState.timeRanges}
-                      onTimeRangeChange={(value) => formState.updateField('timeRange', value)}
-                      onStartDateChange={(value) => formState.updateField('customStartDate', value)}
-                      onEndDateChange={(value) => formState.updateField('customEndDate', value)}
-                    />
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl text-gray-800">分析配置</CardTitle>
+                <CardDescription>配置你的聊天记录分析参数</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* 时间范围选择 */}
+                  <TimeRangeSelector
+                    timeRange={formState.formData.timeRange}
+                    customStartDate={formState.formData.customStartDate}
+                    customEndDate={formState.formData.customEndDate}
+                    timeRanges={formState.timeRanges}
+                    onTimeRangeChange={(value) => formState.updateField('timeRange', value)}
+                    onStartDateChange={(value) => formState.updateField('customStartDate', value)}
+                    onEndDateChange={(value) => formState.updateField('customEndDate', value)}
+                  />
 
-                    {/* 联系人选择 */}
-                    {/* TODO: 联系人选择器 */}
-                    <ContactSelector
-                      personalContacts={contactsData.personalContacts}
-                      chatRooms={contactsData.chatRooms}
-                      initSelectedContacts={formState.formData.selectedContacts}
-                      onSelectedContactsUpdate={(value) =>
-                        formState.updateField('selectedContacts', value)
-                      }
-                    />
+                  {/* 联系人选择 */}
+                  <ContactSelector
+                    personalContacts={contactsData.personalContacts}
+                    chatRooms={contactsData.chatRooms}
+                    initSelectedContacts={formState.formData.selectedContacts}
+                    onSelectedContactsUpdate={(value) =>
+                      formState.updateField('selectedContacts', value)
+                    }
+                  />
 
-                    {/* Prompt选择 */}
-                    <PromptSelector
-                      prompts={promptsData.prompts}
-                      selectedPrompt={promptsData.selectedPrompt}
-                      onPromptSelect={handlePromptSelect}
-                    />
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+                  {/* Prompt选择 */}
+                  <PromptSelector
+                    prompts={promptsData.prompts}
+                    selectedPrompt={promptsData.selectedPrompt}
+                    onPromptSelect={handlePromptSelect}
+                  />
 
-            {/* 右侧：预览和操作区域 */}
-            <div className="space-y-4">
-              <ConfigPreview
-                timeRange={formState.formData.timeRange}
-                timeRanges={formState.timeRanges}
-                selectedContacts={formState.formData.selectedContacts}
-                targetType={formState.formData.targetType}
-                selectedPrompt={promptsData.selectedPrompt}
-                dataStats={formState.dataStats}
-                isGenerating={formState.isGenerating}
-                isFormValid={formState.isFormValid}
-                onSubmit={handleSubmit}
-              />
-            </div>
+                  {/* 生成按钮 */}
+                  <div className="pt-4 border-t border-gray-200">
+                    <Button
+                      type="submit"
+                      disabled={formState.isGenerating || !formState.isFormValid}
+                      className="w-full h-12 text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+                      onClick={handleSubmit}
+                    >
+                      {formState.isGenerating ? (
+                        <>
+                          <Wand2 className="w-4 h-4 mr-2 animate-spin" />
+                          正在生成报告...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          生成分析报告
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

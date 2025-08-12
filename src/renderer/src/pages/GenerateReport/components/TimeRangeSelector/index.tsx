@@ -42,48 +42,51 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             <Calendar className="w-5 h-5 text-blue-500" />
             时间范围
           </Label>
-          <Select value={timeRange} onValueChange={onTimeRangeChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="选择时间范围" />
-            </SelectTrigger>
-            <SelectContent>
-              {timeRanges.map((range) => (
-                <SelectItem key={range.value} value={range.value}>
-                  {range.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {timeRange === 'custom' && (
-          <div className="flex items-center gap-4 ml-[116px]">
-            <div>
-              <Label htmlFor="startDate" className="text-xs text-gray-500">
-                开始日期
-              </Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={customStartDate}
-                onChange={(e) => onStartDateChange(e.target.value)}
-                className="w-40"
-              />
-            </div>
-            <div>
-              <Label htmlFor="endDate" className="text-xs text-gray-500">
-                结束日期
-              </Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={customEndDate}
-                onChange={(e) => onEndDateChange(e.target.value)}
-                className="w-40"
-              />
+          <div className="flex-1">
+            <div className="flex flex-wrap gap-4 items-center">
+              <Select value={timeRange} onValueChange={onTimeRangeChange}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="选择时间范围" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeRanges.map((range) => (
+                    <SelectItem key={range.value} value={range.value}>
+                      {range.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {timeRange === 'custom' && (
+                <>
+                  <div className="-mt-6">
+                    <Label htmlFor="startDate" className="text-xs text-gray-500">
+                      开始日期
+                    </Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => onStartDateChange(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                  <div className="-mt-6">
+                    <Label htmlFor="endDate" className="text-xs text-gray-500">
+                      结束日期
+                    </Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => onEndDateChange(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </motion.div>
   )

@@ -19,15 +19,14 @@ import {
 } from '@renderer/components/ui/command'
 import { Avatar, AvatarFallback } from '@renderer/components/ui/avatar'
 import type { Contact, ChatRoom } from '@types'
-import { c, s } from 'framer-motion/dist/types.d-Cjd591yU'
 
 interface ContactSelectorProps {
   // 数据
   personalContacts: Contact[]
   chatRooms: ChatRoom[]
   // 更新选中的联系人
-  initSelectedContacts: string[]
-  onSelectedContactsUpdate: (contacts: string[]) => void
+  initSelectedContacts: string
+  onSelectedContactsUpdate: (contacts: string) => void
 }
 
 export const ContactSelector: React.FC<ContactSelectorProps> = ({
@@ -40,56 +39,41 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   const [targetType, setTargetType] = useState<'personal' | 'chatroom'>('personal')
   const [searchTerm, setSearchTerm] = useState('')
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-  const [selectedPersonNames, setSelectedPersonNames] = useState<string[]>([])
-  const [selectedChatroomNames, setSelectedChatroomNames] = useState<string[]>([])
+  const [selectedPersonName, setSelectedPersonName] = useState<string>('')
+  const [selectedChatroomName, setSelectedChatroomName] = useState<string>('')
 
   // 处理选中联系人
   const handleSelectContact = (contact: Contact | ChatRoom) => {
     if ('name' in contact) {
-      // 群聊
-      setSelectedChatroomNames([...selectedChatroomNames, contact.name])
+      // 群聊 - 选择的值取name字段，展示的是nickName字段
+      setSelectedChatroomName(contact.nickName)
+      onSelectedContactsUpdate(contact.name)
     } else {
-      // 个人
-      setSelectedPersonNames([...selectedPersonNames, contact.userName])
+      // 个人 - 选择的值取userName字段，展示的是remark字段
+      setSelectedPersonName(contact.remark || contact.nickName)
+      onSelectedContactsUpdate(contact.userName)
     }
-    onSelectedContactsUpdate([...selectedContacts, contact.id])
+    setIsPopoverOpen(false)
   }
 
   const onClearAll = () => {
-    setSelectedPersonNames([])
-    setSelectedChatroomNames([])
-    onSelectedContactsUpdate([])
+    setSelectedPersonName('')
+    setSelectedChatroomName('')
+    onSelectedContactsUpdate(null)
   }
 
-  // ! 分析对象的所有相关方法、变量应该在 hooks中，通过 useContactSelector 来管理，且联系人和群聊选项同时肯定只选一个
-  const onRemoveContact = (contact: Contact | ChatRoom) => {
-    if ('name' in contact) {
-      setSelectedChatroomNames(selectedChatroomNames.filter((id) => id !== contact.id))
-    } else {
-      setSelectedPersonNames(selectedPersonNames.filter((id) => id !== contact.id))
-    }
-    onSelectedContactsUpdate(selectedContacts.filter((id) => id !== contact.id))
-  }
-
-  const onAddContact = (contact: Contact | ChatRoom) => {
-    if ('name' in contact) {
-      setSelectedChatroomNames([...selectedChatroomNames, contact.id])
-    } else {
-      setSelectedPersonNames([...selectedPersonNames, contact.id])
-    }
-    onSelectedContactsUpdate([...selectedContacts, contact.id])
-  }
-
-  // 计算属性：根据 targetType 返回相应的选中项数组
-  const selectedContacts = useMemo(() => {
-    return targetType === 'personal' ? selectedPersonNames : selectedChatroomNames
-  }, [targetType, selectedPersonNames, selectedChatroomNames])
+  // 计算属性：根据 targetType 返回相应的选中项
+  const selectedContact = useMemo(() => {
+    return targetType === 'personal' ? selectedPersonName : selectedChatroomName
+  }, [targetType, selectedPersonName, selectedChatroomName])
 
   // 处理分析对象类型变化
   const onTargetTypeChange = (value: 'personal' | 'chatroom') => {
     setTargetType(value)
     setSearchTerm('')
     setIsPopoverOpen(false)
+    // 切换类型时清空选择
+    onClearAll()
   }
 
   // 渲染联系人头像
@@ -111,13 +95,20 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   }
 
   // 渲染联系人信息
-  const renderContactInfo = (contact: Contact) => (
-    <div className="flex-1 min-w-0">
-      <div className="flex gap-2 items-center">
-        <span className="text-sm font-medium truncate">{contact.remark || contact.nickName}</span>
+  const renderContactInfo = (contact: Contact | ChatRoom) => {
+    const displayName =
+      'name' in contact
+        ? contact.nickName // 群聊显示nickName
+        : contact.remark || contact.nickName // 个人显示remark，没有则显示nickName
+
+    return (
+      <div className="flex-1 min-w-0">
+        <div className="flex gap-2 items-center">
+          <span className="text-sm font-medium truncate">{displayName}</span>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <motion.div
@@ -164,18 +155,31 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                 <Button
                   variant="outline"
                   role="combobox"
-                  className="justify-start w-full font-normal text-left"
+                  className="justify-between w-80 font-normal text-left"
                 >
-                  <Search className="mr-2 w-4 h-4 shrink-0" />
-                  {selectedContacts.length === 0 ? (
-                    <span className="text-gray-500">
-                      选择{targetType === 'personal' ? '好友' : '群聊'}
-                    </span>
-                  ) : (
-                    <span>
-                      已选择 {selectedContacts.length} 个
-                      {targetType === 'personal' ? '好友' : '群聊'}
-                    </span>
+                  <div className="flex items-center">
+                    <Search className="mr-2 w-4 h-4 shrink-0" />
+                    {!selectedContact ? (
+                      <span className="text-gray-500">
+                        选择{targetType === 'personal' ? '好友' : '群聊'}
+                      </span>
+                    ) : (
+                      <span>{selectedContact}</span>
+                    )}
+                  </div>
+                  {selectedContact && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-auto hover:bg-red-100 shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onClearAll()
+                      }}
+                    >
+                      <X className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                    </Button>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -195,20 +199,27 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                       <CommandGroup heading={targetType === 'personal' ? '个人联系人' : '群聊'}>
                         {(targetType === 'personal' ? personalContacts : chatRooms)
                           .filter((contact) => {
-                            const name = 'name' in contact ? contact.name : contact.nickName
-                            return name.toLowerCase().includes(searchTerm.toLowerCase())
+                            const searchName =
+                              'name' in contact
+                                ? contact.nickName // 群聊按nickName搜索
+                                : contact.remark || contact.nickName // 个人按remark或nickName搜索
+                            return searchName.toLowerCase().includes(searchTerm.toLowerCase())
                           })
+                          .slice(0, 10) // 限制最多显示10条数据
                           .map((contact) => {
-                            const contactId = 'name' in contact ? contact.name : contact.userName
+                            const displayValue =
+                              'name' in contact
+                                ? contact.nickName // 群聊显示nickName
+                                : contact.remark || contact.nickName // 个人显示remark
                             return (
                               <CommandItem
-                                key={contactId}
-                                onSelect={() => onAddContact(contact)}
+                                key={contact.id}
+                                onSelect={() => handleSelectContact(contact)}
                                 className="flex gap-3 items-center p-3"
                               >
                                 {renderContactAvatar(contact)}
-                                {renderContactInfo(contact as Contact)}
-                                {selectedContacts.includes(contactId) && (
+                                {renderContactInfo(contact)}
+                                {selectedContact === displayValue && (
                                   <UserCheck className="w-4 h-4 text-green-600" />
                                 )}
                               </CommandItem>
@@ -226,57 +237,6 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
             </Popover>
           </div>
         </div>
-
-        {/* 已选择的联系人展示 */}
-        {selectedContacts.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="ml-[116px] space-y-3"
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">
-                已选择{targetType === 'personal' ? '好友' : '群聊'} ({selectedContacts.length})
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onClearAll}
-                className="text-gray-500 hover:text-red-500"
-              >
-                清空全部
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {selectedContacts.map((contact, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="flex gap-2 items-center py-1 pr-1 pl-3"
-                >
-                  <span className="text-xs">{contact}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-0.5 hover:bg-red-100"
-                    onClick={() => {
-                      if (targetType === 'personal') {
-                        setSelectedPersonNames(selectedPersonNames.filter((n) => n !== contact))
-                      } else {
-                        setSelectedChatroomNames(selectedChatroomNames.filter((n) => n !== contact))
-                      }
-                    }}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </div>
     </motion.div>
   )
