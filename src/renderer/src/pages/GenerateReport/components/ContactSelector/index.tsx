@@ -199,11 +199,15 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                       <CommandGroup heading={targetType === 'personal' ? '个人联系人' : '群聊'}>
                         {(targetType === 'personal' ? personalContacts : chatRooms)
                           .filter((contact) => {
-                            const searchName =
-                              'name' in contact
-                                ? contact.nickName // 群聊按nickName搜索
-                                : contact.remark || contact.nickName // 个人按remark或nickName搜索
-                            return searchName.toLowerCase().includes(searchTerm.toLowerCase())
+                            const searchStr = searchTerm.toLocaleLowerCase()
+                            if (targetType === 'personal') {
+                              return (
+                                contact.remark.toLocaleLowerCase().includes(searchStr) ||
+                                contact.nickName.toLocaleLowerCase().includes(searchStr)
+                              )
+                            } else {
+                              return contact.nickName.toLocaleLowerCase().includes(searchStr)
+                            }
                           })
                           .slice(0, 10) // 限制最多显示10条数据
                           .map((contact) => {
