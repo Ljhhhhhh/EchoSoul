@@ -30,8 +30,8 @@ const GenerateReport: React.FC = () => {
       customEndDate: condition.customEndDate,
       targetType: condition.targetType,
       // 将数组格式的联系人转换为单个联系人（取第一个）
-      selectedContacts: Array.isArray(condition.selectedContacts) 
-        ? condition.selectedContacts[0] || null 
+      selectedContacts: Array.isArray(condition.selectedContacts)
+        ? condition.selectedContacts[0] || null
         : condition.selectedContacts,
       analysisType: condition.analysisType,
       customPrompt: condition.customPrompt
@@ -49,6 +49,9 @@ const GenerateReport: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // TODO: 打印当前条件，查看联系人相关配置是否正确
+    console.log('当前条件:', formState.formData)
+
     // 保存当前条件
     conditionsData.saveCondition(
       formState.formData,
@@ -56,6 +59,7 @@ const GenerateReport: React.FC = () => {
       promptsData.selectedPrompt
     )
 
+    // ! 暂时移除
     // 提交表单
     await formState.submitForm()
   }
@@ -89,7 +93,7 @@ const GenerateReport: React.FC = () => {
           />
 
           {/* 主要配置区域 */}
-          <div className="max-w-4xl mx-auto">
+          <div className="mx-auto max-w-4xl">
             <Card className="bg-white border-gray-200 shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl text-gray-800">分析配置</CardTitle>
@@ -130,17 +134,17 @@ const GenerateReport: React.FC = () => {
                     <Button
                       type="submit"
                       disabled={formState.isGenerating || !formState.isFormValid}
-                      className="w-full h-12 text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+                      className="w-full h-12 text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
                       onClick={handleSubmit}
                     >
                       {formState.isGenerating ? (
                         <>
-                          <Wand2 className="w-4 h-4 mr-2 animate-spin" />
+                          <Wand2 className="mr-2 w-4 h-4 animate-spin" />
                           正在生成报告...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4 mr-2" />
+                          <Sparkles className="mr-2 w-4 h-4" />
                           生成分析报告
                         </>
                       )}

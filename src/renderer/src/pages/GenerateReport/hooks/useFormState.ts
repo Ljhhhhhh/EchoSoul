@@ -75,6 +75,7 @@ export const useFormState = (personalContacts: any[], groupChats: any[]) => {
     setIsGenerating(true)
 
     try {
+      // TODO 调用 IPC 发起生成报告请求
       // 模拟API调用
       await new Promise((resolve) => setTimeout(resolve, 3000))
 

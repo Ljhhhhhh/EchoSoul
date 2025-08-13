@@ -49,7 +49,9 @@ export class DataStatsService {
     } else {
       contactsInvolved = 1 // 单个联系人
       // 检查是否是群聊，群聊消息更多
-      const isGroup = groupChats.some((g) => g.id === formData.selectedContacts || g.name === formData.selectedContacts)
+      const isGroup = groupChats.some(
+        (g) => g.id === formData.selectedContacts || g.name === formData.selectedContacts
+      )
       if (isGroup) {
         baseMessageCount = 80
       }

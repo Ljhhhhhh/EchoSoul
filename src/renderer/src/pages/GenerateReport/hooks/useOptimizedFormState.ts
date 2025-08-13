@@ -52,7 +52,8 @@ function formReducer(state: FormState, action: FormAction): FormState {
       // 如果移除的是当前选中的联系人，则清空选择
       return {
         ...state,
-        selectedContacts: state.selectedContacts === action.contactId ? null : state.selectedContacts
+        selectedContacts:
+          state.selectedContacts === action.contactId ? null : state.selectedContacts
       }
 
     case 'CLEAR_CONTACTS':
