@@ -10,7 +10,7 @@ interface ContactsState {
   chatRooms: ChatRoom[]
   currentSearchType: 'individual' | 'group'
   searchTerm: string
-  checkedContacts?: string[]
+  checkedContacts?: string | null
   isPopoverOpen: boolean
   isLoading: boolean
   error: string | null
@@ -22,7 +22,7 @@ export const useContacts = () => {
     chatRooms: [],
     currentSearchType: 'individual',
     searchTerm: '',
-    checkedContacts: [],
+    checkedContacts: null,
     isPopoverOpen: false,
     isLoading: false,
     error: null

@@ -53,6 +53,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
       onSelectedContactsUpdate(contact.userName)
     }
     setIsPopoverOpen(false)
+    setSearchTerm('')
   }
 
   const onClearAll = () => {
@@ -102,7 +103,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     const isGroup = 'name' in contact
     const initial = isGroup
       ? contact.name.charAt(0).toUpperCase()
-      : contact.nickName.charAt(0).toUpperCase()
+      : (contact.remark || contact.nickName).charAt(0).toUpperCase()
 
     return (
       <Avatar className="w-8 h-8">
@@ -190,7 +191,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                   </div>
                   {selectedContact && (
                     <div
-                      className="p-1 h-auto hover:bg-red-100 shrink-0 cursor-pointer rounded transition-colors"
+                      className="p-1 h-auto rounded transition-colors cursor-pointer hover:bg-red-100 shrink-0"
                       onClick={(e) => {
                         e.stopPropagation()
                         onClearAll()

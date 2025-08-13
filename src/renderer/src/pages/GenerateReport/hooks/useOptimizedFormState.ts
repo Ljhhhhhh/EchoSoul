@@ -26,7 +26,7 @@ const initialFormState: FormState = {
   customStartDate: '',
   customEndDate: '',
   targetType: '',
-  selectedContacts: [],
+  selectedContacts: null,
   analysisType: '',
   customPrompt: '',
   isGenerating: false
@@ -42,22 +42,21 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, ...action.data }
 
     case 'ADD_CONTACT':
-      if (state.selectedContacts.includes(action.contactId)) {
-        return state
-      }
+      // 由于ContactSelector只支持单选，直接设置选中的联系人
       return {
         ...state,
-        selectedContacts: [...state.selectedContacts, action.contactId]
+        selectedContacts: action.contactId
       }
 
     case 'REMOVE_CONTACT':
+      // 如果移除的是当前选中的联系人，则清空选择
       return {
         ...state,
-        selectedContacts: state.selectedContacts.filter((id) => id !== action.contactId)
+        selectedContacts: state.selectedContacts === action.contactId ? null : state.selectedContacts
       }
 
     case 'CLEAR_CONTACTS':
-      return { ...state, selectedContacts: [] }
+      return { ...state, selectedContacts: null }
 
     case 'SET_GENERATING':
       return { ...state, isGenerating: action.isGenerating }
@@ -119,7 +118,7 @@ export const useOptimizedFormState = (personalContacts: any[], groupChats: any[]
 
   // 表单验证 - 使用 useMemo 避免重复计算
   const isFormValid = useMemo(() => {
-    return !!(state.timeRange && state.analysisType && state.selectedContacts.length > 0)
+    return !!(state.timeRange && state.analysisType && state.selectedContacts)
   }, [state.timeRange, state.analysisType, state.selectedContacts])
 
   // 提交表单

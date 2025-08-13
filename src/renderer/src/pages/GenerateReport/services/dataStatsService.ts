@@ -1,7 +1,8 @@
 /**
  * 数据统计服务
  */
-import type { DataStats, Contact } from '../types'
+import type { DataStats } from '../types'
+import type { Contact, ChatRoom } from '@types'
 
 export class DataStatsService {
   /**
@@ -10,9 +11,9 @@ export class DataStatsService {
   static calculateStats(
     formData: any,
     personalContacts: Contact[],
-    groupChats: Contact[]
+    groupChats: ChatRoom[]
   ): DataStats {
-    if (!formData.timeRange || formData.selectedContacts.length === 0) {
+    if (!formData.timeRange || !formData.selectedContacts) {
       return { messageCount: 0, daysCovered: 0, contactsInvolved: 0 }
     }
 
@@ -46,12 +47,10 @@ export class DataStatsService {
       contactsInvolved = groupChats.length
       baseMessageCount = 120
     } else {
-      contactsInvolved = formData.selectedContacts.length
-      // 检查是否包含群聊，群聊消息更多
-      const hasGroups = formData.selectedContacts.some((id: string) =>
-        groupChats.some((g) => g.id === id)
-      )
-      if (hasGroups) {
+      contactsInvolved = 1 // 单个联系人
+      // 检查是否是群聊，群聊消息更多
+      const isGroup = groupChats.some((g) => g.id === formData.selectedContacts || g.name === formData.selectedContacts)
+      if (isGroup) {
         baseMessageCount = 80
       }
     }

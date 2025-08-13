@@ -44,8 +44,13 @@ export class ConditionService {
 
     let targetLabel = '全部聊天'
     if (data.targetType === 'specific') {
-      targetLabel =
-        data.selectedContacts.length > 0 ? `${data.selectedContacts.length}个联系人` : '特定联系人'
+      // 处理数组格式的selectedContacts（来自SavedCondition）
+      if (Array.isArray(data.selectedContacts)) {
+        targetLabel = data.selectedContacts.length > 0 ? `${data.selectedContacts.length}个联系人` : '特定联系人'
+      } else {
+        // 处理单个联系人格式（来自当前表单）
+        targetLabel = data.selectedContacts ? '1个联系人' : '特定联系人'
+      }
     } else if (data.targetType === 'groups') {
       targetLabel = '群聊'
     }
@@ -61,6 +66,8 @@ export class ConditionService {
       id: Date.now().toString(),
       name,
       ...formData,
+      // 将单个联系人转换为数组格式以保持向后兼容
+      selectedContacts: formData.selectedContacts ? [formData.selectedContacts] : [],
       createdAt: new Date().toISOString(),
       usageCount: 1
     }
@@ -71,12 +78,17 @@ export class ConditionService {
    */
   static findSimilarCondition(conditions: SavedCondition[], formData: any): number {
     return conditions.findIndex(
-      (condition) =>
-        condition.timeRange === formData.timeRange &&
-        condition.targetType === formData.targetType &&
-        condition.analysisType === formData.analysisType &&
-        JSON.stringify(condition.selectedContacts.sort()) ===
-          JSON.stringify(formData.selectedContacts.sort())
+      (condition) => {
+        // 将formData的单个联系人转换为数组格式进行比较
+        const formContacts = formData.selectedContacts ? [formData.selectedContacts] : []
+        return (
+          condition.timeRange === formData.timeRange &&
+          condition.targetType === formData.targetType &&
+          condition.analysisType === formData.analysisType &&
+          JSON.stringify(condition.selectedContacts.sort()) ===
+            JSON.stringify(formContacts.sort())
+        )
+      }
     )
   }
 

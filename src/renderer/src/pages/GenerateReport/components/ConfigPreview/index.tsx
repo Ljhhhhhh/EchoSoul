@@ -11,7 +11,7 @@ import type { DataStats, TimeRange, PromptTemplate } from '../../types'
 interface ConfigPreviewProps {
   timeRange: string
   timeRanges: TimeRange[]
-  selectedContacts: string[]
+  selectedContacts: string | null
   targetType: string
   selectedPrompt: PromptTemplate | null
   dataStats: DataStats
@@ -32,10 +32,10 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
   onSubmit
 }) => {
   const getTargetLabel = () => {
-    if (selectedContacts.length === 0) return '未选择'
+    if (!selectedContacts) return '未选择'
     if (targetType === 'all') return '全部聊天'
     if (targetType === 'groups') return '所有群聊'
-    return `${selectedContacts.length} 个联系人`
+    return '1 个联系人'
   }
 
   return (
@@ -65,7 +65,7 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
         </div>
 
         {/* 数据统计预览 */}
-        {timeRange && selectedContacts.length > 0 && (
+        {timeRange && selectedContacts && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

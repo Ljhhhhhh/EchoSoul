@@ -96,7 +96,7 @@ export const useFormState = (personalContacts: any[], groupChats: any[]) => {
 
   // 表单验证
   const isFormValid = useMemo(() => {
-    return !!(formData.timeRange && formData.analysisType && formData.selectedContacts.length > 0)
+    return !!(formData.timeRange && formData.analysisType && formData.selectedContacts)
   }, [formData])
 
   return {

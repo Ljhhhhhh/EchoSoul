@@ -29,7 +29,10 @@ const GenerateReport: React.FC = () => {
       customStartDate: condition.customStartDate,
       customEndDate: condition.customEndDate,
       targetType: condition.targetType,
-      selectedContacts: condition.selectedContacts,
+      // 将数组格式的联系人转换为单个联系人（取第一个）
+      selectedContacts: Array.isArray(condition.selectedContacts) 
+        ? condition.selectedContacts[0] || null 
+        : condition.selectedContacts,
       analysisType: condition.analysisType,
       customPrompt: condition.customPrompt
     })
