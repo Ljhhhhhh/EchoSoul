@@ -122,6 +122,8 @@ const GenerateReport: React.FC = () => {
                     }
                   />
 
+                  <div>当前模型选用</div>
+
                   {/* Prompt选择 */}
                   <PromptSelector
                     prompts={promptsData.prompts}

@@ -34,7 +34,7 @@ const Settings = (): React.ReactElement => {
 
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
+      <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
         <SidebarTrigger />
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">设置</h1>
@@ -42,10 +42,10 @@ const Settings = (): React.ReactElement => {
         </div>
       </header>
 
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+      <main className="overflow-auto flex-1 p-6">
+        <div className="mx-auto max-w-4xl">
           <Tabs defaultValue="environment" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="environment">环境配置</TabsTrigger>
               <TabsTrigger value="ai">AI 服务</TabsTrigger>
               <TabsTrigger value="prompts">提示词管理</TabsTrigger>
@@ -104,7 +104,7 @@ const Settings = (): React.ReactElement => {
               onClick={handleSave}
               className="px-8 text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
             >
-              保存所有设置
+              保存所有设置（接口还没有支持、测试AI服务、SQlite数据库验证）
             </Button>
           </motion.div>
         </div>
