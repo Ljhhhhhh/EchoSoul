@@ -90,7 +90,17 @@ export interface AIProviderAdapter {
    * @param config 服务配置
    * @returns 模型列表
    */
-  getAvailableModels?(config: AIServiceConfig): Promise<string[]>
+  getAvailableModels?(config: AIServiceConfig): Promise<
+    {
+      id: string
+      name: string
+      contextLength?: number
+      pricing?: {
+        prompt: number
+        completion: number
+      }
+    }[]
+  >
 
   /**
    * 验证 API 密钥

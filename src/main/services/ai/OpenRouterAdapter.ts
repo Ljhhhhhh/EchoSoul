@@ -1,29 +1,41 @@
 import { BaseAIProviderAdapter } from './AIProviderAdapter'
-import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '../../../types/types'
+import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '@types'
 import { createLogger } from '../../utils/logger'
 
-const logger = createLogger('OpenAIAdapter')
+const logger = createLogger('OpenRouterAdapter')
 
 /**
- * OpenAI API 适配器
+ * OpenRouter API 适配器
+ * OpenRouter 是一个统一的 AI API 网关，支持多种模型提供商
+ * 使用 OpenAI 兼容的 API 格式
  */
-export class OpenAIAdapter extends BaseAIProviderAdapter {
-  readonly provider: AIProvider = 'openai'
-  readonly name = 'OpenAI'
-  readonly description = 'OpenAI GPT models including GPT-4, GPT-3.5-turbo'
+export class OpenRouterAdapter extends BaseAIProviderAdapter {
+  readonly provider: AIProvider = 'openrouter'
+  readonly name = 'OpenRouter'
+  readonly description = 'OpenRouter unified API gateway for multiple AI models'
   readonly supportedModels = [
-    'gpt-4o',
-    'gpt-4o-mini',
-    'gpt-4-turbo',
-    'gpt-4',
-    'gpt-3.5-turbo',
-    'gpt-3.5-turbo-16k'
+    'openai/gpt-4o',
+    'openai/gpt-4o-mini',
+    'openai/gpt-4-turbo',
+    'openai/gpt-4',
+    'openai/gpt-3.5-turbo',
+    'anthropic/claude-3.5-sonnet',
+    'anthropic/claude-3-opus',
+    'anthropic/claude-3-sonnet',
+    'anthropic/claude-3-haiku',
+    'google/gemini-pro',
+    'google/gemini-pro-vision',
+    'meta-llama/llama-3.1-405b-instruct',
+    'meta-llama/llama-3.1-70b-instruct',
+    'meta-llama/llama-3.1-8b-instruct',
+    'mistralai/mistral-7b-instruct',
+    'mistralai/mixtral-8x7b-instruct'
   ]
-  readonly defaultModel = 'gpt-4o-mini'
+  readonly defaultModel = 'openai/gpt-4o-mini'
   readonly requiresApiKey = true
   readonly supportsCustomBaseUrl = true
 
-  private readonly defaultBaseUrl = 'https://api.openai.com/v1'
+  private readonly defaultBaseUrl = 'https://openrouter.ai/api/v1'
 
   async testConnection(config: AIServiceConfig): Promise<AIServiceTestResult> {
     const startTime = Date.now()
@@ -43,7 +55,7 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
         usage: response.usage
       }
     } catch (error) {
-      logger.error('OpenAI connection test failed:', error)
+      logger.error('OpenRouter connection test failed:', error)
       return {
         success: false,
         responseTime: Date.now() - startTime,
@@ -70,10 +82,9 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
     model?: string
   }> {
     try {
-      const response = await this.withRetry(
-        () => this.makeCompletionRequest(config, messages, options),
-        config.settings.retryAttempts || 3,
-        config.settings.retryDelay || 1000
+      const response = await this.withTimeout(
+        this.makeCompletionRequest(config, messages, options),
+        config.settings.timeout || 60000
       )
 
       return response
@@ -84,19 +95,28 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
 
   async validateApiKey(apiKey: string, baseUrl?: string): Promise<boolean> {
     try {
-      const url = `${baseUrl || this.defaultBaseUrl}/models`
+      const url = `${baseUrl || this.defaultBaseUrl}/auth/key`
 
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://echosoul.app',
+          'X-Title': 'EchoSoul'
         }
       })
 
-      return response.ok
+      if (response.ok) {
+        const data = await response.json()
+        logger.info('OpenRouter API key validation response:', data)
+        // OpenRouter 返回用户信息表示 API key 有效
+        return data && (data.data || data.label)
+      }
+
+      return false
     } catch (error) {
-      logger.error('OpenAI API key validation failed:', error)
+      logger.error('OpenRouter API key validation failed:', error)
       return false
     }
   }
@@ -117,7 +137,9 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://echosoul.app',
+          'X-Title': 'EchoSoul'
         }
       })
 
@@ -127,7 +149,7 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
 
       const data = await response.json()
       return data.data
-        .filter((model: any) => model.id.startsWith('gpt-'))
+        .filter((model: any) => !model.id.includes('free') && model.context_length > 0)
         .map((model: any) => ({
           id: model.id,
           name: model.id,
@@ -136,12 +158,10 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
         }))
         .sort((a, b) => a.name.localeCompare(b.name))
     } catch (error) {
-      logger.error('Failed to get OpenAI models:', error)
+      logger.error('Failed to get OpenRouter models:', error)
       return this.supportedModels.map((id) => ({
         id,
-        name: id,
-        contextLength: 0,
-        pricing: { prompt: 0, completion: 0 }
+        name: id
       }))
     }
   }
@@ -173,7 +193,9 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://echosoul.app',
+        'X-Title': 'EchoSoul'
       },
       body: JSON.stringify(requestBody)
     })
@@ -184,6 +206,8 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
     }
 
     const data = await response.json()
+
+    logger.info(`OpenRouter test response: ${JSON.stringify(data)}`)
 
     return {
       model: data.model,
@@ -215,36 +239,27 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
     const baseUrl = config.baseUrl || this.defaultBaseUrl
     const url = `${baseUrl}/chat/completions`
 
-    const requestBody: any = {
+    const requestBody = {
       model: config.model || this.defaultModel,
-      messages,
+      messages: messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      max_tokens: options?.maxTokens || config.settings.maxTokens || 2000,
       temperature: options?.temperature ?? config.settings.temperature ?? 0.7,
-      max_tokens: options?.maxTokens ?? config.settings.maxTokens,
-      stream: options?.stream ?? false
+      stream: options?.stream || false
     }
 
-    // 添加可选参数
-    if (config.settings.topP !== undefined) {
-      requestBody.top_p = config.settings.topP
-    }
-    if (config.settings.frequencyPenalty !== undefined) {
-      requestBody.frequency_penalty = config.settings.frequencyPenalty
-    }
-    if (config.settings.presencePenalty !== undefined) {
-      requestBody.presence_penalty = config.settings.presencePenalty
-    }
-
-    const response = await this.withTimeout(
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      }),
-      config.settings.timeout || 30000
-    )
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://echosoul.app',
+        'X-Title': 'EchoSoul'
+      },
+      body: JSON.stringify(requestBody)
+    })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -253,16 +268,66 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
 
     const data = await response.json()
 
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error('No response choices received from OpenRouter')
+    }
+
+    const choice = data.choices[0]
+    const content = choice.message?.content || choice.text || ''
+
     return {
-      content: data.choices[0]?.message?.content || '',
+      content,
       usage: data.usage
         ? {
-            promptTokens: data.usage.prompt_tokens,
-            completionTokens: data.usage.completion_tokens,
-            totalTokens: data.usage.total_tokens
+            promptTokens: data.usage.prompt_tokens || 0,
+            completionTokens: data.usage.completion_tokens || 0,
+            totalTokens: data.usage.total_tokens || 0
           }
         : undefined,
       model: data.model
+    }
+  }
+
+  getSupportedModels(): string[] {
+    return [...this.supportedModels]
+  }
+
+  async getQuotaInfo(config: AIServiceConfig): Promise<{
+    used: number
+    remaining: number
+    total: number
+    resetDate?: string
+  }> {
+    try {
+      const baseUrl = config.baseUrl || this.defaultBaseUrl
+      const url = `${baseUrl}/auth/key`
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://echosoul.app',
+          'X-Title': 'EchoSoul'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      const usage = data.data?.usage || {}
+
+      return {
+        used: usage.used || 0,
+        remaining: usage.remaining || 0,
+        total: usage.limit || 0,
+        resetDate: usage.reset_date
+      }
+    } catch (error) {
+      logger.error('Failed to get OpenRouter quota info:', error)
+      throw error
     }
   }
 }

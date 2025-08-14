@@ -36,7 +36,7 @@ export type AIModelConfig = z.infer<typeof AIModelConfigSchema>
 // AI 服务配置
 export const AIServiceConfigSchema = z.object({
   id: z.string(),
-  provider: AIProviderSchema,
+  provider: z.string(),
   name: z.string(),
   description: z.string(),
   apiKey: z.string(), // 加密存储
@@ -63,7 +63,7 @@ export type AIServiceConfig = z.infer<typeof AIServiceConfigSchema>
 // AI 服务状态
 export const AIServiceStatusSchema = z.object({
   id: z.string(),
-  provider: AIProviderSchema,
+  provider: z.string(),
   status: z.enum(['healthy', 'degraded', 'unhealthy', 'unknown']),
   lastChecked: z.string(),
   responseTime: z.number().optional(), // 毫秒
@@ -207,7 +207,22 @@ export const AIServiceTestResultSchema = z.object({
       totalTokens: z.number()
     })
     .optional(),
-  error: z.string().optional()
+  error: z.string().optional(),
+  availableModels: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        contextLength: z.number().optional(),
+        pricing: z
+          .object({
+            prompt: z.number(),
+            completion: z.number()
+          })
+          .optional()
+      })
+    )
+    .optional()
 })
 
 export type AIServiceTestResult = z.infer<typeof AIServiceTestResultSchema>
@@ -215,7 +230,7 @@ export type AIServiceTestResult = z.infer<typeof AIServiceTestResultSchema>
 // AI 服务使用统计
 export const AIUsageStatsSchema = z.object({
   date: z.string(), // YYYY-MM-DD
-  provider: AIProviderSchema,
+  provider: z.string(),
   model: z.string(),
   requests: z.number().default(0),
   tokensUsed: z.number().default(0),

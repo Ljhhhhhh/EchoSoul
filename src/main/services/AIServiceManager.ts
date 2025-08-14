@@ -77,7 +77,6 @@ export class AIServiceManager extends EventEmitter {
    */
   async addOrUpdateService(config: AIServiceConfig): Promise<void> {
     try {
-      // 直接存储配置（不加密）
       const serviceConfig = {
         ...config,
         updatedAt: new Date().toISOString()
@@ -359,7 +358,7 @@ export class AIServiceManager extends EventEmitter {
   /**
    * 初始化服务状态
    */
-  private initializeServiceStatus(serviceId: string, provider: AIProvider): void {
+  private initializeServiceStatus(serviceId: string, provider: string): void {
     if (!this.statuses.has(serviceId)) {
       this.statuses.set(serviceId, {
         id: serviceId,

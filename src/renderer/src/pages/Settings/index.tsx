@@ -21,6 +21,8 @@ const Settings = (): React.ReactElement => {
     addAiConfig,
     removeAiConfig,
     updateAiConfig,
+    testAiConfig,
+    testTempAiConfig,
     addPromptTemplate,
     updatePromptTemplate,
     removePromptTemplate
@@ -68,6 +70,8 @@ const Settings = (): React.ReactElement => {
                 onAddConfig={addAiConfig}
                 onRemoveConfig={removeAiConfig}
                 onUpdateConfig={updateAiConfig}
+                onTestConfig={testAiConfig}
+                onTestTempConfig={testTempAiConfig}
               />
             </TabsContent>
 

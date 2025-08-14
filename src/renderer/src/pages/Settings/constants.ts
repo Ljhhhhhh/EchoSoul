@@ -44,7 +44,8 @@ export const DEFAULT_NEW_CONFIG = {
   provider: 'openai',
   apiKey: '',
   model: '',
-  baseUrl: ''
+  baseUrl: '',
+  isEnabled: true
 }
 
 export const DEFAULT_SETTINGS = {

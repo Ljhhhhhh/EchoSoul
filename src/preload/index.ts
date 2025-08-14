@@ -46,6 +46,39 @@ const api = {
   // 应用控制相关的API
   app: {
     quit: () => ipcRenderer.invoke('app:quit')
+  },
+
+  // AI服务相关的API
+  aiService: {
+    // 获取所有AI服务
+    getAllServices: () => ipcRenderer.invoke('ai:get-services'),
+
+    // 添加或更新AI服务
+    addOrUpdateService: (config: any) => ipcRenderer.invoke('ai:add-service', config),
+
+    // 更新AI服务
+    updateService: (config: any) => ipcRenderer.invoke('ai:update-service', config),
+
+    // 删除AI服务
+    removeService: (serviceId: string) => ipcRenderer.invoke('ai:remove-service', serviceId),
+
+    // 测试AI服务连接
+    testService: (serviceId: string) => ipcRenderer.invoke('ai:test-service', serviceId),
+    testTempService: (config: any) => ipcRenderer.invoke('ai:test-temp-service', config),
+
+    // 获取服务状态
+    getServiceStatus: (serviceId: string) => ipcRenderer.invoke('ai:get-service-status', serviceId),
+
+    // 验证API密钥
+    validateApiKey: (provider: string, apiKey: string, baseUrl?: string) =>
+      ipcRenderer.invoke('ai:validate-api-key', provider, apiKey, baseUrl),
+
+    // 获取可用的AI提供商
+    getAvailableProviders: () => ipcRenderer.invoke('ai:get-available-providers'),
+
+    // 发送聊天请求
+    sendChatRequest: (serviceId: string, messages: any[], options?: any) =>
+      ipcRenderer.invoke('ai:send-chat-request', serviceId, messages, options)
   }
 }
 

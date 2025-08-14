@@ -10,7 +10,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Brain } from 'lucide-react'
-import { AiConfig } from '../types'
+import { AIServiceConfig, SimpleAiConfig } from '../types'
 import { PROVIDER_TEMPLATES } from '../constants'
 import { useAiConfig } from '../hooks/useAiConfig'
 import { AiConfigCard } from './AiConfigCard'
@@ -18,11 +18,17 @@ import { AddAiConfigForm } from './AddAiConfigForm'
 
 interface AiServiceTabProps {
   currentAiConfig: string
-  aiConfigs: AiConfig[]
+  aiConfigs: AIServiceConfig[]
   onCurrentConfigChange: (configId: string) => void
-  onAddConfig: (config: AiConfig) => void
+  onAddConfig: (config: SimpleAiConfig) => void
   onRemoveConfig: (configId: string) => void
   onUpdateConfig: (configId: string, field: string, value: string | boolean) => void
+  onTestConfig: (configId: string) => void
+  onTestTempConfig?: (config: AIServiceConfig) => Promise<{
+    success: boolean
+    error?: string
+    details?: any
+  }>
 }
 
 export const AiServiceTab: React.FC<AiServiceTabProps> = ({
@@ -31,23 +37,32 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
   onCurrentConfigChange,
   onAddConfig,
   onRemoveConfig,
-  onUpdateConfig
+  onUpdateConfig,
+  onTestConfig,
+  onTestTempConfig
 }) => {
   const {
     showAddConfig,
     setShowAddConfig,
     newConfig,
+    isAddingConfig,
     handleProviderChange,
     handleAddConfig,
     handleRemoveConfig,
     handleSwitchConfig,
     handleTestConnection,
-    updateNewConfig
+    handleTestConfig,
+    updateNewConfig,
+    isTestingConfig,
+    isTestPassed,
+    availableModels
   } = useAiConfig({
     onAddConfig,
     onRemoveConfig,
     onSwitchConfig: onCurrentConfigChange,
     onUpdateConfig,
+    onTestConfig,
+    onTestTempConfig,
     aiConfigs
   })
 
@@ -57,9 +72,9 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
+      <Card className="bg-gradient-to-br border-purple-200 from-purple-50/50 to-pink-50/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-800">
+          <CardTitle className="flex gap-2 items-center text-purple-800">
             <Brain className="w-5 h-5" />
             AI 服务配置
           </CardTitle>
@@ -75,7 +90,7 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {aiConfigs
-                    .filter((config) => config.enabled)
+                    .filter((config) => config.isEnabled)
                     .map((config) => (
                       <SelectItem key={config.id} value={config.id}>
                         {config.name} ({PROVIDER_TEMPLATES[config.provider]?.name})
@@ -86,7 +101,7 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-center">
             <h4 className="font-medium text-purple-800">AI 配置列表</h4>
             <Button
               onClick={() => setShowAddConfig(true)}
@@ -103,6 +118,11 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
               onProviderChange={handleProviderChange}
               onAdd={handleAddConfig}
               onCancel={() => setShowAddConfig(false)}
+              isLoading={isAddingConfig}
+              onTest={handleTestConfig}
+              isTestLoading={isTestingConfig}
+              isTestPassed={isTestPassed}
+              availableModels={availableModels}
             />
           )}
 

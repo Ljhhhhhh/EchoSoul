@@ -245,6 +245,36 @@ export function setupIpcHandlers(services: AppServices) {
   })
 
   ipcMain.handle(
+    'ai:test-temp-service',
+    async (_, config: AIServiceConfig): Promise<AIServiceTestResult> => {
+      try {
+        const { AIProviderFactory } = await import('../services/ai/AIProviderFactory')
+        const adapter = AIProviderFactory.getAdapter(config.provider)
+        const result = await adapter.testConnection(config)
+
+        // 如果验证成功，获取可用模型
+        if (result.success && adapter.getAvailableModels) {
+          try {
+            const availableModels = await adapter.getAvailableModels(config)
+            result.availableModels = availableModels
+          } catch (modelError) {
+            logger.warn(`Failed to fetch available models for ${config.name}:`, modelError)
+            // 不影响连接测试结果，只是没有可用模型信息
+          }
+        }
+
+        return result
+      } catch (error) {
+        logger.error(`Failed to test temp AI service ${config.name}:`, error)
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }
+    }
+  )
+
+  ipcMain.handle(
     'ai:get-service-status',
     async (_, serviceId: string): Promise<AIServiceStatus | null> => {
       try {

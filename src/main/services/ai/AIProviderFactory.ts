@@ -2,6 +2,7 @@ import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '@types'
 import { BaseAIProviderAdapter, type AIProviderAdapter } from './AIProviderAdapter'
 import { OpenAIAdapter } from './OpenAIAdapter'
 import { AnthropicAdapter } from './AnthropicAdapter'
+import { OpenRouterAdapter } from './OpenRouterAdapter'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('AIProviderFactory')
@@ -11,14 +12,14 @@ const logger = createLogger('AIProviderFactory')
  * 负责创建和管理各种 AI 服务提供商的适配器实例
  */
 export class AIProviderFactory {
-  private static adapters = new Map<AIProvider, AIProviderAdapter>()
+  private static adapters = new Map<string, AIProviderAdapter>()
 
   /**
    * 获取指定提供商的适配器
    * @param provider 提供商标识
    * @returns 适配器实例
    */
-  static getAdapter(provider: AIProvider): AIProviderAdapter {
+  static getAdapter(provider: string): AIProviderAdapter {
     if (!this.adapters.has(provider)) {
       this.adapters.set(provider, this.createAdapter(provider))
     }
@@ -38,7 +39,7 @@ export class AIProviderFactory {
    * 获取所有适配器实例
    * @returns 适配器映射
    */
-  static getAllAdapters(): Map<AIProvider, AIProviderAdapter> {
+  static getAllAdapters(): Map<string, AIProviderAdapter> {
     // 确保所有适配器都已创建
     this.getAvailableProviders().forEach((provider) => {
       this.getAdapter(provider)
@@ -75,7 +76,7 @@ export class AIProviderFactory {
    * @param provider 提供商标识
    * @returns 适配器实例
    */
-  private static createAdapter(provider: AIProvider): AIProviderAdapter {
+  private static createAdapter(provider: string): AIProviderAdapter {
     switch (provider) {
       case 'openai':
         return new OpenAIAdapter()
@@ -144,66 +145,6 @@ class GeminiAdapter extends BaseAIProviderAdapter {
   }> {
     // TODO: 实现 Gemini 聊天请求
     throw new Error('Gemini adapter not fully implemented yet')
-  }
-}
-
-/**
- * OpenRouter 适配器（基于 OpenAI 兼容接口）
- */
-class OpenRouterAdapter extends BaseAIProviderAdapter {
-  readonly provider: AIProvider = 'openrouter'
-  readonly name = 'OpenRouter'
-  readonly description = 'OpenRouter unified API for multiple models'
-  readonly supportedModels = [
-    'openai/gpt-4o',
-    'openai/gpt-4o-mini',
-    'anthropic/claude-3.5-sonnet',
-    'google/gemini-pro',
-    'meta-llama/llama-3.1-8b-instruct'
-  ]
-  readonly defaultModel = 'openai/gpt-4o-mini'
-  readonly requiresApiKey = true
-  readonly supportsCustomBaseUrl = true
-
-  private readonly defaultBaseUrl = 'https://openrouter.ai/api/v1'
-
-  async validateApiKey(apiKey: string, baseUrl?: string): Promise<boolean> {
-    try {
-      const url = `${baseUrl || this.defaultBaseUrl}/auth/key`
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      return response.ok
-    } catch {
-      return false
-    }
-  }
-
-  async testConnection(_config: AIServiceConfig): Promise<AIServiceTestResult> {
-    // TODO: 实现 OpenRouter 连接测试
-    return {
-      success: false,
-      error: 'OpenRouter adapter not fully implemented yet'
-    }
-  }
-
-  async sendChatRequest(
-    _config: AIServiceConfig,
-    _messages: Array<{ role: string; content: string }>,
-    _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
-  ): Promise<{
-    content: string
-    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
-    model?: string
-  }> {
-    // TODO: 实现 OpenRouter 聊天请求
-    throw new Error('OpenRouter adapter not fully implemented yet')
   }
 }
 

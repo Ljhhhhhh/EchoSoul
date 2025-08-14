@@ -52,6 +52,14 @@ export const useToastNotifications = () => {
     })
   }
 
+  const showAiTestError = (configName: string, error?: string) => {
+    toast({
+      title: `测试 ${configName} 服务失败`,
+      description: error || '连接测试失败，请检查配置信息',
+      variant: 'destructive'
+    })
+  }
+
   const showPromptAddSuccess = (promptName: string) => {
     toast({
       title: '添加成功',
@@ -95,6 +103,7 @@ export const useToastNotifications = () => {
     showConfigAddSuccess,
     showConfigDeleteSuccess,
     showConfigNameError,
+    showAiTestError,
     showPromptAddSuccess,
     showPromptUpdateSuccess,
     showPromptDeleteSuccess,
