@@ -1,6 +1,7 @@
 import { BaseAIProviderAdapter } from './AIProviderAdapter'
 import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '@types'
 import { createLogger } from '../../utils/logger'
+import axios from 'axios'
 
 const logger = createLogger('OpenRouterAdapter')
 
@@ -36,6 +37,43 @@ export class OpenRouterAdapter extends BaseAIProviderAdapter {
   readonly supportsCustomBaseUrl = true
 
   private readonly defaultBaseUrl = 'https://openrouter.ai/api/v1'
+
+  /**
+   * 使用axios作为fetch的备用方案
+   */
+  private async makeRequestWithAxios(
+    url: string,
+    config: AIServiceConfig,
+    requestBody: any,
+    timeoutMs: number = 30000
+  ): Promise<any> {
+    logger.info(`Trying axios request to: ${url}`)
+
+    try {
+      const response = await axios.post(url, requestBody, {
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://echosoul.app',
+          'X-Title': 'EchoSoul',
+          'User-Agent': 'EchoSoul/1.0.0'
+        },
+        timeout: timeoutMs,
+        validateStatus: () => true // 不要自动抛出错误
+      })
+
+      logger.info(`Axios response status: ${response.status}`)
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        statusText: response.statusText,
+        json: async () => response.data
+      }
+    } catch (error) {
+      logger.error('Axios request failed:', error)
+      throw error
+    }
+  }
 
   async testConnection(config: AIServiceConfig): Promise<AIServiceTestResult> {
     const startTime = Date.now()
@@ -189,16 +227,50 @@ export class OpenRouterAdapter extends BaseAIProviderAdapter {
       temperature: 0
     }
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://echosoul.app',
-        'X-Title': 'EchoSoul'
-      },
-      body: JSON.stringify(requestBody)
-    })
+    logger.info(`Making test request to: ${url}`)
+    logger.debug(`Request body: ${JSON.stringify(requestBody)}`)
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30秒超时
+
+    let response
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://echosoul.app',
+          'X-Title': 'EchoSoul',
+          'User-Agent': 'EchoSoul/1.0.0'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+      logger.info(`Response status: ${response.status}`)
+    } catch (error) {
+      clearTimeout(timeoutId)
+      logger.error('Fetch request failed:', error)
+
+      // 如果fetch失败，尝试使用axios作为备用方案
+      if (
+        error.code === 'ETIMEDOUT' ||
+        error.name === 'AbortError' ||
+        error.message.includes('fetch failed')
+      ) {
+        logger.info('Trying axios as fallback...')
+        try {
+          response = await this.makeRequestWithAxios(url, config, requestBody, 30000)
+        } catch (axiosError) {
+          logger.error('Axios fallback also failed:', axiosError)
+          throw new Error(`Both fetch and axios failed. Original error: ${error.message}`)
+        }
+      } else {
+        throw error
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -250,16 +322,51 @@ export class OpenRouterAdapter extends BaseAIProviderAdapter {
       stream: options?.stream || false
     }
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://echosoul.app',
-        'X-Title': 'EchoSoul'
-      },
-      body: JSON.stringify(requestBody)
-    })
+    logger.info(`Making completion request to: ${url}`)
+    logger.debug(`Request body: ${JSON.stringify(requestBody)}`)
+
+    const controller = new AbortController()
+    const timeoutMs = config.settings.timeout || 60000
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+    let response
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://echosoul.app',
+          'X-Title': 'EchoSoul',
+          'User-Agent': 'EchoSoul/1.0.0'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+      logger.info(`Completion response status: ${response.status}`)
+    } catch (error) {
+      clearTimeout(timeoutId)
+      logger.error('Completion fetch request failed:', error)
+
+      // 如果fetch失败，尝试使用axios作为备用方案
+      if (
+        error.code === 'ETIMEDOUT' ||
+        error.name === 'AbortError' ||
+        error.message.includes('fetch failed')
+      ) {
+        logger.info('Trying axios as fallback for completion request...')
+        try {
+          response = await this.makeRequestWithAxios(url, config, requestBody, timeoutMs)
+        } catch (axiosError) {
+          logger.error('Axios fallback also failed for completion:', axiosError)
+          throw new Error(`Both fetch and axios failed. Original error: ${error.message}`)
+        }
+      } else {
+        throw error
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
