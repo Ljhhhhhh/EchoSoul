@@ -72,12 +72,7 @@ const Settings = (): React.ReactElement => {
             </TabsContent>
 
             <TabsContent value="prompts">
-              <PromptManagementTab
-                promptTemplates={settings.promptTemplates}
-                onAddPrompt={addPromptTemplate}
-                onUpdatePrompt={updatePromptTemplate}
-                onRemovePrompt={removePromptTemplate}
-              />
+              <PromptManagementTab />
             </TabsContent>
 
             <TabsContent value="privacy">

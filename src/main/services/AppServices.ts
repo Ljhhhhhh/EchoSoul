@@ -3,6 +3,7 @@ import { ChatlogService } from './ChatlogService'
 import { DatabaseService } from './DatabaseService'
 import { AIServiceManager } from './AIServiceManager'
 import { AIHealthCheckService } from './AIHealthCheckService'
+import { PromptService } from './PromptService'
 import { createLogger } from '../utils/logger'
 
 const logger = createLogger('AppServices')
@@ -13,6 +14,7 @@ export class AppServices {
   private _chatlog: ChatlogService
   private _aiService: AIServiceManager
   private _aiHealthCheck: AIHealthCheckService
+  private _prompt: PromptService
 
   constructor() {
     // 初始化服务实例，注意依赖关系
@@ -21,6 +23,7 @@ export class AppServices {
     this._chatlog = new ChatlogService(this._config)
     this._aiService = new AIServiceManager(this._config)
     this._aiHealthCheck = new AIHealthCheckService()
+    this._prompt = new PromptService(this._database)
   }
 
   async initialize() {
@@ -32,6 +35,7 @@ export class AppServices {
       await this._config.initialize()
       await this._aiService.initialize()
       await this._chatlog.initialize()
+      await this._prompt.initialize()
 
       logger.info('All services initialized successfully')
     } catch (error) {
@@ -45,6 +49,7 @@ export class AppServices {
       logger.info('Cleaning up application services...')
 
       // 按相反顺序清理服务
+      // await this._prompt.cleanup()
       await this._chatlog.cleanup()
       await this._aiHealthCheck.cleanup()
       await this._aiService.cleanup()
@@ -76,5 +81,9 @@ export class AppServices {
 
   get aiHealthCheck() {
     return this._aiHealthCheck
+  }
+
+  get prompt() {
+    return this._prompt
   }
 }

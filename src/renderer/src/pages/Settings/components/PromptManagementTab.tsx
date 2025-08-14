@@ -3,25 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FileText, Plus, Search } from 'lucide-react'
-import { PromptTemplate } from '../types'
+import { FileText, Plus, Search, Loader2 } from 'lucide-react'
 import { usePromptManagement } from '../hooks/usePromptManagement'
 import { PromptCard } from './PromptCard'
 import { PromptFormDialog } from './PromptFormDialog'
 
-interface PromptManagementTabProps {
-  promptTemplates: PromptTemplate[]
-  onAddPrompt: (prompt: PromptTemplate) => void
-  onUpdatePrompt: (promptId: string, updatedPrompt: Partial<PromptTemplate>) => void
-  onRemovePrompt: (promptId: string) => void
-}
-
-export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
-  promptTemplates,
-  onAddPrompt,
-  onUpdatePrompt,
-  onRemovePrompt
-}) => {
+export const PromptManagementTab: React.FC = () => {
   const {
     showAddPrompt,
     setShowAddPrompt,
@@ -30,18 +17,15 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
     searchQuery,
     setSearchQuery,
     filteredPrompts,
+    promptTemplates,
+    loading,
     handleAddPrompt,
     handleUpdatePrompt,
     handleRemovePrompt,
     handleDuplicatePrompt,
     getUserPrompts,
     getBuiltInPrompts
-  } = usePromptManagement({
-    promptTemplates,
-    onAddPrompt,
-    onUpdatePrompt,
-    onRemovePrompt
-  })
+  } = usePromptManagement()
 
   const userPrompts = getUserPrompts()
   const builtInPrompts = getBuiltInPrompts()
@@ -52,9 +36,9 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
+      <Card className="bg-gradient-to-br border-indigo-200 from-indigo-50/50 to-purple-50/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-indigo-800">
+          <CardTitle className="flex gap-2 items-center text-indigo-800">
             <FileText className="w-5 h-5" />
             提示词管理
           </CardTitle>
@@ -64,9 +48,8 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
           {/* 搜索和添加 */}
           <div className="flex gap-4">
             <div className="flex-1">
-              <Label htmlFor="search">搜索提示词</Label>
               <div className="relative">
-                <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+                <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2" />
                 <Input
                   id="search"
                   value={searchQuery}
@@ -79,9 +62,14 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
             <div className="flex items-end">
               <Button
                 onClick={() => setShowAddPrompt(true)}
+                disabled={loading}
                 className="text-white bg-indigo-600 hover:bg-indigo-700"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                {loading ? (
+                  <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 w-4 h-4" />
+                )}
                 添加提示词
               </Button>
             </div>
@@ -89,15 +77,15 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
 
           {/* 统计信息 */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 bg-white border rounded-lg">
+            <div className="p-4 bg-white rounded-lg border">
               <div className="text-2xl font-bold text-indigo-600">{promptTemplates.length}</div>
               <div className="text-sm text-gray-600">总提示词数</div>
             </div>
-            <div className="p-4 bg-white border rounded-lg">
+            <div className="p-4 bg-white rounded-lg border">
               <div className="text-2xl font-bold text-green-600">{userPrompts.length}</div>
               <div className="text-sm text-gray-600">自定义提示词</div>
             </div>
-            <div className="p-4 bg-white border rounded-lg">
+            <div className="p-4 bg-white rounded-lg border">
               <div className="text-2xl font-bold text-blue-600">{builtInPrompts.length}</div>
               <div className="text-sm text-gray-600">内置提示词</div>
             </div>
@@ -107,31 +95,43 @@ export const PromptManagementTab: React.FC<PromptManagementTabProps> = ({
           <div>
             <h4 className="mb-4 font-medium text-indigo-800">
               提示词列表 ({filteredPrompts.length})
+              {loading && <Loader2 className="inline ml-2 w-4 h-4 animate-spin" />}
             </h4>
             <div className="grid gap-4">
-              {filteredPrompts.map((prompt) => (
-                <PromptCard
-                  key={prompt.id}
-                  prompt={prompt}
-                  onEdit={setEditingPrompt}
-                  onDuplicate={handleDuplicatePrompt}
-                  onDelete={handleRemovePrompt}
-                />
-              ))}
-
-              {filteredPrompts.length === 0 && (
+              {loading && promptTemplates.length === 0 ? (
                 <div className="py-12 text-center text-gray-500">
-                  <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="mb-2 text-lg font-medium">没有找到匹配的提示词</h3>
-                  <p className="mb-4">尝试调整搜索条件或创建新的提示词</p>
-                  <Button
-                    onClick={() => setShowAddPrompt(true)}
-                    className="text-white bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    添加提示词
-                  </Button>
+                  <Loader2 className="mx-auto mb-4 w-16 h-16 text-gray-300 animate-spin" />
+                  <h3 className="mb-2 text-lg font-medium">加载中...</h3>
+                  <p>正在获取提示词数据</p>
                 </div>
+              ) : (
+                <>
+                  {filteredPrompts.map((prompt) => (
+                    <PromptCard
+                      key={prompt.id}
+                      prompt={prompt}
+                      onEdit={setEditingPrompt}
+                      onDuplicate={handleDuplicatePrompt}
+                      onDelete={handleRemovePrompt}
+                      disabled={loading}
+                    />
+                  ))}
+
+                  {filteredPrompts.length === 0 && !loading && (
+                    <div className="py-12 text-center text-gray-500">
+                      <FileText className="mx-auto mb-4 w-16 h-16 text-gray-300" />
+                      <h3 className="mb-2 text-lg font-medium">没有找到匹配的提示词</h3>
+                      <p className="mb-4">尝试调整搜索条件或创建新的提示词</p>
+                      <Button
+                        onClick={() => setShowAddPrompt(true)}
+                        className="text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <Plus className="mr-2 w-4 h-4" />
+                        添加提示词
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { PromptTemplate, NewPromptTemplate } from '../types'
+import { PromptTemplate, NewPromptTemplate } from '@types'
 import { useState, useEffect } from 'react'
 
 interface PromptFormDialogProps {

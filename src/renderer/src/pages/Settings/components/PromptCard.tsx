@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { PromptTemplate } from '../types'
+import { PromptTemplate } from '@types'
 import { Edit, Copy, Trash2, Eye } from 'lucide-react'
 import { useState } from 'react'
 import { PromptPreviewDialog } from './PromptPreviewDialog'
@@ -11,13 +11,15 @@ interface PromptCardProps {
   onEdit: (prompt: PromptTemplate) => void
   onDuplicate: (prompt: PromptTemplate) => void
   onDelete: (promptId: string) => void
+  disabled?: boolean
 }
 
 export const PromptCard: React.FC<PromptCardProps> = ({
   prompt,
   onEdit,
   onDuplicate,
-  onDelete
+  onDelete,
+  disabled = false
 }) => {
   const [showPreview, setShowPreview] = useState(false)
 
@@ -39,9 +41,9 @@ export const PromptCard: React.FC<PromptCardProps> = ({
         }`}
       >
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
+          <div className="flex justify-between items-start">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex gap-2 items-center mb-1">
                 <CardTitle className="text-base">{prompt.name}</CardTitle>
                 {prompt.isBuiltIn && (
                   <Badge variant="secondary" className="text-xs">
@@ -50,22 +52,24 @@ export const PromptCard: React.FC<PromptCardProps> = ({
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-1 ml-2">
+            <div className="flex gap-1 items-center ml-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowPreview(true)}
-                className="h-8 w-8 p-0"
+                disabled={disabled}
+                className="p-0 w-8 h-8"
               >
-                <Eye className="h-4 w-4" />
+                <Eye className="w-4 h-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onDuplicate(prompt)}
-                className="h-8 w-8 p-0"
+                disabled={disabled}
+                className="p-0 w-8 h-8"
               >
-                <Copy className="h-4 w-4" />
+                <Copy className="w-4 h-4" />
               </Button>
               {!prompt.isBuiltIn && (
                 <>
@@ -73,17 +77,19 @@ export const PromptCard: React.FC<PromptCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(prompt)}
-                    className="h-8 w-8 p-0"
+                    disabled={disabled}
+                    className="p-0 w-8 h-8"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(prompt.id)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    disabled={disabled}
+                    className="p-0 w-8 h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </>
               )}
@@ -91,7 +97,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex justify-between items-center text-xs text-gray-500">
             <span>创建于 {formatDate(prompt.createdAt)}</span>
             {prompt.updatedAt !== prompt.createdAt && (
               <span>更新于 {formatDate(prompt.updatedAt)}</span>

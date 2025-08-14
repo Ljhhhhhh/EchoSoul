@@ -1,25 +1,20 @@
-import { useState } from 'react'
-import { PromptTemplate, NewPromptTemplate } from '../types'
-import { DEFAULT_NEW_PROMPT } from '../constants'
+import { useState, useEffect } from 'react'
+import { PromptTemplate, NewPromptTemplate } from '@types'
+import { promptService } from '../../../services/promptService'
 import { useToastNotifications } from './useToastNotifications'
 
-interface UsePromptManagementProps {
-  promptTemplates: PromptTemplate[]
-  onAddPrompt: (prompt: PromptTemplate) => void
-  onUpdatePrompt: (promptId: string, updatedPrompt: Partial<PromptTemplate>) => void
-  onRemovePrompt: (promptId: string) => void
+const DEFAULT_NEW_PROMPT: NewPromptTemplate = {
+  name: '',
+  content: ''
 }
 
-export const usePromptManagement = ({
-  promptTemplates,
-  onAddPrompt,
-  onUpdatePrompt,
-  onRemovePrompt
-}: UsePromptManagementProps) => {
+export const usePromptManagement = () => {
   const [showAddPrompt, setShowAddPrompt] = useState(false)
   const [editingPrompt, setEditingPrompt] = useState<PromptTemplate | null>(null)
   const [newPrompt, setNewPrompt] = useState<NewPromptTemplate>(DEFAULT_NEW_PROMPT)
   const [searchQuery, setSearchQuery] = useState('')
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([])
+  const [loading, setLoading] = useState(false)
 
   const {
     showPromptAddSuccess,
@@ -29,9 +24,23 @@ export const usePromptManagement = ({
     showPromptContentError
   } = useToastNotifications()
 
-  const generatePromptId = (): string => {
-    return `prompt-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+  // 加载所有提示词
+  const loadPrompts = async () => {
+    try {
+      setLoading(true)
+      const prompts = await promptService.getAllPrompts()
+      setPromptTemplates(prompts)
+    } catch (error) {
+      console.error('Failed to load prompts:', error)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  // 组件挂载时加载数据
+  useEffect(() => {
+    loadPrompts()
+  }, [])
 
   const validatePrompt = (prompt: NewPromptTemplate): boolean => {
     if (!prompt.name.trim()) {
@@ -45,60 +54,90 @@ export const usePromptManagement = ({
     return true
   }
 
-  const handleAddPrompt = (promptData: NewPromptTemplate) => {
+  const handleAddPrompt = async (promptData: NewPromptTemplate) => {
     if (!validatePrompt(promptData)) return
 
-    const promptTemplate: PromptTemplate = {
-      id: generatePromptId(),
-      ...promptData,
-      isBuiltIn: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    try {
+      setLoading(true)
+      const result = await promptService.createPrompt(promptData)
+      if (result.success) {
+        await loadPrompts() // 重新加载数据
+        setNewPrompt(DEFAULT_NEW_PROMPT)
+        setShowAddPrompt(false)
+        showPromptAddSuccess(promptData.name)
+      } else {
+        console.error('Failed to create prompt:', result.message)
+      }
+    } catch (error) {
+      console.error('Failed to create prompt:', error)
+    } finally {
+      setLoading(false)
     }
-
-    onAddPrompt(promptTemplate)
-    setNewPrompt(DEFAULT_NEW_PROMPT)
-    setShowAddPrompt(false)
-    showPromptAddSuccess(promptData.name)
   }
 
-  const handleUpdatePrompt = (updatedPrompt: NewPromptTemplate | Partial<PromptTemplate>) => {
+  const handleUpdatePrompt = async (updatedPrompt: NewPromptTemplate | Partial<PromptTemplate>) => {
     if (!editingPrompt) return
 
     // 验证必填字段
     if (!validatePrompt(updatedPrompt as NewPromptTemplate)) return
 
-    const updateData: Partial<PromptTemplate> = {
-      name: updatedPrompt.name,
-      content: updatedPrompt.content,
-      updatedAt: new Date().toISOString()
-    }
+    try {
+      setLoading(true)
+      const updateData = {
+        name: updatedPrompt.name,
+        content: updatedPrompt.content
+      }
 
-    onUpdatePrompt(editingPrompt.id, updateData)
-    setEditingPrompt(null)
-    showPromptUpdateSuccess(updatedPrompt.name || editingPrompt.name)
+      const result = await promptService.updatePrompt(editingPrompt.id, updateData)
+      if (result.success) {
+        await loadPrompts() // 重新加载数据
+        setEditingPrompt(null)
+        showPromptUpdateSuccess(updatedPrompt.name || editingPrompt.name)
+      } else {
+        console.error('Failed to update prompt:', result.message)
+      }
+    } catch (error) {
+      console.error('Failed to update prompt:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleRemovePrompt = (promptId: string) => {
+  const handleRemovePrompt = async (promptId: string) => {
     const prompt = promptTemplates.find((p) => p.id === promptId)
-    if (prompt && !prompt.isBuiltIn) {
-      onRemovePrompt(promptId)
-      showPromptDeleteSuccess(prompt.name)
+    if (!prompt || prompt.isBuiltIn) return
+
+    try {
+      setLoading(true)
+      const result = await promptService.deletePrompt(promptId)
+      if (result.success) {
+        await loadPrompts() // 重新加载数据
+        showPromptDeleteSuccess(prompt.name)
+      } else {
+        console.error('Failed to delete prompt:', result.message)
+      }
+    } catch (error) {
+      console.error('Failed to delete prompt:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleDuplicatePrompt = (prompt: PromptTemplate) => {
-    const duplicatedPrompt: PromptTemplate = {
-      ...prompt,
-      id: generatePromptId(),
-      name: `${prompt.name} (副本)`,
-      isBuiltIn: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  const handleDuplicatePrompt = async (prompt: PromptTemplate) => {
+    try {
+      setLoading(true)
+      const result = await promptService.duplicatePrompt(prompt.id)
+      if (result.success) {
+        await loadPrompts() // 重新加载数据
+        showPromptAddSuccess(`${prompt.name} (副本)`)
+      } else {
+        console.error('Failed to duplicate prompt:', result.message)
+      }
+    } catch (error) {
+      console.error('Failed to duplicate prompt:', error)
+    } finally {
+      setLoading(false)
     }
-
-    onAddPrompt(duplicatedPrompt)
-    showPromptAddSuccess(duplicatedPrompt.name)
   }
 
   const updateNewPrompt = (field: keyof NewPromptTemplate, value: string) => {
@@ -130,12 +169,15 @@ export const usePromptManagement = ({
     searchQuery,
     setSearchQuery,
     filteredPrompts,
+    promptTemplates,
+    loading,
     handleAddPrompt,
     handleUpdatePrompt,
     handleRemovePrompt,
     handleDuplicatePrompt,
     updateNewPrompt,
     getUserPrompts,
-    getBuiltInPrompts
+    getBuiltInPrompts,
+    loadPrompts
   }
 }

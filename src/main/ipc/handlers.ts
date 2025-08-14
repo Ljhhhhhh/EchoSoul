@@ -1,6 +1,7 @@
 import { ipcMain, app } from 'electron'
 import { AppServices } from '../services/AppServices'
 import { createLogger } from '../utils/logger'
+import { setupPromptHandlers } from './promptHandlers'
 import type {
   UserSettings,
   AnalysisConfig,
@@ -14,6 +15,9 @@ const logger = createLogger('IPC')
 
 export function setupIpcHandlers(services: AppServices) {
   logger.info('Setting up IPC handlers')
+
+  // 设置Prompt相关的IPC处理器
+  setupPromptHandlers(services)
 
   // 配置管理
   ipcMain.handle('config:get', async (): Promise<UserSettings> => {
