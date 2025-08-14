@@ -1,16 +1,14 @@
 import { createLogger } from '../utils/logger'
 import { DatabaseService } from './DatabaseService'
-import {
+import type {
   PromptTemplate,
   NewPromptTemplate,
   UpdatePromptTemplate,
   PromptOperationResult,
-  PromptQueryOptions,
-  BUILT_IN_PROMPTS,
-  PromptTemplateSchema,
-  NewPromptTemplateSchema,
-  UpdatePromptTemplateSchema
-} from '../../types/prompt'
+  PromptQueryOptions
+} from '@types'
+import { PromptTemplateSchema, NewPromptTemplateSchema, UpdatePromptTemplateSchema } from '@types'
+import { BUILT_IN_PROMPTS } from '../utils/prompt'
 import { z } from 'zod'
 
 const logger = createLogger('PromptService')

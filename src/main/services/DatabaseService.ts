@@ -1,28 +1,28 @@
-// import Database from 'better-sqlite3';
+import Database from 'better-sqlite3'
 import * as path from 'path'
 import * as fs from 'fs'
 import { app } from 'electron'
 import { createLogger } from '../utils/logger'
 import type { ReportMeta, TaskStatus, PromptTemplate } from '@types'
+import { BUILT_IN_PROMPTS } from '../utils/prompt'
 
 const logger = createLogger('DatabaseService')
 
-// 临时内存数据库实现
+// SQLite 数据库实现
 export class DatabaseService {
-  private reports: Map<string, ReportMeta> = new Map()
-  private settings: Map<string, string> = new Map()
-  private tasks: Map<string, TaskStatus> = new Map()
-  private prompts: Map<string, PromptTemplate> = new Map()
+  private db: Database.Database | null = null
   private dbPath: string
+  private readonly DB_VERSION = 1
 
   constructor() {
     const userDataPath = app.getPath('userData')
-    this.dbPath = path.join(userDataPath, 'echosoul.db')
+    const isDev = process.env.NODE_ENV === 'development'
+    this.dbPath = path.join(userDataPath, isDev ? 'echosoul-dev.db' : 'echosoul.db')
   }
 
   async initialize() {
     try {
-      logger.info(`Initializing in-memory database (SQLite disabled temporarily)`)
+      logger.info(`Initializing SQLite database at: ${this.dbPath}`)
 
       // 确保目录存在
       const dbDir = path.dirname(this.dbPath)
@@ -30,122 +30,576 @@ export class DatabaseService {
         fs.mkdirSync(dbDir, { recursive: true })
       }
 
-      logger.info('In-memory database initialized successfully')
+      // 初始化数据库连接
+      this.db = new Database(this.dbPath, {
+        verbose: process.env.NODE_ENV === 'development' ? logger.debug : undefined
+      })
+
+      // 启用 WAL 模式以提高并发性能
+      this.db.pragma('journal_mode = WAL')
+      this.db.pragma('synchronous = NORMAL')
+      this.db.pragma('cache_size = 1000')
+      this.db.pragma('temp_store = memory')
+
+      // 创建表结构
+      this.createTables()
+
+      // 检查并执行数据库迁移
+      await this.runMigrations()
+
+      // 初始化内置提示词
+      await this.initializeBuiltInPrompts()
+
+      logger.info('SQLite database initialized successfully')
     } catch (error) {
       logger.error('Failed to initialize database:', error)
       throw error
     }
   }
 
+  private createTables() {
+    if (!this.db) throw new Error('Database not initialized')
+
+    // 创建版本表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS db_version (
+        version INTEGER PRIMARY KEY
+      )
+    `)
+
+    // 创建报告表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS reports (
+        id TEXT PRIMARY KEY,
+        date TEXT NOT NULL,
+        title TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        metadata TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        UNIQUE(id)
+      )
+    `)
+
+    // 创建设置表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    `)
+
+    // 创建任务状态表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        progress INTEGER DEFAULT 0,
+        error_message TEXT,
+        result TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    `)
+
+    // 创建提示词模板表
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS prompts (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        is_built_in INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    `)
+
+    // 创建索引
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_reports_date ON reports(date);
+      CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
+      CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+      CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);
+      CREATE INDEX IF NOT EXISTS idx_prompts_is_built_in ON prompts(is_built_in);
+      CREATE INDEX IF NOT EXISTS idx_prompts_updated_at ON prompts(updated_at);
+    `)
+  }
+
+  private async runMigrations() {
+    if (!this.db) throw new Error('Database not initialized')
+
+    const getCurrentVersion = this.db.prepare(
+      'SELECT version FROM db_version ORDER BY version DESC LIMIT 1'
+    )
+    const setVersion = this.db.prepare('INSERT OR REPLACE INTO db_version (version) VALUES (?)')
+
+    let currentVersion = 0
+    try {
+      const result = getCurrentVersion.get() as { version: number } | undefined
+      currentVersion = result?.version || 0
+    } catch (error) {
+      // 表不存在，版本为 0
+    }
+
+    if (currentVersion < this.DB_VERSION) {
+      logger.info(
+        `Running database migrations from version ${currentVersion} to ${this.DB_VERSION}`
+      )
+
+      // 在这里添加未来的迁移逻辑
+      // if (currentVersion < 1) {
+      //   // 迁移到版本 1 的逻辑
+      // }
+
+      setVersion.run(this.DB_VERSION)
+      logger.info('Database migrations completed')
+    }
+  }
+
+  private async initializeBuiltInPrompts() {
+    if (!this.db) throw new Error('Database not initialized')
+
+    const insertPrompt = this.db.prepare(`
+      INSERT OR IGNORE INTO prompts (id, name, content, is_built_in, created_at, updated_at)
+      VALUES (?, ?, ?, 1, ?, ?)
+    `)
+
+    const transaction = this.db.transaction((prompts: PromptTemplate[]) => {
+      for (const prompt of prompts) {
+        insertPrompt.run(prompt.id, prompt.name, prompt.content, prompt.createdAt, prompt.updatedAt)
+      }
+    })
+
+    transaction(BUILT_IN_PROMPTS)
+    logger.info(`Initialized ${BUILT_IN_PROMPTS.length} built-in prompts`)
+  }
+
   // 报告相关操作
   async saveReport(report: ReportMeta): Promise<void> {
-    this.reports.set(report.id, report)
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO reports (id, date, title, file_path, metadata, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
+
+    stmt.run(
+      report.id,
+      report.date,
+      report.title,
+      report.filePath,
+      JSON.stringify(report.metadata),
+      report.createdAt
+    )
+
+    logger.debug(`Saved report: ${report.id}`)
   }
 
   async getReports(): Promise<ReportMeta[]> {
-    const reports = Array.from(this.reports.values())
-    return reports.sort((a, b) => {
-      if (a.date !== b.date) {
-        return b.date.localeCompare(a.date)
-      }
-      return b.createdAt.localeCompare(a.createdAt)
-    })
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      SELECT id, date, title, file_path, metadata, created_at
+      FROM reports
+      ORDER BY date DESC, created_at DESC
+    `)
+
+    const rows = stmt.all() as Array<{
+      id: string
+      date: string
+      title: string
+      file_path: string
+      metadata: string
+      created_at: string
+    }>
+
+    return rows.map((row) => ({
+      id: row.id,
+      date: row.date,
+      title: row.title,
+      filePath: row.file_path,
+      metadata: JSON.parse(row.metadata),
+      createdAt: row.created_at
+    }))
   }
 
   async getReportById(id: string): Promise<ReportMeta | null> {
-    return this.reports.get(id) || null
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      SELECT id, date, title, file_path, metadata, created_at
+      FROM reports
+      WHERE id = ?
+    `)
+
+    const row = stmt.get(id) as
+      | {
+          id: string
+          date: string
+          title: string
+          file_path: string
+          metadata: string
+          created_at: string
+        }
+      | undefined
+
+    if (!row) return null
+
+    return {
+      id: row.id,
+      date: row.date,
+      title: row.title,
+      filePath: row.file_path,
+      metadata: JSON.parse(row.metadata),
+      createdAt: row.created_at
+    }
   }
 
   // 配置相关操作
   async getSetting(key: string): Promise<string | null> {
-    return this.settings.get(key) || null
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare('SELECT value FROM settings WHERE key = ?')
+    const row = stmt.get(key) as { value: string } | undefined
+    return row?.value || null
   }
 
   async setSetting(key: string, value: string): Promise<void> {
-    this.settings.set(key, value)
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO settings (key, value, updated_at)
+      VALUES (?, ?, ?)
+    `)
+
+    stmt.run(key, value, new Date().toISOString())
+    logger.debug(`Updated setting: ${key}`)
   }
 
   // 任务状态相关操作
   async saveTaskStatus(task: TaskStatus): Promise<void> {
-    this.tasks.set(task.id, task)
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO tasks (id, type, status, progress, error_message, result, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+
+    stmt.run(
+      task.id,
+      task.type,
+      task.status,
+      task.progress,
+      task.errorMessage || null,
+      task.result ? JSON.stringify(task.result) : null,
+      task.createdAt,
+      task.updatedAt
+    )
+
+    logger.debug(`Saved task status: ${task.id} - ${task.status}`)
   }
 
   async getTaskStatus(id: string): Promise<TaskStatus | null> {
-    return this.tasks.get(id) || null
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      SELECT id, type, status, progress, error_message, result, created_at, updated_at
+      FROM tasks
+      WHERE id = ?
+    `)
+
+    const row = stmt.get(id) as
+      | {
+          id: string
+          type: string
+          status: string
+          progress: number
+          error_message: string | null
+          result: string | null
+          created_at: string
+          updated_at: string
+        }
+      | undefined
+
+    if (!row) return null
+
+    return {
+      id: row.id,
+      type: row.type as TaskStatus['type'],
+      status: row.status as TaskStatus['status'],
+      progress: row.progress,
+      errorMessage: row.error_message || undefined,
+      result: row.result ? JSON.parse(row.result) : undefined,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }
   }
 
   // Prompt相关操作
   async savePrompt(prompt: PromptTemplate): Promise<void> {
-    this.prompts.set(prompt.id, prompt)
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO prompts (id, name, content, is_built_in, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
+
+    stmt.run(
+      prompt.id,
+      prompt.name,
+      prompt.content,
+      prompt.isBuiltIn ? 1 : 0,
+      prompt.createdAt,
+      prompt.updatedAt
+    )
+
     logger.debug(`Saved prompt: ${prompt.id}`)
   }
 
   async getPrompts(): Promise<PromptTemplate[]> {
-    const prompts = Array.from(this.prompts.values())
-    return prompts.sort((a, b) => {
-      // 内置提示词排在前面
-      if (a.isBuiltIn !== b.isBuiltIn) {
-        return a.isBuiltIn ? -1 : 1
-      }
-      // 按更新时间倒序
-      return b.updatedAt.localeCompare(a.updatedAt)
-    })
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      SELECT id, name, content, is_built_in, created_at, updated_at
+      FROM prompts
+      ORDER BY is_built_in DESC, updated_at DESC
+    `)
+
+    const rows = stmt.all() as Array<{
+      id: string
+      name: string
+      content: string
+      is_built_in: number
+      created_at: string
+      updated_at: string
+    }>
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      content: row.content,
+      isBuiltIn: row.is_built_in === 1,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }))
   }
 
   async getPromptById(id: string): Promise<PromptTemplate | null> {
-    return this.prompts.get(id) || null
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      SELECT id, name, content, is_built_in, created_at, updated_at
+      FROM prompts
+      WHERE id = ?
+    `)
+
+    const row = stmt.get(id) as
+      | {
+          id: string
+          name: string
+          content: string
+          is_built_in: number
+          created_at: string
+          updated_at: string
+        }
+      | undefined
+
+    if (!row) return null
+
+    return {
+      id: row.id,
+      name: row.name,
+      content: row.content,
+      isBuiltIn: row.is_built_in === 1,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }
   }
 
   async updatePrompt(id: string, updates: Partial<PromptTemplate>): Promise<boolean> {
-    const existing = this.prompts.get(id)
-    if (!existing) {
+    if (!this.db) throw new Error('Database not initialized')
+
+    // 首先检查提示词是否存在且不是内置的
+    const existing = await this.getPromptById(id)
+    if (!existing || existing.isBuiltIn) {
       return false
     }
 
-    const updated = {
-      ...existing,
-      ...updates,
-      id, // 确保ID不被修改
-      updatedAt: new Date().toISOString()
+    const updatedAt = new Date().toISOString()
+    const fields: string[] = []
+    const values: any[] = []
+
+    if (updates.name !== undefined) {
+      fields.push('name = ?')
+      values.push(updates.name)
+    }
+    if (updates.content !== undefined) {
+      fields.push('content = ?')
+      values.push(updates.content)
     }
 
-    this.prompts.set(id, updated)
-    logger.debug(`Updated prompt: ${id}`)
-    return true
+    if (fields.length === 0) {
+      return false // 没有更新内容
+    }
+
+    fields.push('updated_at = ?')
+    values.push(updatedAt)
+    values.push(id) // WHERE 条件的参数
+
+    const stmt = this.db.prepare(`
+      UPDATE prompts
+      SET ${fields.join(', ')}
+      WHERE id = ? AND is_built_in = 0
+    `)
+
+    const result = stmt.run(...values)
+    const success = result.changes > 0
+
+    if (success) {
+      logger.debug(`Updated prompt: ${id}`)
+    }
+    return success
   }
 
   async deletePrompt(id: string): Promise<boolean> {
-    const existing = this.prompts.get(id)
-    if (!existing || existing.isBuiltIn) {
-      return false // 不能删除内置提示词
-    }
+    if (!this.db) throw new Error('Database not initialized')
 
-    const deleted = this.prompts.delete(id)
-    if (deleted) {
+    const stmt = this.db.prepare(`
+      DELETE FROM prompts
+      WHERE id = ? AND is_built_in = 0
+    `)
+
+    const result = stmt.run(id)
+    const success = result.changes > 0
+
+    if (success) {
       logger.debug(`Deleted prompt: ${id}`)
     }
-    return deleted
+    return success
   }
 
   async searchPrompts(query: string): Promise<PromptTemplate[]> {
-    const allPrompts = await this.getPrompts()
+    if (!this.db) throw new Error('Database not initialized')
+
     if (!query.trim()) {
-      return allPrompts
+      return this.getPrompts()
     }
 
-    const searchTerm = query.toLowerCase()
-    return allPrompts.filter(
-      (prompt) =>
-        prompt.name.toLowerCase().includes(searchTerm) ||
-        prompt.content.toLowerCase().includes(searchTerm)
-    )
+    const stmt = this.db.prepare(`
+      SELECT id, name, content, is_built_in, created_at, updated_at
+      FROM prompts
+      WHERE name LIKE ? OR content LIKE ?
+      ORDER BY is_built_in DESC, updated_at DESC
+    `)
+
+    const searchTerm = `%${query}%`
+    const rows = stmt.all(searchTerm, searchTerm) as Array<{
+      id: string
+      name: string
+      content: string
+      is_built_in: number
+      created_at: string
+      updated_at: string
+    }>
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      content: row.content,
+      isBuiltIn: row.is_built_in === 1,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }))
   }
 
   async cleanup() {
-    this.reports.clear()
-    this.settings.clear()
-    this.tasks.clear()
-    this.prompts.clear()
-    logger.info('In-memory database cleared')
+    if (this.db) {
+      try {
+        this.db.close()
+        this.db = null
+        logger.info('Database connection closed')
+      } catch (error) {
+        logger.error('Error closing database:', error)
+      }
+    }
+  }
+
+  // 数据库备份功能
+  async backup(backupPath: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    try {
+      await this.db.backup(backupPath)
+      logger.info(`Database backed up to: ${backupPath}`)
+    } catch (error) {
+      logger.error('Database backup failed:', error)
+      throw error
+    }
+  }
+
+  // 获取数据库统计信息
+  async getStats(): Promise<{
+    reports: number
+    settings: number
+    tasks: number
+    prompts: number
+    builtInPrompts: number
+    customPrompts: number
+  }> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    const getCount = (table: string, condition?: string) => {
+      const sql = `SELECT COUNT(*) as count FROM ${table}${condition ? ` WHERE ${condition}` : ''}`
+      const result = this.db!.prepare(sql).get() as { count: number }
+      return result.count
+    }
+
+    return {
+      reports: getCount('reports'),
+      settings: getCount('settings'),
+      tasks: getCount('tasks'),
+      prompts: getCount('prompts'),
+      builtInPrompts: getCount('prompts', 'is_built_in = 1'),
+      customPrompts: getCount('prompts', 'is_built_in = 0')
+    }
+  }
+
+  // 数据库健康检查
+  async healthCheck(): Promise<{ healthy: boolean; error?: string }> {
+    try {
+      if (!this.db) {
+        return { healthy: false, error: 'Database not initialized' }
+      }
+
+      // 执行简单查询测试连接
+      this.db.prepare('SELECT 1').get()
+      return { healthy: true }
+    } catch (error) {
+      return {
+        healthy: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  }
+
+  // 优化数据库（清理和重建索引）
+  async optimize(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    try {
+      logger.info('Starting database optimization...')
+
+      // 清理未使用的空间
+      this.db.exec('VACUUM')
+
+      // 重新分析表统计信息
+      this.db.exec('ANALYZE')
+
+      logger.info('Database optimization completed')
+    } catch (error) {
+      logger.error('Database optimization failed:', error)
+      throw error
+    }
   }
 }
