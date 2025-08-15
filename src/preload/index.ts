@@ -79,6 +79,12 @@ const api = {
     // 发送聊天请求
     sendChatRequest: (serviceId: string, messages: any[], options?: any) =>
       ipcRenderer.invoke('ai:send-chat-request', serviceId, messages, options)
+  },
+
+  // 报告生成相关的API
+  report: {
+    // 生成报告
+    generateReport: (config: any) => ipcRenderer.invoke('report:generate-report', config)
   }
 }
 

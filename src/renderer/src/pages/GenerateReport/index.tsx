@@ -60,7 +60,12 @@ const GenerateReport: React.FC = () => {
     })
 
     // 同步选择的Prompt
-    promptsData.selectPromptById(condition.analysisType)
+    const promptId = typeof condition.analysisType === 'object' 
+      ? condition.analysisType?.id 
+      : condition.analysisType
+    if (promptId) {
+      promptsData.selectPromptById(promptId)
+    }
 
     conditionsData.applyCondition(condition, () => {
       // 显示成功提示逻辑可以在这里处理
@@ -88,7 +93,13 @@ const GenerateReport: React.FC = () => {
   // 处理Prompt选择
   const handlePromptSelect = (promptId: string) => {
     promptsData.selectPromptById(promptId)
-    formState.updateField('analysisType', promptId)
+    const selectedPrompt = promptsData.prompts.find(p => p.id === promptId)
+    if (selectedPrompt) {
+      formState.updateField('analysisType', {
+        id: selectedPrompt.id,
+        content: selectedPrompt.content
+      })
+    }
   }
 
   return (

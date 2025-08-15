@@ -298,6 +298,39 @@ export class AIServiceManager extends EventEmitter {
   }
 
   /**
+   * 获取健康的服务（用于报告生成等关键任务）
+   * @returns 健康的服务配置
+   */
+  getHealthyService(): AIServiceConfig | null {
+    // 首先尝试获取主要服务，如果它是健康的
+    const primaryService = this.getPrimaryService()
+    if (primaryService) {
+      const primaryStatus = this.getServiceStatus(primaryService.id)
+      if (primaryStatus && primaryStatus.status === 'healthy') {
+        return primaryService
+      }
+    }
+
+    // 如果主要服务不健康，查找其他健康的服务
+    const healthyService = Array.from(this.services.values()).find((service) => {
+      if (!service.isEnabled) return false
+      const status = this.getServiceStatus(service.id)
+      return status && status.status === 'healthy'
+    })
+
+    if (healthyService) {
+      return healthyService
+    }
+
+    // 如果没有健康的服务，返回任何启用的服务作为备选
+    const enabledService = Array.from(this.services.values()).find(
+      (service) => service.isEnabled
+    )
+
+    return enabledService || null
+  }
+
+  /**
    * 设置主要服务
    * @param serviceId 服务 ID
    */

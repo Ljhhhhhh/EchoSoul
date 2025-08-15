@@ -18,6 +18,7 @@ export interface GetMessagesParams {
   talker?: string
   limit?: number
   offset?: number
+  format?: 'json'
 }
 
 export interface SessionInfo {
@@ -150,6 +151,8 @@ export class ChatlogHttpClient {
       const queryParams = new URLSearchParams()
       queryParams.set('time', `${params.startDate}~${params.endDate}`)
 
+      queryParams.set('format', 'json')
+
       if (params.talker) {
         queryParams.set('talker', params.talker)
       }
@@ -162,12 +165,10 @@ export class ChatlogHttpClient {
 
       const url = `/api/v1/chatlog?${queryParams.toString()}`
 
-      const data = await this.httpClient.get<any[]>(url, {
+      return await this.httpClient.get<any[]>(url, {
         retries: this.defaultRetries,
         retryDelay: this.defaultRetryDelay
       })
-
-      return this.normalizeMessages(data)
     } catch (error) {
       logger.error('Failed to get messages:', error)
       throw new Error(`获取聊天记录失败: ${this.getErrorMessage(error)}`)
@@ -195,22 +196,6 @@ export class ChatlogHttpClient {
       logger.error('Failed to get sessions:', error)
       throw new Error(`获取会话列表失败: ${this.getErrorMessage(error)}`)
     }
-  }
-
-  /**
-   * 标准化消息数据
-   */
-  private normalizeMessages(data: any[]): ChatMessage[] {
-    return data.map((item) => ({
-      id: item.id || `${item.timestamp}-${item.sender}`,
-      sender: item.sender || item.from,
-      recipient: item.recipient || item.to,
-      timestamp: item.timestamp,
-      content: item.content || item.message || '',
-      type: this.normalizeMessageType(item.type),
-      isGroupChat: item.isGroupChat || false,
-      groupName: item.groupName
-    }))
   }
 
   /**

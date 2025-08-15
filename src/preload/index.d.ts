@@ -60,6 +60,7 @@ interface CustomAPI {
   chatlog: ChatlogAPI
   app: AppAPI
   aiService: AIServiceAPI
+  report: ReportAPI
 }
 
 declare global {

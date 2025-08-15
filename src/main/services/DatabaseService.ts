@@ -12,7 +12,7 @@ const logger = createLogger('DatabaseService')
 export class DatabaseService {
   private db: Database.Database | null = null
   private dbPath: string
-  private readonly DB_VERSION = 1
+  private readonly DB_VERSION = 2
 
   constructor() {
     const userDataPath = app.getPath('userData')
@@ -93,7 +93,6 @@ export class DatabaseService {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
-        type TEXT NOT NULL,
         status TEXT NOT NULL,
         progress INTEGER DEFAULT 0,
         error_message TEXT,
@@ -151,6 +150,44 @@ export class DatabaseService {
       // if (currentVersion < 1) {
       //   // 迁移到版本 1 的逻辑
       // }
+
+      if (currentVersion < 2) {
+        // 迁移到版本 2：移除 tasks 表中的 type 字段
+        logger.info('Migrating to version 2: Removing type field from tasks table')
+
+        // 创建新表结构（没有 type 字段）
+        this.db.exec(`
+          CREATE TABLE IF NOT EXISTS tasks_new (
+            id TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            progress INTEGER DEFAULT 0,
+            error_message TEXT,
+            result TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        `)
+
+        // 迁移数据
+        this.db.exec(`
+          INSERT INTO tasks_new (id, status, progress, error_message, result, created_at, updated_at)
+          SELECT id, status, progress, error_message, result, created_at, updated_at FROM tasks
+        `)
+
+        // 删除旧表，重命名新表
+        this.db.exec(`
+          DROP TABLE tasks;
+          ALTER TABLE tasks_new RENAME TO tasks;
+        `)
+
+        // 重建索引
+        this.db.exec(`
+          CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+          CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);
+        `)
+
+        logger.info('Migration to version 2 completed')
+      }
 
       setVersion.run(this.DB_VERSION)
       logger.info('Database migrations completed')
@@ -256,6 +293,19 @@ export class DatabaseService {
     }
   }
 
+  async deleteReport(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare('DELETE FROM reports WHERE id = ?')
+    const result = stmt.run(id)
+
+    if (result.changes === 0) {
+      throw new Error(`Report with id ${id} not found`)
+    }
+
+    logger.debug(`Deleted report: ${id}`)
+  }
+
   // 配置相关操作
   async getSetting(key: string): Promise<string | null> {
     if (!this.db) throw new Error('Database not initialized')
@@ -282,13 +332,12 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized')
 
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO tasks (id, type, status, progress, error_message, result, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO tasks (id, status, progress, error_message, result, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `)
 
     stmt.run(
       task.id,
-      task.type,
       task.status,
       task.progress,
       task.errorMessage || null,
@@ -304,7 +353,7 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized')
 
     const stmt = this.db.prepare(`
-      SELECT id, type, status, progress, error_message, result, created_at, updated_at
+      SELECT id, status, progress, error_message, result, created_at, updated_at
       FROM tasks
       WHERE id = ?
     `)
@@ -312,7 +361,6 @@ export class DatabaseService {
     const row = stmt.get(id) as
       | {
           id: string
-          type: string
           status: string
           progress: number
           error_message: string | null
@@ -326,7 +374,6 @@ export class DatabaseService {
 
     return {
       id: row.id,
-      type: row.type as TaskStatus['type'],
       status: row.status as TaskStatus['status'],
       progress: row.progress,
       errorMessage: row.error_message || undefined,
@@ -334,6 +381,19 @@ export class DatabaseService {
       createdAt: row.created_at,
       updatedAt: row.updated_at
     }
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare('DELETE FROM tasks WHERE id = ?')
+    const result = stmt.run(id)
+
+    if (result.changes === 0) {
+      throw new Error(`Task with id ${id} not found`)
+    }
+
+    logger.debug(`Deleted task: ${id}`)
   }
 
   // Prompt相关操作

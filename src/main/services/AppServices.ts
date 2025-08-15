@@ -4,6 +4,8 @@ import { DatabaseService } from './DatabaseService'
 import { AIServiceManager } from './AIServiceManager'
 import { AIHealthCheckService } from './AIHealthCheckService'
 import { PromptService } from './PromptService'
+import { ReportService } from './ReportService'
+import { TaskManager } from './TaskManager'
 import { createLogger } from '../utils/logger'
 
 const logger = createLogger('AppServices')
@@ -15,6 +17,8 @@ export class AppServices {
   private _aiService: AIServiceManager
   private _aiHealthCheck: AIHealthCheckService
   private _prompt: PromptService
+  private _taskManager: TaskManager
+  private _report: ReportService
 
   constructor() {
     // 初始化服务实例，注意依赖关系
@@ -24,6 +28,14 @@ export class AppServices {
     this._aiService = new AIServiceManager(this._config)
     this._aiHealthCheck = new AIHealthCheckService()
     this._prompt = new PromptService(this._database)
+    this._taskManager = new TaskManager(this._database)
+    this._report = new ReportService(
+      this._database,
+      this._chatlog,
+      this._aiService,
+      this._prompt,
+      this._taskManager
+    )
   }
 
   async initialize() {
@@ -36,6 +48,8 @@ export class AppServices {
       await this._aiService.initialize()
       await this._chatlog.initialize()
       await this._prompt.initialize()
+      await this._taskManager.initialize()
+      await this._report.initialize()
 
       logger.info('All services initialized successfully')
     } catch (error) {
@@ -49,6 +63,8 @@ export class AppServices {
       logger.info('Cleaning up application services...')
 
       // 按相反顺序清理服务
+      await this._report.cleanup()
+      await this._taskManager.cleanup()
       // await this._prompt.cleanup()
       await this._chatlog.cleanup()
       await this._aiHealthCheck.cleanup()
@@ -85,5 +101,13 @@ export class AppServices {
 
   get prompt() {
     return this._prompt
+  }
+
+  get taskManager() {
+    return this._taskManager
+  }
+
+  get report() {
+    return this._report
   }
 }

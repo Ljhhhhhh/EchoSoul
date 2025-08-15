@@ -8,7 +8,10 @@ export interface FormData {
   customEndDate: string
   targetType: string
   selectedContacts: string | null
-  analysisType: string
+  analysisType: {
+    id: string
+    content: string
+  } | null
   customPrompt: string
   selectedAiService: string | null
 }

@@ -13,7 +13,7 @@ const initialFormData: FormData = {
   customEndDate: '',
   targetType: 'individual',
   selectedContacts: null,
-  analysisType: '',
+  analysisType: null,
   customPrompt: '',
   selectedAiService: null
 }
@@ -77,20 +77,38 @@ export const useFormState = (
 
   // 提交表单
   const submitForm = async () => {
+    if (!validateForm()) {
+      toast({
+        title: '表单验证失败',
+        description: '请检查所有必填字段是否已填写。'
+      })
+      return
+    }
+
     setIsGenerating(true)
 
     try {
-      // TODO 调用 IPC 发起生成报告请求
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      // 构造 AnalysisConfig 对象
+      const analysisConfig = {
+        timeRange: {
+          start: formData.customStartDate || '',
+          end: formData.customEndDate || ''
+        },
+        participants: formData.selectedContacts ? [formData.selectedContacts] : undefined,
+        prompt: formData.analysisType || { id: '', content: '' }
+      }
+
+      // 调用 IPC 发起生成报告请求
+      const reportId = await window.api.report.generateReport(analysisConfig)
 
       toast({
         title: '报告生成成功！',
         description: '你的个性化分析报告已经准备好了。'
       })
 
-      navigate('/history')
+      navigate(`/history/${reportId}`)
     } catch (error) {
+      console.error('报告生成失败:', error)
       toast({
         title: '生成失败',
         description: '报告生成过程中出现错误，请重试。'

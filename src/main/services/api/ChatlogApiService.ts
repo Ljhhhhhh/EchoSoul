@@ -168,7 +168,10 @@ export class ChatlogApiService extends EventEmitter implements IChatlogApiServic
         throw new Error('Start date and end date are required')
       }
 
-      const messages = await this.httpClient.getMessages(params)
+      const messages = await this.httpClient.getMessages({
+        ...params,
+        format: 'json'
+      })
 
       this.emit('messagesRetrieved', { params, count: messages.length })
 

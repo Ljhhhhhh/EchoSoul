@@ -1,4 +1,4 @@
-import { ipcMain, app } from 'electron'
+import { ipcMain, app, BrowserWindow } from 'electron'
 import { AppServices } from '../services/AppServices'
 import { createLogger } from '../utils/logger'
 import { setupPromptHandlers } from './promptHandlers'
@@ -15,6 +15,14 @@ const logger = createLogger('IPC')
 
 export function setupIpcHandlers(services: AppServices) {
   logger.info('Setting up IPC handlers')
+
+  // 设置任务进度事件转发
+  services.taskManager.on('task-progress', (taskId: string, progress: number, message: string) => {
+    const mainWindow = BrowserWindow.getAllWindows().find(win => !win.isDestroyed())
+    if (mainWindow) {
+      mainWindow.webContents.send('task:progress', taskId, progress, message)
+    }
+  })
 
   // 设置Prompt相关的IPC处理器
   setupPromptHandlers(services)
@@ -131,54 +139,77 @@ export function setupIpcHandlers(services: AppServices) {
     }
   })
 
-  // 报告管理 (TODO: 实现报告服务)
+  // 报告管理
   ipcMain.handle('report:list', async () => {
     try {
-      // return await services.report.getReports()
-      return []
+      return await services.report.getReports()
     } catch (error) {
       logger.error('Failed to get reports:', error)
       return []
     }
   })
 
-  ipcMain.handle('report:get', async (_, _id: string): Promise<string | null> => {
+  ipcMain.handle('report:get', async (_, id: string): Promise<any | null> => {
     try {
-      // return await services.report.getReportContent(id)
-      return null
+      return await services.report.getReport(id)
     } catch (error) {
-      logger.error('Failed to get report content:', error)
+      logger.error(`Failed to get report ${id}:`, error)
       return null
     }
   })
 
-  ipcMain.handle('report:generate-report', async (_, _config: AnalysisConfig): Promise<string> => {
+  ipcMain.handle('report:delete', async (_, id: string): Promise<boolean> => {
     try {
-      return await services.report.generateReport(_config)
+      return await services.report.deleteReport(id)
+    } catch (error) {
+      logger.error(`Failed to delete report ${id}:`, error)
+      return false
+    }
+  })
+
+  ipcMain.handle('report:generate-report', async (_, config: AnalysisConfig): Promise<string> => {
+    try {
+      return await services.report.generateReport(config)
     } catch (error) {
       logger.error('Failed to generate report:', error)
       throw error
     }
   })
 
-  // 任务状态 (TODO: 实现任务服务)
-  ipcMain.handle('task:status', async (_, _taskId: string) => {
+  // 任务状态管理
+  ipcMain.handle('task:status', async (_, taskId: string) => {
     try {
-      // return await services.report.getTaskStatus(taskId)
-      return null
+      return await services.taskManager.getTask(taskId)
     } catch (error) {
       logger.error('Failed to get task status:', error)
       return null
     }
   })
 
-  ipcMain.handle('task:cancel', async (_, taskId: string): Promise<void> => {
+  ipcMain.handle('task:cancel', async (_, taskId: string): Promise<boolean> => {
     try {
-      // TODO: 实现任务取消逻辑
-      logger.info(`Cancelling task: ${taskId}`)
+      return await services.taskManager.cancelTask(taskId)
     } catch (error) {
       logger.error('Failed to cancel task:', error)
-      throw error
+      return false
+    }
+  })
+
+  ipcMain.handle('task:list', async () => {
+    try {
+      return await services.taskManager.getActiveTasks()
+    } catch (error) {
+      logger.error('Failed to get active tasks:', error)
+      return []
+    }
+  })
+
+  ipcMain.handle('task:stats', async () => {
+    try {
+      return await services.taskManager.getTaskStats()
+    } catch (error) {
+      logger.error('Failed to get task statistics:', error)
+      return { total: 0, active: 0, completed: 0, failed: 0 }
     }
   })
 

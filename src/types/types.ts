@@ -100,14 +100,17 @@ export type UserSettings = z.infer<typeof UserSettingsSchema>
 
 // 聊天消息
 export const ChatMessageSchema = z.object({
-  id: z.string(),
+  seq: z.number(),
+  time: z.string(),
+  talker: z.string(),
+  talkerName: z.string(),
+  isChatRoom: z.boolean(),
   sender: z.string(),
-  recipient: z.string(),
-  timestamp: z.string(),
-  content: z.string(),
-  type: z.enum(['text', 'image', 'voice', 'video', 'file']).default('text'),
-  isGroupChat: z.boolean().default(false),
-  groupName: z.string().optional()
+  senderName: z.string(),
+  isSelf: z.boolean(),
+  type: z.number(),
+  subType: z.number(),
+  content: z.string()
 })
 
 export type ChatMessage = z.infer<typeof ChatMessageSchema>
@@ -124,8 +127,12 @@ export const ReportMetaSchema = z.object({
       start: z.string(),
       end: z.string()
     }),
-    participants: z.array(z.string()),
-    prompt: z.string()
+    participants: z.string(),
+    prompt: z.object({
+      id: z.string(),
+      content: z.string(),
+      name: z.string().optional()
+    })
   }),
   createdAt: z.string()
 })
@@ -138,8 +145,12 @@ export const AnalysisConfigSchema = z.object({
     start: z.string(),
     end: z.string()
   }),
-  participants: z.array(z.string()).optional(),
-  prompt: z.string()
+  participants: z.string(),
+  prompt: z.object({
+    id: z.string(),
+    name: z.string(),
+    content: z.string()
+  })
 })
 
 export type AnalysisConfig = z.infer<typeof AnalysisConfigSchema>
@@ -147,7 +158,6 @@ export type AnalysisConfig = z.infer<typeof AnalysisConfigSchema>
 // 任务状态
 export const TaskStatusSchema = z.object({
   id: z.string(),
-  type: z.enum(['daily-report', 'custom-report']),
   status: z.enum(['pending', 'running', 'completed', 'failed']),
   progress: z.number().min(0).max(100),
   errorMessage: z.string().optional(),
