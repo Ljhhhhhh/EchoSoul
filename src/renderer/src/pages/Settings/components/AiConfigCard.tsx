@@ -65,6 +65,18 @@ export const AiConfigCard: React.FC<AiConfigCardProps> = ({
 
           {/* 右侧操作区域 */}
           <div className="flex gap-2 items-center ml-4">
+            {/* 删除按钮 */}
+            <Button
+              variant="ghost"
+              onClick={() => onRemove(config.id)}
+              className={`p-0 w-12 h-12 text-gray-400 opacity-0 transition-all duration-200 group-hover:opacity-100 ${
+                config.isEnabled
+                  ? 'hover:text-red-500 hover:bg-red-50/80'
+                  : 'hover:text-red-500 hover:bg-red-50/60'
+              }`}
+            >
+              <Trash2 className="w-10 h-10" />
+            </Button>
             {/* 启用/禁用开关 */}
             <div className="flex flex-col gap-1 items-center">
               <Switch
@@ -76,20 +88,6 @@ export const AiConfigCard: React.FC<AiConfigCardProps> = ({
                 className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-gray-300"
               />
             </div>
-
-            {/* 删除按钮 */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onRemove(config.id)}
-              className={`p-0 w-8 h-8 text-gray-400 opacity-0 transition-all duration-200 group-hover:opacity-100 ${
-                config.isEnabled
-                  ? 'hover:text-red-500 hover:bg-red-50/80'
-                  : 'hover:text-red-500 hover:bg-red-50/60'
-              }`}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </CardHeader>

@@ -10,6 +10,7 @@ export interface FormData {
   selectedContacts: string | null
   analysisType: string
   customPrompt: string
+  selectedAiService: string | null
 }
 
 export interface TimeRange {

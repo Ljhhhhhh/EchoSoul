@@ -14,10 +14,15 @@ const initialFormData: FormData = {
   targetType: 'individual',
   selectedContacts: null,
   analysisType: '',
-  customPrompt: ''
+  customPrompt: '',
+  selectedAiService: null
 }
 
-export const useFormState = (personalContacts: any[], groupChats: any[]) => {
+export const useFormState = (
+  personalContacts: any[],
+  groupChats: any[],
+  aiServices: any[] = []
+) => {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [formData, setFormData] = useState<FormData>(initialFormData)
@@ -96,9 +101,22 @@ export const useFormState = (personalContacts: any[], groupChats: any[]) => {
   }
 
   // 表单验证
+  const validateForm = (): boolean => {
+    // 检查必填字段
+    const hasTimeRange = !!formData.timeRange
+    const hasAnalysisType = !!formData.analysisType
+    const hasSelectedContacts = !!formData.selectedContacts
+    const hasSelectedAiService = !!formData.selectedAiService
+
+    // 如果没有可用的AI服务，则不要求选择AI服务
+    const aiServiceRequired = aiServices.length > 0 ? hasSelectedAiService : true
+
+    return hasTimeRange && hasAnalysisType && hasSelectedContacts && aiServiceRequired
+  }
+
   const isFormValid = useMemo(() => {
-    return !!(formData.timeRange && formData.analysisType && formData.selectedContacts)
-  }, [formData])
+    return validateForm()
+  }, [formData, aiServices])
 
   return {
     formData,

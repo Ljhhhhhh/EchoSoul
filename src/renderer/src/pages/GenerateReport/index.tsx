@@ -13,14 +13,35 @@ import { useContacts } from './hooks/useContacts'
 import { useConditions } from './hooks/useConditions'
 import { usePrompts } from './hooks/usePrompts'
 import { useFormState } from './hooks/useFormState'
+import { useAiServices } from './hooks/useAiServices'
 import { ContactSelector } from './components/ContactSelector'
+import { AIServiceSelector } from './components/AIServiceSelector'
 
 const GenerateReport: React.FC = () => {
   // 使用自定义Hooks管理状态
   const contactsData = useContacts()
   const promptsData = usePrompts()
-  const formState = useFormState(contactsData.personalContacts, contactsData.chatRooms)
+  const aiServicesData = useAiServices()
+  const formState = useFormState(
+    contactsData.personalContacts,
+    contactsData.chatRooms,
+    aiServicesData.aiServices
+  )
   const conditionsData = useConditions()
+
+  // 当AI服务加载完成且没有选中服务时，自动选择默认服务
+  React.useEffect(() => {
+    if (
+      !aiServicesData.loading &&
+      !formState.formData.selectedAiService &&
+      aiServicesData.aiServices.length > 0
+    ) {
+      const defaultServiceId = aiServicesData.getDefaultServiceId()
+      if (defaultServiceId) {
+        formState.updateField('selectedAiService', defaultServiceId)
+      }
+    }
+  }, [aiServicesData.loading, aiServicesData.aiServices, formState.formData.selectedAiService])
 
   // 应用保存的条件
   const handleApplyCondition = (condition: any) => {
@@ -34,7 +55,8 @@ const GenerateReport: React.FC = () => {
         ? condition.selectedContacts[0] || null
         : condition.selectedContacts,
       analysisType: condition.analysisType,
-      customPrompt: condition.customPrompt
+      customPrompt: condition.customPrompt,
+      selectedAiService: condition.selectedAiService || aiServicesData.getDefaultServiceId()
     })
 
     // 同步选择的Prompt
@@ -59,7 +81,6 @@ const GenerateReport: React.FC = () => {
       promptsData.selectedPrompt
     )
 
-    // ! 暂时移除
     // 提交表单
     await formState.submitForm()
   }
@@ -122,7 +143,13 @@ const GenerateReport: React.FC = () => {
                     }
                   />
 
-                  <div>当前模型选用</div>
+                  {/* AI模型选择 */}
+                  <AIServiceSelector
+                    aiServices={aiServicesData.aiServices}
+                    selectedServiceId={formState.formData.selectedAiService}
+                    onServiceSelect={(value) => formState.updateField('selectedAiService', value)}
+                    disabled={formState.isGenerating}
+                  />
 
                   {/* Prompt选择 */}
                   <PromptSelector

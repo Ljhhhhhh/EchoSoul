@@ -152,12 +152,11 @@ export function setupIpcHandlers(services: AppServices) {
     }
   })
 
-  ipcMain.handle('report:generate-custom', async (_, _config: AnalysisConfig): Promise<string> => {
+  ipcMain.handle('report:generate-report', async (_, _config: AnalysisConfig): Promise<string> => {
     try {
-      // return await services.report.generateCustomReport(config)
-      throw new Error('Report service not implemented yet')
+      return await services.report.generateReport(_config)
     } catch (error) {
-      logger.error('Failed to generate custom report:', error)
+      logger.error('Failed to generate report:', error)
       throw error
     }
   })
