@@ -98,6 +98,7 @@ const GenerateReport: React.FC = () => {
     if (selectedPrompt) {
       formState.updateField('analysisType', {
         id: selectedPrompt.id,
+        name: selectedPrompt.name,
         content: selectedPrompt.content
       })
     }
@@ -150,9 +151,10 @@ const GenerateReport: React.FC = () => {
                     personalContacts={contactsData.personalContacts}
                     chatRooms={contactsData.chatRooms}
                     initSelectedContacts={formState.formData.selectedContacts}
-                    onSelectedContactsUpdate={(value) =>
+                    onSelectedContactsUpdate={(value, contactName) => {
                       formState.updateField('selectedContacts', value)
-                    }
+                      formState.updateField('selectedContactName', contactName)
+                    }}
                   />
 
                   {/* AI模型选择 */}

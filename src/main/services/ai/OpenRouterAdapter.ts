@@ -120,9 +120,10 @@ export class OpenRouterAdapter extends BaseAIProviderAdapter {
     model?: string
   }> {
     try {
+      logger.info('Sending chat request to OpenRouter')
       const response = await this.withTimeout(
         this.makeCompletionRequest(config, messages, options),
-        config.settings.timeout || 60000
+        config.settings.timeout || 300000
       )
 
       return response
@@ -322,11 +323,8 @@ export class OpenRouterAdapter extends BaseAIProviderAdapter {
       stream: options?.stream || false
     }
 
-    logger.info(`Making completion request to: ${url}`)
-    logger.debug(`Request body: ${JSON.stringify(requestBody)}`)
-
     const controller = new AbortController()
-    const timeoutMs = config.settings.timeout || 60000
+    const timeoutMs = config.settings.timeout || 300000
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
     let response

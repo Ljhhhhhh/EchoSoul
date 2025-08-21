@@ -25,7 +25,7 @@ interface ContactSelectorProps {
   chatRooms: ChatRoom[]
   // 更新选中的联系人
   initSelectedContacts: string
-  onSelectedContactsUpdate: (contacts: string) => void
+  onSelectedContactsUpdate: (contacts: string, contactName: string) => void
 }
 
 export const ContactSelector: React.FC<ContactSelectorProps> = ({
@@ -46,11 +46,11 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     if ('name' in contact) {
       // 群聊 - 选择的值取name字段，展示的是nickName字段
       setSelectedChatroomName(contact.nickName)
-      onSelectedContactsUpdate(contact.name)
+      onSelectedContactsUpdate(contact.name, contact.nickName)
     } else {
       // 个人 - 选择的值取userName字段，展示的是remark字段
       setSelectedPersonName(contact.remark || contact.nickName)
-      onSelectedContactsUpdate(contact.userName)
+      onSelectedContactsUpdate(contact.userName, contact.remark || contact.nickName)
     }
     setIsPopoverOpen(false)
     setSearchTerm('')
@@ -59,7 +59,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   const onClearAll = () => {
     setSelectedPersonName('')
     setSelectedChatroomName('')
-    onSelectedContactsUpdate(null)
+    onSelectedContactsUpdate(null, null)
   }
 
   // 计算属性：根据 targetType 返回相应的选中项

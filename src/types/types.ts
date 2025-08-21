@@ -128,6 +128,7 @@ export const ReportMetaSchema = z.object({
       end: z.string()
     }),
     participants: z.string(),
+    chatPartner: z.string(),
     prompt: z.object({
       id: z.string(),
       content: z.string(),
@@ -146,6 +147,7 @@ export const AnalysisConfigSchema = z.object({
     end: z.string()
   }),
   participants: z.string(),
+  chatPartner: z.string(),
   prompt: z.object({
     id: z.string(),
     name: z.string(),

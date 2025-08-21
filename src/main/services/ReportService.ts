@@ -8,7 +8,7 @@ import { TaskManager } from './TaskManager'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import { app } from 'electron'
-import { v4 as uuidv4 } from 'uuid'
+import dayjs from 'dayjs'
 
 const logger = createLogger('ReportService')
 
@@ -111,6 +111,7 @@ export class ReportService {
 
       // 步骤4: 生成报告文件
       await this.updateTaskStatus(taskId, 'running', 80, '正在生成报告文件...')
+      logger.info(`Analysis result: ${analysisResult}`)
       const reportMeta = await this.generateReportFile(
         taskId,
         config,
@@ -146,7 +147,13 @@ export class ReportService {
       })
 
       logger.debug(`Fetched ${messages.length} messages for analysis`)
-      return messages
+      return messages.map((item) => {
+        return {
+          senderName: item.isSelf ? '我' : item.senderName,
+          content: item.type === 1 ? item.content : '非文字消息',
+          time: item.time
+        }
+      })
     } catch (error) {
       logger.error('Failed to fetch chat messages:', error)
       throw error
@@ -158,25 +165,29 @@ export class ReportService {
    */
   private async performAIAnalysis(
     messages: ChatMessage[],
-    promptTemplate: string,
+    prompt: string,
     config: AnalysisConfig
   ): Promise<string> {
     try {
-      // 构建完整的提示
-      const fullPrompt = this.buildAnalysisPrompt(promptTemplate, messages, config)
-
       // 获取AI服务
       const aiService = this.aiServiceManager.getHealthyService()
       if (!aiService) {
         throw new Error('没有可用的AI服务')
       }
 
+      const formatMessages = messages
+        .map((msg) => {
+          const time = new Date(msg.time).toLocaleString('zh-CN')
+          const senderName = msg.senderName || msg.sender
+          return `[${time}] ${senderName}: ${msg.content}`
+        })
+        .join('\n')
+
       // 执行分析
       const response = await this.aiServiceManager.sendChatRequest(aiService.id, [
-        { role: 'user', content: fullPrompt }
+        { role: 'system', content: prompt },
+        { role: 'user', content: formatMessages }
       ])
-
-      console.log('AI response:', response)
       const result = response.content
 
       logger.debug('AI analysis completed')
@@ -185,31 +196,6 @@ export class ReportService {
       logger.error('Failed to perform AI analysis:', error)
       throw error
     }
-  }
-
-  /**
-   * 构建分析提示
-   */
-  private buildAnalysisPrompt(
-    template: string,
-    chatContent: ChatMessage[],
-    config: AnalysisConfig
-  ): string {
-    const timeRange = `${config.timeRange.start} 至 ${config.timeRange.end}`
-
-    // 格式化聊天内容
-    const formattedChatContent = chatContent
-      .map((msg) => {
-        const time = new Date(msg.time).toLocaleString('zh-CN')
-        const senderName = msg.senderName || msg.sender
-        return `[${time}] ${senderName}: ${msg.content}`
-      })
-      .join('\n')
-
-    return template
-      .replace(/\{\{participants\}\}/g, config.participants)
-      .replace(/\{\{timeRange\}\}/g, timeRange)
-      .replace(/\{\{chatContent\}\}/g, formattedChatContent)
   }
 
   /**
@@ -225,7 +211,6 @@ export class ReportService {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
       const fileName = `report-${timestamp}.md`
       const filePath = path.join(this.reportsDir, fileName)
-      console.log('保存到了:', filePath)
 
       // 生成报告内容
       const reportContent = this.generateReportContent(config, analysisResult, messageCount)
@@ -242,6 +227,7 @@ export class ReportService {
         metadata: {
           messageCount,
           participants: config.participants,
+          chatPartner: config.chatPartner,
           prompt: {
             id: config.prompt.id,
             content: config.prompt.content
@@ -267,7 +253,7 @@ export class ReportService {
     analysisResult: string,
     messageCount: number
   ): string {
-    const participantNames = config.participants
+    const participantNames = config.chatPartner
     const timeRange = `${config.timeRange.start} 至 ${config.timeRange.end}`
 
     return `# ${this.generateReportTitle(config)}
@@ -276,7 +262,7 @@ export class ReportService {
 
 - **生成时间**: ${new Date().toLocaleString('zh-CN')}
 - **分析时间范围**: ${timeRange}
-- **参与者**: ${participantNames}
+- **聊天对象**: ${participantNames}
 - **消息数量**: ${messageCount} 条
 
 ## 分析结果
@@ -293,9 +279,11 @@ ${analysisResult}
    * 生成报告标题
    */
   private generateReportTitle(config: AnalysisConfig): string {
-    const participantNames = config.participants
-    const date = new Date(config.timeRange.start).toLocaleDateString('zh-CN')
-    return `${participantNames} - ${config.prompt.name} (${date})`
+    const chatPartner = config.chatPartner
+    const startDate = dayjs(config.timeRange.start).format('YYYY.MM.DD')
+    const endDate = dayjs(config.timeRange.end).format('YYYY.MM.DD')
+
+    return `${chatPartner} - ${config.prompt.name} (${startDate}~${endDate})`
   }
 
   /**

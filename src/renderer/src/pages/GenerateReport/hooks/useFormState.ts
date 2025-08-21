@@ -3,6 +3,7 @@
  */
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import dayjs from 'dayjs'
 import type { FormData, FormState, TimeRange, DataStats } from '../types'
 import { DataStatsService } from '../services/dataStatsService'
 import { useToast } from '../../../hooks/use-toast'
@@ -13,6 +14,7 @@ const initialFormData: FormData = {
   customEndDate: '',
   targetType: 'individual',
   selectedContacts: null,
+  selectedContactName: null,
   analysisType: null,
   customPrompt: '',
   selectedAiService: null
@@ -75,6 +77,58 @@ export const useFormState = (
     return DataStatsService.calculateStats(formData, personalContacts, groupChats)
   }, [formData, personalContacts, groupChats])
 
+  // 根据时间范围计算开始和结束时间
+  const calculateTimeRange = (
+    timeRange: string,
+    customStartDate?: string,
+    customEndDate?: string
+  ) => {
+    const today = dayjs()
+
+    switch (timeRange) {
+      case 'yesterday': {
+        const yesterday = today.subtract(1, 'day')
+        return {
+          start: yesterday.format('YYYY-MM-DD'),
+          end: yesterday.format('YYYY-MM-DD')
+        }
+      }
+      case 'last_week': {
+        const weekAgo = today.subtract(7, 'day')
+        return {
+          start: weekAgo.format('YYYY-MM-DD'),
+          end: today.format('YYYY-MM-DD')
+        }
+      }
+      case 'last_month': {
+        const monthAgo = today.subtract(1, 'month')
+        return {
+          start: monthAgo.format('YYYY-MM-DD'),
+          end: today.format('YYYY-MM-DD')
+        }
+      }
+      case 'last_3_months': {
+        const threeMonthsAgo = today.subtract(3, 'month')
+        return {
+          start: threeMonthsAgo.format('YYYY-MM-DD'),
+          end: today.format('YYYY-MM-DD')
+        }
+      }
+      case 'custom': {
+        return {
+          start: customStartDate || '',
+          end: customEndDate || ''
+        }
+      }
+      default: {
+        return {
+          start: '',
+          end: ''
+        }
+      }
+    }
+  }
+
   // 提交表单
   const submitForm = async () => {
     if (!validateForm()) {
@@ -88,13 +142,18 @@ export const useFormState = (
     setIsGenerating(true)
 
     try {
+      // 根据 timeRange 来生成开始、结束时间
+      const timeRangeConfig = calculateTimeRange(
+        formData.timeRange,
+        formData.customStartDate,
+        formData.customEndDate
+      )
+
       // 构造 AnalysisConfig 对象
       const analysisConfig = {
-        timeRange: {
-          start: formData.customStartDate || '',
-          end: formData.customEndDate || ''
-        },
-        participants: formData.selectedContacts ? [formData.selectedContacts] : undefined,
+        timeRange: timeRangeConfig,
+        participants: formData.selectedContacts,
+        chatPartner: formData.selectedContactName,
         prompt: formData.analysisType || { id: '', content: '' }
       }
 
@@ -109,8 +168,8 @@ export const useFormState = (
         duration: 2000
       })
 
-      // 立即跳转到报告详情页面，传递taskId作为参数
-      navigate(`/report/${taskId}?generating=true`)
+      // // 立即跳转到报告详情页面，传递taskId作为参数
+      // navigate(`/report/${taskId}?generating=true`)
     } catch (error) {
       console.error('报告生成失败:', error)
       toast({

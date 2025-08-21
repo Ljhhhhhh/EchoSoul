@@ -18,7 +18,7 @@ export function setupIpcHandlers(services: AppServices) {
 
   // 设置任务进度事件转发
   services.taskManager.on('task-progress', (taskId: string, progress: number, message: string) => {
-    const mainWindow = BrowserWindow.getAllWindows().find(win => !win.isDestroyed())
+    const mainWindow = BrowserWindow.getAllWindows().find((win) => !win.isDestroyed())
     if (mainWindow) {
       mainWindow.webContents.send('task:progress', taskId, progress, message)
     }
