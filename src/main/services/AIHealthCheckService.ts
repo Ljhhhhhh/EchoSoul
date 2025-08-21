@@ -79,12 +79,12 @@ export class AIHealthCheckService extends EventEmitter {
     // 立即执行一次检查
     this.performHealthCheck(serviceId, config, checkOptions)
 
-    // 设置定期检查
-    const interval = setInterval(() => {
-      this.performHealthCheck(serviceId, config, checkOptions)
-    }, checkOptions.interval)
+    // 设置定期检查 ! 不需要定时检查AI
+    // const interval = setInterval(() => {
+    //   this.performHealthCheck(serviceId, config, checkOptions)
+    // }, checkOptions.interval)
 
-    this.checkIntervals.set(serviceId, interval)
+    // this.checkIntervals.set(serviceId, interval)
     logger.info(`Health check started for service ${serviceId}`)
   }
 

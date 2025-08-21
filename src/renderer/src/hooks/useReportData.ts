@@ -240,6 +240,7 @@ export function useReportData({
             // 任务完成，获取报告数据
             clearPolling()
             pollingAttempts.current = 0
+            setIsLoading(false) // 重置加载状态
             const report = await fetchReportData(id)
             if (report && report.filePath) {
               await fetchReportContent(report.filePath)

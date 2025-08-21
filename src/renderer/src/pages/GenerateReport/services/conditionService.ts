@@ -46,7 +46,10 @@ export class ConditionService {
     if (data.targetType === 'specific') {
       // 处理数组格式的selectedContacts（来自SavedCondition）
       if (Array.isArray(data.selectedContacts)) {
-        targetLabel = data.selectedContacts.length > 0 ? `${data.selectedContacts.length}个联系人` : '特定联系人'
+        targetLabel =
+          data.selectedContacts.length > 0
+            ? `${data.selectedContacts.length}个联系人`
+            : '特定联系人'
       } else {
         // 处理单个联系人格式（来自当前表单）
         targetLabel = data.selectedContacts ? '1个联系人' : '特定联系人'
@@ -77,29 +80,35 @@ export class ConditionService {
    * 查找相同条件
    */
   static findSimilarCondition(conditions: SavedCondition[], formData: any): number {
-    return conditions.findIndex(
-      (condition) => {
-        // 将formData的单个联系人转换为数组格式进行比较
-        const formContacts = formData.selectedContacts ? [formData.selectedContacts] : []
-        
-        // 比较 analysisType (可能是字符串或对象)
-        let analysisTypeMatches = false
-        if (typeof condition.analysisType === 'string' && typeof formData.analysisType === 'string') {
-          analysisTypeMatches = condition.analysisType === formData.analysisType
-        } else if (typeof condition.analysisType === 'object' && typeof formData.analysisType === 'object') {
-          // 如果两者都是对象，比较id
-          analysisTypeMatches = condition.analysisType?.id === formData.analysisType?.id
-        }
-        
-        return (
-          condition.timeRange === formData.timeRange &&
-          condition.targetType === formData.targetType &&
-          analysisTypeMatches &&
-          JSON.stringify(condition.selectedContacts.sort()) ===
-            JSON.stringify(formContacts.sort())
-        )
+    return conditions.findIndex((condition) => {
+      // 检查是否存在analysisType
+      if (!condition.analysisType || !formData.analysisType) {
+        return false
       }
-    )
+
+      // 将formData的单个联系人转换为数组格式进行比较
+      const formContacts = formData.selectedContacts ? [formData.selectedContacts] : []
+
+      // 比较 analysisType (可能是字符串或对象)
+      let analysisTypeMatches = false
+      if (typeof condition.analysisType === 'string' && typeof formData.analysisType === 'string') {
+        analysisTypeMatches = condition.analysisType === formData.analysisType
+      } else if (
+        typeof condition.analysisType === 'object' &&
+        typeof formData.analysisType === 'object'
+      ) {
+        // 如果两者都是对象，比较id
+        analysisTypeMatches =
+          (condition.analysisType as { id: string })?.id === formData?.analysisType?.id
+      }
+
+      return (
+        condition.timeRange === formData.timeRange &&
+        condition.targetType === formData.targetType &&
+        analysisTypeMatches &&
+        JSON.stringify(condition.selectedContacts.sort()) === JSON.stringify(formContacts.sort())
+      )
+    })
   }
 
   /**

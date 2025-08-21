@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events'
 import type {
-  AIProvider,
   AIServiceConfig,
   AIServiceStatus,
   AIServiceTestResult,
@@ -323,9 +322,7 @@ export class AIServiceManager extends EventEmitter {
     }
 
     // 如果没有健康的服务，返回任何启用的服务作为备选
-    const enabledService = Array.from(this.services.values()).find(
-      (service) => service.isEnabled
-    )
+    const enabledService = Array.from(this.services.values()).find((service) => service.isEnabled)
 
     return enabledService || null
   }

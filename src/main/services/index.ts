@@ -58,6 +58,3 @@ export type { ServiceDependencies } from './InitializationOrchestrator'
 
 // 配置服务
 export { ConfigService } from './ConfigService'
-
-// 使用示例
-export { ServiceUsageExample, runExamples } from './examples/ServiceUsageExample'

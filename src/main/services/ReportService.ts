@@ -106,6 +106,7 @@ export class ReportService {
       }
 
       // 步骤3: 执行AI分析
+      // TODO: 改为流式返回、不再需要 TaskStatus
       await this.updateTaskStatus(taskId, 'running', 50, '正在执行AI分析...')
       const analysisResult = await this.performAIAnalysis(messages, prompt.content, config)
 

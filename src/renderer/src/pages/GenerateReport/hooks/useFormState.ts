@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
-import type { FormData, FormState, TimeRange, DataStats } from '../types'
+import type { FormData, TimeRange, DataStats } from '../types'
 import { DataStatsService } from '../services/dataStatsService'
 import { useToast } from '../../../hooks/use-toast'
 
@@ -168,8 +168,8 @@ export const useFormState = (
         duration: 2000
       })
 
-      // // 立即跳转到报告详情页面，传递taskId作为参数
-      // navigate(`/report/${taskId}?generating=true`)
+      // 立即跳转到报告详情页面，传递taskId作为参数
+      navigate(`/report/${taskId}?generating=true`)
     } catch (error) {
       console.error('报告生成失败:', error)
       toast({

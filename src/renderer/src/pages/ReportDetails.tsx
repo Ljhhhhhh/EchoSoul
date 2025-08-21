@@ -1,4 +1,5 @@
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,9 +11,6 @@ import {
   Share2,
   Clock,
   MessageCircle,
-  Users,
-  TrendingUp,
-  Heart,
   Brain,
   RefreshCw,
   Wifi,
@@ -25,14 +23,18 @@ import { ReportProgress } from '@/components/ReportProgress'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
+// ! 用 streamdown 替代 Markdown
+
 const ReportDetails = (): React.ReactElement => {
-  const { id } = useParams()
+  const { taskId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   // 获取URL参数
-  const taskId = searchParams.get('taskId')
   const isGenerating = searchParams.get('generating') === 'true'
+
+  console.log('taskId:', taskId)
+  console.log('isGenerating:', isGenerating)
 
   // 使用自定义Hook获取报告数据
   const {
@@ -49,11 +51,24 @@ const ReportDetails = (): React.ReactElement => {
     clearError
   } = useReportData({
     taskId: taskId || undefined,
-    reportId: !isGenerating ? id : undefined,
+    reportId: !isGenerating ? taskId || '' : undefined,
     isGenerating,
     pollingInterval: 2000,
     maxPollingAttempts: 150
   })
+
+  // 任务完成后自动重定向到报告查看页面
+  useEffect(() => {
+    console.log('isGenerating:', isGenerating)
+    console.log('taskStatus:', taskStatus)
+    console.log('reportData:', reportData)
+    console.log('reportContent:', reportContent)
+    if (isGenerating && taskStatus?.status === 'completed' && reportData && reportContent) {
+      // 任务完成且报告数据已加载，重定向到报告查看页面
+      const newUrl = `/report/${taskId}`
+      navigate(newUrl, { replace: true })
+    }
+  }, [isGenerating, taskStatus, reportData, reportContent, taskId, navigate])
 
   // 错误状态处理（增强显示）
   if (error && !isGenerating) {
@@ -135,7 +150,7 @@ const ReportDetails = (): React.ReactElement => {
   }
 
   // 生成进度展示（增强错误处理）
-  if (isGenerating && taskStatus) {
+  if (isGenerating && taskStatus && taskStatus.status !== 'completed') {
     return (
       <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
         <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
@@ -197,8 +212,8 @@ const ReportDetails = (): React.ReactElement => {
     )
   }
 
-  // 加载中状态
-  if (isLoading || !reportData) {
+  // 加载中状态（排除任务已完成的情况）
+  if ((isLoading || !reportData) && !(taskStatus?.status === 'completed' && isGenerating)) {
     return (
       <div className="flex flex-col w-full h-full">
         <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 bg-white border-b">
@@ -289,55 +304,6 @@ const ReportDetails = (): React.ReactElement => {
                 </div>
               </CardHeader>
             </Card>
-          </motion.div>
-
-          {/* Key Insights */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <h2 className="mb-4 text-xl font-semibold text-gray-800">核心洞察</h2>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="bg-gradient-to-br border-pink-200 from-pink-100/50 to-rose-100/50">
-                <CardHeader>
-                  <CardTitle className="flex gap-2 items-center text-pink-800">
-                    <Heart className="w-5 h-5" />
-                    情感状态
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-1 text-2xl font-bold text-pink-900">分析中...</div>
-                  <p className="text-sm text-pink-700/80">基于聊天记录的情感分析结果</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br border-blue-200 from-blue-100/50 to-indigo-100/50">
-                <CardHeader>
-                  <CardTitle className="flex gap-2 items-center text-blue-800">
-                    <Users className="w-5 h-5" />
-                    社交模式
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-1 text-2xl font-bold text-blue-900">分析中...</div>
-                  <p className="text-sm text-blue-700/80">基于对话模式的社交行为分析</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br border-green-200 from-green-100/50 to-emerald-100/50">
-                <CardHeader>
-                  <CardTitle className="flex gap-2 items-center text-green-800">
-                    <TrendingUp className="w-5 h-5" />
-                    成长趋势
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-1 text-2xl font-bold text-green-900">分析中...</div>
-                  <p className="text-sm text-green-700/80">基于时间序列的成长趋势分析</p>
-                </CardContent>
-              </Card>
-            </div>
           </motion.div>
 
           {/* Detailed Analysis */}
