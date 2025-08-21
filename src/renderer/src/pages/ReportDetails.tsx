@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,23 +13,179 @@ import {
   Users,
   TrendingUp,
   Heart,
-  Brain
+  Brain,
+  RefreshCw,
+  Wifi,
+  FileX,
+  XCircle,
+  AlertCircle
 } from 'lucide-react'
-import { reports } from '../data/reports'
+import { useReportData } from '@/hooks/useReportData'
+import { ReportProgress } from '@/components/ReportProgress'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const ReportDetails = (): React.ReactElement => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const report = reports.find((r) => r.id === id)
+  const [searchParams] = useSearchParams()
 
-  if (!report) {
+  // 获取URL参数
+  const taskId = searchParams.get('taskId')
+  const isGenerating = searchParams.get('generating') === 'true'
+
+  // 使用自定义Hook获取报告数据
+  const {
+    taskStatus,
+    reportData,
+    reportContent,
+    isLoading,
+    error,
+    errorType,
+    retryCount,
+    retryGeneration,
+    cancelGeneration,
+    refreshReport,
+    clearError
+  } = useReportData({
+    taskId: taskId || undefined,
+    reportId: !isGenerating ? id : undefined,
+    isGenerating,
+    pollingInterval: 2000,
+    maxPollingAttempts: 150
+  })
+
+  // 错误状态处理（增强显示）
+  if (error && !isGenerating) {
+    const getErrorIcon = () => {
+      switch (errorType) {
+        case 'network':
+          return <Wifi className="mx-auto mb-4 w-12 h-12 text-red-500" />
+        case 'timeout':
+          return <Clock className="mx-auto mb-4 w-12 h-12 text-orange-500" />
+        case 'not_found':
+          return <FileX className="mx-auto mb-4 w-12 h-12 text-gray-500" />
+        case 'task_failed':
+          return <XCircle className="mx-auto mb-4 w-12 h-12 text-red-500" />
+        default:
+          return <AlertCircle className="mx-auto mb-4 w-12 h-12 text-red-500" />
+      }
+    }
+
+    const getErrorTitle = () => {
+      switch (errorType) {
+        case 'network':
+          return '网络连接失败'
+        case 'timeout':
+          return '请求超时'
+        case 'not_found':
+          return '报告不存在'
+        case 'task_failed':
+          return '生成失败'
+        default:
+          return '报告加载失败'
+      }
+    }
+
+    const getRetryText = () => {
+      if (retryCount > 0) {
+        return `重试 (${retryCount}/3)`
+      }
+      return errorType === 'not_found' ? '返回重新生成' : '重试'
+    }
+
     return (
       <div className="flex flex-col w-full h-full">
-        <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 bg-white border-b">
+        <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 bg-white border-b">
+          <SidebarTrigger />
+          <h1 className="text-2xl font-semibold">{getErrorTitle()}</h1>
+        </header>
+        <main className="flex flex-1 justify-center items-center">
+          <div className="text-center">
+            {getErrorIcon()}
+            <p className="mb-2 text-gray-600">{error}</p>
+            {retryCount > 0 && (
+              <p className="mb-6 text-sm text-orange-600">
+                已重试 {retryCount} 次，正在尝试恢复连接...
+              </p>
+            )}
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={() => {
+                  clearError()
+                  if (errorType === 'not_found') {
+                    retryGeneration()
+                  } else {
+                    refreshReport()
+                  }
+                }}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`mr-2 w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {getRetryText()}
+              </Button>
+              <Link to="/history">
+                <Button variant="outline">返回历史报告</Button>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 生成进度展示（增强错误处理）
+  if (isGenerating && taskStatus) {
+    return (
+      <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+        <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
+          <SidebarTrigger />
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/history')}
+            className="flex gap-2 items-center text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft size={20} />
+            返回
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-xl font-semibold text-gray-800">
+              {taskStatus.status === 'failed' || error ? '生成失败' : '正在生成报告...'}
+            </h1>
+            <p className="text-sm text-gray-600">
+              {error ? '报告生成遇到问题，请重试' : '请耐心等待，报告生成需要一些时间'}
+            </p>
+            {retryCount > 0 && (
+              <p className="text-sm text-orange-600">正在重试... ({retryCount}/3)</p>
+            )}
+          </div>
+        </header>
+        <main className="overflow-auto flex-1 p-6">
+          <div className="mx-auto max-w-2xl">
+            <ReportProgress
+              taskStatus={taskStatus}
+              onCancel={cancelGeneration}
+              onRetry={retryGeneration}
+              error={error}
+              retryCount={retryCount}
+              isLoading={isLoading}
+              clearError={clearError}
+            />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 报告未找到（仅在非生成模式下显示）
+  if (!reportData && !isLoading && !isGenerating) {
+    return (
+      <div className="flex flex-col w-full h-full">
+        <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 bg-white border-b">
           <SidebarTrigger />
           <h1 className="text-2xl font-semibold">报告未找到</h1>
         </header>
-        <main className="flex items-center justify-center flex-1">
+        <main className="flex flex-1 justify-center items-center">
           <div className="text-center">
             <p className="mb-4 text-gray-600">抱歉，找不到该报告</p>
             <Link to="/history">
@@ -41,73 +197,94 @@ const ReportDetails = (): React.ReactElement => {
     )
   }
 
-  const analysisTypeColors: Record<string, string> = {
-    情感分析: 'bg-pink-100 text-pink-700',
-    人格分析: 'bg-purple-100 text-purple-700',
-    关系分析: 'bg-blue-100 text-blue-700',
-    工作氛围: 'bg-green-100 text-green-700',
-    情商提升: 'bg-orange-100 text-orange-700',
-    思维陷阱: 'bg-red-100 text-red-700'
+  // 加载中状态
+  if (isLoading || !reportData) {
+    return (
+      <div className="flex flex-col w-full h-full">
+        <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 bg-white border-b">
+          <SidebarTrigger />
+          <h1 className="text-2xl font-semibold">加载中...</h1>
+        </header>
+        <main className="flex flex-1 justify-center items-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-orange-500 animate-spin"></div>
+            <p className="text-gray-600">正在加载报告数据...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 分析类型颜色映射
+  const getAnalysisTypeColor = (type: string): string => {
+    const colors: Record<string, string> = {
+      情感分析: 'bg-pink-100 text-pink-700',
+      人格分析: 'bg-purple-100 text-purple-700',
+      关系分析: 'bg-blue-100 text-blue-700',
+      工作氛围: 'bg-green-100 text-green-700',
+      情商提升: 'bg-orange-100 text-orange-700',
+      思维陷阱: 'bg-red-100 text-red-700'
+    }
+    return colors[type] || 'bg-gray-100 text-gray-700'
   }
 
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
+      <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
         <SidebarTrigger />
         <Button
           variant="ghost"
           onClick={() => navigate('/history')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          className="flex gap-2 items-center text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft size={20} />
           返回
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold text-gray-800 line-clamp-1">{report.title}</h1>
-          <p className="text-sm text-gray-600">{report.createdAt}</p>
+          <h1 className="text-xl font-semibold text-gray-800 line-clamp-1">{reportData.title}</h1>
+          <p className="text-sm text-gray-600">{new Date(reportData.createdAt).toLocaleString()}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
-            <Share2 className="w-4 h-4 mr-2" />
+            <Share2 className="mr-2 w-4 h-4" />
             分享
           </Button>
           <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="mr-2 w-4 h-4" />
             导出
           </Button>
         </div>
       </header>
 
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <main className="overflow-auto flex-1 p-6">
+        <div className="mx-auto space-y-8 max-w-4xl">
           {/* Report Overview */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="border-orange-200 bg-gradient-to-br from-orange-100/50 to-amber-100/50">
+            <Card className="bg-gradient-to-br border-orange-200 from-orange-100/50 to-amber-100/50">
               <CardHeader>
-                <div className="flex items-start justify-between">
+                <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="mb-2 text-2xl text-orange-800">{report.title}</CardTitle>
+                    <CardTitle className="mb-2 text-2xl text-orange-800">
+                      {reportData.title}
+                    </CardTitle>
                     <CardDescription className="text-base text-orange-700/80">
-                      {report.summary}
+                      基于 {reportData.metadata.messageCount} 条消息的分析报告
                     </CardDescription>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-4 mt-4">
-                  <Badge
-                    className={
-                      analysisTypeColors[report.analysisType] || 'bg-gray-100 text-gray-700'
-                    }
-                  >
-                    {report.analysisType}
+                <div className="flex flex-wrap gap-4 items-center mt-4">
+                  <Badge className={getAnalysisTypeColor(reportData.metadata.prompt.content)}>
+                    {reportData.metadata.prompt.content}
                   </Badge>
-                  <Badge variant="outline">{report.targetType}</Badge>
-                  <div className="flex items-center gap-1 text-sm text-orange-700">
+                  <Badge variant="outline">{reportData.metadata.participants}</Badge>
+                  <div className="flex gap-1 items-center text-sm text-orange-700">
                     <Clock className="w-4 h-4" />
-                    {report.timeRange}
+                    {new Date(reportData.metadata.timeRange.start).toLocaleDateString()} -{' '}
+                    {new Date(reportData.metadata.timeRange.end).toLocaleDateString()}
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-orange-700">
+                  <div className="flex gap-1 items-center text-sm text-orange-700">
                     <MessageCircle className="w-4 h-4" />
-                    {report.messageCount}条消息
+                    {reportData.metadata.messageCount}条消息
                   </div>
                 </div>
               </CardHeader>
@@ -122,42 +299,42 @@ const ReportDetails = (): React.ReactElement => {
           >
             <h2 className="mb-4 text-xl font-semibold text-gray-800">核心洞察</h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="border-pink-200 bg-gradient-to-br from-pink-100/50 to-rose-100/50">
+              <Card className="bg-gradient-to-br border-pink-200 from-pink-100/50 to-rose-100/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-pink-800">
+                  <CardTitle className="flex gap-2 items-center text-pink-800">
                     <Heart className="w-5 h-5" />
                     情感状态
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-1 text-2xl font-bold text-pink-900">积极乐观</div>
-                  <p className="text-sm text-pink-700/80">整体情感倾向积极，表现出较强的正面情绪</p>
+                  <div className="mb-1 text-2xl font-bold text-pink-900">分析中...</div>
+                  <p className="text-sm text-pink-700/80">基于聊天记录的情感分析结果</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-blue-200 bg-gradient-to-br from-blue-100/50 to-indigo-100/50">
+              <Card className="bg-gradient-to-br border-blue-200 from-blue-100/50 to-indigo-100/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-800">
+                  <CardTitle className="flex gap-2 items-center text-blue-800">
                     <Users className="w-5 h-5" />
                     社交模式
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-1 text-2xl font-bold text-blue-900">主动交流</div>
-                  <p className="text-sm text-blue-700/80">在对话中表现主动，善于引导话题</p>
+                  <div className="mb-1 text-2xl font-bold text-blue-900">分析中...</div>
+                  <p className="text-sm text-blue-700/80">基于对话模式的社交行为分析</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-green-200 bg-gradient-to-br from-green-100/50 to-emerald-100/50">
+              <Card className="bg-gradient-to-br border-green-200 from-green-100/50 to-emerald-100/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800">
+                  <CardTitle className="flex gap-2 items-center text-green-800">
                     <TrendingUp className="w-5 h-5" />
                     成长趋势
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="mb-1 text-2xl font-bold text-green-900">持续提升</div>
-                  <p className="text-sm text-green-700/80">沟通能力和情商水平呈现上升趋势</p>
+                  <div className="mb-1 text-2xl font-bold text-green-900">分析中...</div>
+                  <p className="text-sm text-green-700/80">基于时间序列的成长趋势分析</p>
                 </CardContent>
               </Card>
             </div>
@@ -171,63 +348,82 @@ const ReportDetails = (): React.ReactElement => {
           >
             <Card className="border-gray-200">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-800">
+                <CardTitle className="flex gap-2 items-center text-gray-800">
                   <Brain className="w-5 h-5" />
                   详细分析
                 </CardTitle>
               </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">沟通风格分析</h3>
-                    <p className="leading-relaxed text-gray-600">
-                      通过对你最近一个月的聊天记录分析，发现你在与朋友交流时表现出温暖、关怀的特质。
-                      你经常主动询问朋友的近况，表现出很强的同理心。在群聊中，你往往扮演调节气氛的角色，
-                      善于用幽默化解尴尬，让大家感到轻松愉快。
-                    </p>
+              <CardContent className="max-w-none prose prose-gray">
+                {reportContent ? (
+                  <div className="max-w-none prose prose-slate dark:prose-invert">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ node, ...props }) => (
+                          <h1 className="mb-4 text-2xl font-bold text-foreground" {...props} />
+                        ),
+                        h2: ({ node, ...props }) => (
+                          <h2 className="mb-3 text-xl font-semibold text-foreground" {...props} />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h3 className="mb-2 text-lg font-medium text-foreground" {...props} />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p className="mb-3 leading-relaxed text-foreground" {...props} />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul className="pl-6 mb-3 space-y-1" {...props} />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol className="pl-6 mb-3 space-y-1" {...props} />
+                        ),
+                        li: ({ node, ...props }) => <li className="text-foreground" {...props} />,
+                        strong: ({ node, ...props }) => (
+                          <strong className="font-semibold text-foreground" {...props} />
+                        ),
+                        em: ({ node, ...props }) => (
+                          <em className="italic text-foreground" {...props} />
+                        ),
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote
+                            className="pl-4 my-4 italic border-l-4 border-primary text-muted-foreground"
+                            {...props}
+                          />
+                        ),
+                        code: ({ node, ...props }) => (
+                          <code
+                            className="block overflow-x-auto p-3 font-mono text-sm rounded-md bg-muted"
+                            {...props}
+                          />
+                        ),
+                        table: ({ node, ...props }) => (
+                          <div className="overflow-x-auto my-4">
+                            <table
+                              className="min-w-full border border-collapse border-border"
+                              {...props}
+                            />
+                          </div>
+                        ),
+                        th: ({ node, ...props }) => (
+                          <th
+                            className="px-3 py-2 font-semibold text-left border border-border bg-muted"
+                            {...props}
+                          />
+                        ),
+                        td: ({ node, ...props }) => (
+                          <td className="px-3 py-2 border border-border" {...props} />
+                        )
+                      }}
+                    >
+                      {reportContent}
+                    </Markdown>
                   </div>
-
-                  <div>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">情感表达特点</h3>
-                    <p className="leading-relaxed text-gray-600">
-                      你的情感表达相对含蓄但真诚。在表达关心时，你更倾向于通过行动和细节来体现，
-                      而不是直接的情感宣泄。这种表达方式让人感到舒适，不会给对方造成压力。
-                      同时，你也善于倾听，经常给朋友提供情感支持。
-                    </p>
+                ) : (
+                  <div className="py-8 text-center">
+                    <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-gray-400 animate-spin"></div>
+                    <p className="text-gray-600">正在加载报告内容...</p>
                   </div>
-
-                  <div>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">成长建议</h3>
-                    <ul className="space-y-2 text-gray-600">
-                      <li>• 可以尝试更直接地表达自己的情感和需求，这有助于建立更深层的连接</li>
-                      <li>• 在处理冲突时，可以更主动地寻求解决方案，而不是回避</li>
-                      <li>• 继续保持你的同理心和关怀特质，这是你最大的优势</li>
-                      <li>• 可以尝试在不同的社交场合中展现更多元化的自己</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">关键词云</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        '温暖',
-                        '关怀',
-                        '幽默',
-                        '同理心',
-                        '倾听',
-                        '支持',
-                        '真诚',
-                        '细腻',
-                        '包容',
-                        '积极'
-                      ].map((keyword) => (
-                        <Badge key={keyword} variant="secondary" className="text-sm">
-                          {keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

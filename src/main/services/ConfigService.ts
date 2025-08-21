@@ -175,6 +175,23 @@ export class ConfigService {
     logger.info(`Auto start service set to: ${autoStart}`)
   }
 
+  // === 数据更新时间相关方法 ===
+
+  /**
+   * 获取上次数据更新时间
+   */
+  getLastDataUpdateTime(): string | undefined {
+    return this.projectStore.get('lastDataUpdateTime')
+  }
+
+  /**
+   * 设置上次数据更新时间
+   */
+  setLastDataUpdateTime(timestamp: string): void {
+    this.projectStore.set('lastDataUpdateTime', timestamp)
+    logger.info(`Last data update time set to: ${timestamp}`)
+  }
+
   // === 项目配置通用方法 ===
 
   /**

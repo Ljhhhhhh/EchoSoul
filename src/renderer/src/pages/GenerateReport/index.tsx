@@ -60,9 +60,10 @@ const GenerateReport: React.FC = () => {
     })
 
     // 同步选择的Prompt
-    const promptId = typeof condition.analysisType === 'object' 
-      ? condition.analysisType?.id 
-      : condition.analysisType
+    const promptId =
+      typeof condition.analysisType === 'object'
+        ? condition.analysisType?.id
+        : condition.analysisType
     if (promptId) {
       promptsData.selectPromptById(promptId)
     }
@@ -93,7 +94,7 @@ const GenerateReport: React.FC = () => {
   // 处理Prompt选择
   const handlePromptSelect = (promptId: string) => {
     promptsData.selectPromptById(promptId)
-    const selectedPrompt = promptsData.prompts.find(p => p.id === promptId)
+    const selectedPrompt = promptsData.prompts.find((p) => p.id === promptId)
     if (selectedPrompt) {
       formState.updateField('analysisType', {
         id: selectedPrompt.id,
@@ -103,8 +104,8 @@ const GenerateReport: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <main className="overflow-auto flex-1 p-6">
+    <div className="flex bg-gray-50">
+      <main className="flex-1 p-6">
         <div className="mx-auto max-w-4xl">
           {/* 页面标题 */}
           <div className="flex gap-4 items-center mb-6">

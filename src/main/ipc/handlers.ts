@@ -139,6 +139,15 @@ export function setupIpcHandlers(services: AppServices) {
     }
   })
 
+  ipcMain.handle('chatlog:get-last-update-time', async () => {
+    try {
+      return services.chatlog.getLastDataUpdateTime()
+    } catch (error) {
+      logger.error('Failed to get last update time:', error)
+      return undefined
+    }
+  })
+
   // 报告管理
   ipcMain.handle('report:list', async () => {
     try {

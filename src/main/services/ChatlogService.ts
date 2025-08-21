@@ -184,6 +184,13 @@ export class ChatlogService {
         chatlogPath: getChatlogProgramPath()
       })
 
+      // 如果解密成功，记录当前时间戳
+      if (result.success) {
+        const currentTime = new Date().toISOString()
+        this.configService.setLastDataUpdateTime(currentTime)
+        logger.info(`Database decrypted successfully at ${currentTime}`)
+      }
+
       return {
         success: result.success,
         message: result.success
@@ -239,6 +246,13 @@ export class ChatlogService {
         canStartServer: false
       }
     }
+  }
+
+  /**
+   * 获取上次数据更新时间
+   */
+  getLastDataUpdateTime(): string | undefined {
+    return this.configService.getLastDataUpdateTime()
   }
 
   /**

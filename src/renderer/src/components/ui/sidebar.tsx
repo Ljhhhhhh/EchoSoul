@@ -175,7 +175,7 @@ const Sidebar = React.forwardRef<
       return (
         <div
           className={cn(
-            'flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground',
+            'flex flex-col h-full w-[--sidebar-width] bg-sidebar text-sidebar-foreground',
             className
           )}
           ref={ref}
@@ -269,7 +269,7 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn('h-7 w-7', className)}
+      className={cn('w-7 h-7', className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
@@ -337,7 +337,7 @@ const SidebarInput = React.forwardRef<
       ref={ref}
       data-sidebar="input"
       className={cn(
-        'h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+        'w-full h-8 shadow-none bg-background focus-visible:ring-2 focus-visible:ring-sidebar-ring',
         className
       )}
       {...props}
@@ -412,7 +412,7 @@ const SidebarGroup = React.forwardRef<HTMLDivElement, React.ComponentProps<'div'
       <div
         ref={ref}
         data-sidebar="group"
-        className={cn('relative flex w-full min-w-0 flex-col p-2', className)}
+        className={cn('flex relative flex-col p-2 w-full min-w-0', className)}
         {...props}
       />
     )
@@ -481,7 +481,7 @@ const SidebarMenu = React.forwardRef<HTMLUListElement, React.ComponentProps<'ul'
     <ul
       ref={ref}
       data-sidebar="menu"
-      className={cn('flex w-full min-w-0 flex-col gap-1', className)}
+      className={cn('flex flex-col gap-1 w-full min-w-0', className)}
       {...props}
     />
   )
@@ -493,7 +493,7 @@ const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li
     <li
       ref={ref}
       data-sidebar="menu-item"
-      className={cn('group/menu-item relative', className)}
+      className={cn('relative group/menu-item', className)}
       {...props}
     />
   )
@@ -647,7 +647,7 @@ const SidebarMenuSkeleton = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="menu-skeleton"
-      className={cn('flex h-8 items-center gap-2 rounded-md px-2', className)}
+      className={cn('flex gap-2 items-center px-2 h-8 rounded-md', className)}
       {...props}
     >
       {showIcon && <Skeleton className="rounded-md size-4" data-sidebar="menu-skeleton-icon" />}
@@ -739,6 +739,5 @@ export {
   SidebarProvider,
   SidebarRail,
   SidebarSeparator,
-  SidebarTrigger,
-  useSidebar
+  SidebarTrigger
 }

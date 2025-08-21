@@ -32,6 +32,7 @@ interface ChatlogAPI {
     databaseDecrypted: boolean
     canStartServer: boolean
   }>
+  getLastUpdateTime: () => Promise<string | undefined>
 }
 
 interface AppAPI {
@@ -61,6 +62,7 @@ interface CustomAPI {
   app: AppAPI
   aiService: AIServiceAPI
   report: ReportAPI
+  task: TaskAPI
 }
 
 declare global {

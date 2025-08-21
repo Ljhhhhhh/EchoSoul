@@ -40,7 +40,8 @@ const api = {
     getContacts: () => ipcRenderer.invoke('chatlog:get-contacts'),
     getChatroomList: () => ipcRenderer.invoke('chatlog:get-chatroom-list'),
     getWechatKey: () => ipcRenderer.invoke('chatlog:get-wechat-key'),
-    checkInitialization: () => ipcRenderer.invoke('chatlog:check-initialization')
+    checkInitialization: () => ipcRenderer.invoke('chatlog:check-initialization'),
+    getLastUpdateTime: () => ipcRenderer.invoke('chatlog:get-last-update-time')
   },
 
   // 应用控制相关的API
@@ -84,7 +85,25 @@ const api = {
   // 报告生成相关的API
   report: {
     // 生成报告
-    generateReport: (config: any) => ipcRenderer.invoke('report:generate-report', config)
+    generateReport: (config: any) => ipcRenderer.invoke('report:generate-report', config),
+    // 获取报告列表
+    getReports: () => ipcRenderer.invoke('report:list'),
+    // 获取报告详情
+    getReport: (id: string) => ipcRenderer.invoke('report:get', id),
+    // 删除报告
+    deleteReport: (id: string) => ipcRenderer.invoke('report:delete', id)
+  },
+
+  // 任务状态管理相关的API
+  task: {
+    // 获取任务状态
+    getStatus: (taskId: string) => ipcRenderer.invoke('task:status', taskId),
+    // 取消任务
+    cancel: (taskId: string) => ipcRenderer.invoke('task:cancel', taskId),
+    // 获取任务列表
+    list: () => ipcRenderer.invoke('task:list'),
+    // 获取任务统计
+    getStats: () => ipcRenderer.invoke('task:stats')
   }
 }
 

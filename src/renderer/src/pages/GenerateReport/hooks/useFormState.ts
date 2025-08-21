@@ -98,15 +98,19 @@ export const useFormState = (
         prompt: formData.analysisType || { id: '', content: '' }
       }
 
-      // 调用 IPC 发起生成报告请求
-      const reportId = await window.api.report.generateReport(analysisConfig)
+      // 调用生成报告API
+      const taskId = await window.api.report.generateReport(analysisConfig)
+      console.log('Report generation started with task ID:', taskId)
 
+      // 显示成功消息
       toast({
-        title: '报告生成成功！',
-        description: '你的个性化分析报告已经准备好了。'
+        title: '报告生成已开始',
+        description: '正在跳转到报告详情页面...',
+        duration: 2000
       })
 
-      navigate(`/history/${reportId}`)
+      // 立即跳转到报告详情页面，传递taskId作为参数
+      navigate(`/report/${taskId}?generating=true`)
     } catch (error) {
       console.error('报告生成失败:', error)
       toast({

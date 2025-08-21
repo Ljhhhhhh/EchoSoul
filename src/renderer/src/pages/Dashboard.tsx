@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import dayjs from 'dayjs'
+
 import {
   Sparkles,
   FileText,
@@ -19,9 +21,20 @@ import { toast } from 'sonner'
 const Dashboard = (): React.ReactElement => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isStartingService, setIsStartingService] = useState(false)
+  const [lastUpdateTime, setLastUpdateTime] = useState<string | undefined>(undefined)
   const recentReports = reports.slice(0, 3)
   const totalReports = reports.length
   const totalMessages = reports.reduce((sum, report) => sum + report.messageCount, 0)
+
+  // 获取上次更新时间
+  const fetchLastUpdateTime = async () => {
+    try {
+      const time = await window.api.chatlog.getLastUpdateTime()
+      setLastUpdateTime(time)
+    } catch (error) {
+      console.error('获取上次更新时间失败:', error)
+    }
+  }
 
   // 检查并自动启动chatlog服务
   const checkAndStartChatlogService = async () => {
@@ -71,6 +84,7 @@ const Dashboard = (): React.ReactElement => {
     // 延迟一点时间确保应用完全加载
     const timer = setTimeout(() => {
       checkAndStartChatlogService()
+      fetchLastUpdateTime()
     }, 1000)
 
     return () => clearTimeout(timer)
@@ -85,6 +99,8 @@ const Dashboard = (): React.ReactElement => {
         toast.success('数据更新成功', {
           description: '微信聊天记录已成功解密并更新'
         })
+        // 更新成功后重新获取上次更新时间
+        await fetchLastUpdateTime()
       } else {
         toast.error('数据更新失败', {
           description: result.message || '解密数据库时发生错误'
@@ -102,25 +118,52 @@ const Dashboard = (): React.ReactElement => {
 
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 bg-white/80 backdrop-blur-sm">
+      <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
         <SidebarTrigger />
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-gray-800">欢迎回来</h1>
           <p className="text-sm text-gray-600">让AI帮你发现聊天中的深层洞察</p>
         </div>
-        <Button
+        <div className="flex gap-4 items-center">
+          {lastUpdateTime && (
+            <span>
+              上次同步:{' '}
+              {lastUpdateTime ? dayjs(lastUpdateTime).format('YYYY-MM-DD HH:mm') : '未同步'}
+            </span>
+          )}
+          <Button
+            onClick={handleUpdateData}
+            disabled={isUpdating || isStartingService}
+            variant="link"
+            size="sm"
+            className="flex flex-col items-center py-3 h-auto text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+          >
+            <div className="flex gap-2 items-center">
+              <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+            </div>
+          </Button>
+        </div>
+        {/* <Button
           onClick={handleUpdateData}
           disabled={isUpdating || isStartingService}
           variant="outline"
           size="sm"
-          className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+          className="flex flex-col items-center py-3 h-auto text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
-          {isUpdating ? '更新中...' : '更新数据'}
-        </Button>
+          <div className="flex gap-2 items-center">
+            <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+            <span>{isUpdating ? '更新中...' : '更新数据'}</span>
+          </div>
+          {lastUpdateTime && (
+            <div className="flex gap-1 items-center mt-1 text-xs text-gray-500">
+              <Clock className="w-3 h-3" />
+              <span>{new Date(lastUpdateTime).toLocaleString('zh-CN')}</span>
+            </div>
+          )}
+        </Button> */}
       </header>
 
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="overflow-auto flex-1 p-6">
         <div className="mx-auto space-y-8 max-w-7xl">
           {/* Quick Actions */}
           <motion.div
@@ -128,9 +171,9 @@ const Dashboard = (): React.ReactElement => {
             animate={{ opacity: 1, y: 0 }}
             className="grid grid-cols-1 gap-6 md:grid-cols-2"
           >
-            <Card className="transition-all duration-300 border-orange-200 bg-gradient-to-br from-orange-100/50 to-amber-100/50 hover:shadow-lg">
+            <Card className="bg-gradient-to-br border-orange-200 transition-all duration-300 from-orange-100/50 to-amber-100/50 hover:shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-800">
+                <CardTitle className="flex gap-2 items-center text-orange-800">
                   <Sparkles className="w-5 h-5" />
                   生成新报告
                 </CardTitle>
@@ -140,16 +183,16 @@ const Dashboard = (): React.ReactElement => {
               </CardHeader>
               <CardContent>
                 <Link to="/generate">
-                  <Button className="w-full text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
+                  <Button className="w-full text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg hover:from-orange-600 hover:to-amber-600">
                     开始分析
                   </Button>
                 </Link>
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-300 border-blue-200 bg-gradient-to-br from-blue-100/50 to-indigo-100/50 hover:shadow-lg">
+            <Card className="bg-gradient-to-br border-blue-200 transition-all duration-300 from-blue-100/50 to-indigo-100/50 hover:shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-800">
+                <CardTitle className="flex gap-2 items-center text-blue-800">
                   <FileText className="w-5 h-5" />
                   查看历史报告
                 </CardTitle>
@@ -177,9 +220,9 @@ const Dashboard = (): React.ReactElement => {
             transition={{ delay: 0.1 }}
             className="grid grid-cols-1 gap-6 md:grid-cols-3"
           >
-            <Card className="border-green-200 bg-gradient-to-br from-green-100/50 to-emerald-100/50">
+            <Card className="bg-gradient-to-br border-green-200 from-green-100/50 to-emerald-100/50">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-800">
+                <CardTitle className="flex gap-2 items-center text-sm font-medium text-green-800">
                   <TrendingUp className="w-4 h-4" />
                   总报告数
                 </CardTitle>
@@ -190,9 +233,9 @@ const Dashboard = (): React.ReactElement => {
               </CardContent>
             </Card>
 
-            <Card className="border-purple-200 bg-gradient-to-br from-purple-100/50 to-pink-100/50">
+            <Card className="bg-gradient-to-br border-purple-200 from-purple-100/50 to-pink-100/50">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-800">
+                <CardTitle className="flex gap-2 items-center text-sm font-medium text-purple-800">
                   <MessageCircle className="w-4 h-4" />
                   分析消息数
                 </CardTitle>
@@ -205,9 +248,9 @@ const Dashboard = (): React.ReactElement => {
               </CardContent>
             </Card>
 
-            <Card className="border-teal-200 bg-gradient-to-br from-teal-100/50 to-cyan-100/50">
+            <Card className="bg-gradient-to-br border-teal-200 from-teal-100/50 to-cyan-100/50">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-teal-800">
+                <CardTitle className="flex gap-2 items-center text-sm font-medium text-teal-800">
                   <Users className="w-4 h-4" />
                   活跃联系人
                 </CardTitle>
@@ -225,7 +268,7 @@ const Dashboard = (): React.ReactElement => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-800">最近的报告</h2>
               <Link to="/history">
                 <Button
@@ -246,17 +289,17 @@ const Dashboard = (): React.ReactElement => {
                   transition={{ delay: 0.3 + index * 0.1 }}
                 >
                   <Link to={`/report/${report.id}`}>
-                    <Card className="transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
+                    <Card className="bg-white border-gray-200 transition-all duration-300 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
                       <CardHeader>
                         <CardTitle className="text-lg text-gray-800 line-clamp-1">
                           {report.title}
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-1">
+                        <CardDescription className="flex gap-4 items-center text-sm">
+                          <span className="flex gap-1 items-center">
                             <Clock className="w-3 h-3" />
                             {report.createdAt}
                           </span>
-                          <span className="flex items-center gap-1">
+                          <span className="flex gap-1 items-center">
                             <MessageCircle className="w-3 h-3" />
                             {report.messageCount}条消息
                           </span>
@@ -264,7 +307,7 @@ const Dashboard = (): React.ReactElement => {
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-gray-600 line-clamp-2">{report.summary}</p>
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex gap-2 items-center mt-3">
                           <span className="px-2 py-1 text-xs text-orange-700 bg-orange-100 rounded-full">
                             {report.analysisType}
                           </span>
