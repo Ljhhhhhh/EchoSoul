@@ -15,6 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Search, Filter, Clock, MessageCircle, Download, Eye } from 'lucide-react'
 import { Report } from '../data/reports'
+import dayjs from 'dayjs'
 
 // 适配器函数：将后端的ReportMeta转换为前端的Report格式
 const adaptReportMeta = (reportMeta: any): Report => {
@@ -22,9 +23,9 @@ const adaptReportMeta = (reportMeta: any): Report => {
     id: reportMeta.id,
     title: reportMeta.title,
     summary: reportMeta.metadata?.prompt?.content || '暂无摘要',
-    createdAt: new Date(reportMeta.createdAt).toLocaleDateString('zh-CN'),
+    createdAt: dayjs(reportMeta.createdAt).format('YYYY-MM-DD'),
     timeRange: reportMeta.metadata?.timeRange
-      ? `${new Date(reportMeta.metadata.timeRange.start).toLocaleDateString('zh-CN')} - ${new Date(reportMeta.metadata.timeRange.end).toLocaleDateString('zh-CN')}`
+      ? `${dayjs(reportMeta.metadata.timeRange.start).format('YYYY-MM-DD')} - ${dayjs(reportMeta.metadata.timeRange.end).format('YYYY-MM-DD')}`
       : '未知时间范围',
     targetType: reportMeta.metadata?.chatPartner || '未知目标',
     analysisType: reportMeta.metadata?.prompt?.name || '未知分析',

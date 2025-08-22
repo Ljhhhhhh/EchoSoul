@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,12 +23,18 @@ import { ReportProgress } from '@/components/ReportProgress'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
+// ! 根据 ReportService.ts + 事件监听彻底重写
 // ! 用 streamdown 替代 Markdown
 
 const ReportDetails = (): React.ReactElement => {
   const { taskId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+
+  // 流式响应状态
+  const [streamingContent, setStreamingContent] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [streamComplete, setStreamComplete] = useState(false)
 
   // 获取URL参数
   const isGenerating = searchParams.get('generating') === 'true'
@@ -69,6 +75,46 @@ const ReportDetails = (): React.ReactElement => {
       navigate(newUrl, { replace: true })
     }
   }, [isGenerating, taskStatus, reportData, reportContent, taskId, navigate])
+
+  // 监听流式响应事件
+  useEffect(() => {
+    if (!isGenerating || !taskId) return
+
+    const handleStreamStart = () => {
+      setIsStreaming(true)
+      setStreamingContent('')
+      setStreamComplete(false)
+    }
+
+    const handleStreamChunk = (
+      event: any,
+      data: { reportId: string; token: string; content: string }
+    ) => {
+      if (data.reportId === taskId) {
+        setStreamingContent(data.content)
+      }
+    }
+
+    const handleStreamEnd = (event: any, data: { reportId: string; finalContent: string }) => {
+      if (data.reportId === taskId) {
+        setIsStreaming(false)
+        setStreamComplete(true)
+        setStreamingContent(data.finalContent)
+      }
+    }
+
+    // 注册事件监听器
+    window.electron?.on('report-stream-start', handleStreamStart)
+    window.electron?.on('report-stream-chunk', handleStreamChunk)
+    window.electron?.on('report-stream-end', handleStreamEnd)
+
+    return () => {
+      // 清理事件监听器
+      window.electron?.removeListener('report-stream-start', handleStreamStart)
+      window.electron?.removeListener('report-stream-chunk', handleStreamChunk)
+      window.electron?.removeListener('report-stream-end', handleStreamEnd)
+    }
+  }, [isGenerating, taskId])
 
   // 错误状态处理（增强显示）
   if (error && !isGenerating) {

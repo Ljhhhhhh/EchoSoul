@@ -359,11 +359,7 @@ export function setupIpcHandlers(services: AppServices) {
       serviceId: string,
       messages: Array<{ role: string; content: string }>,
       options?: { temperature?: number; maxTokens?: number; stream?: boolean }
-    ): Promise<{
-      content: string
-      usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
-      model?: string
-    }> => {
+    ): Promise<AsyncIterable<any>> => {
       try {
         return await services.aiService.sendChatRequest(serviceId, messages, options)
       } catch (error) {

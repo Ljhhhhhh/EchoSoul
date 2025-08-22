@@ -218,15 +218,7 @@ export class AIServiceManager extends EventEmitter {
       maxTokens?: number
       stream?: boolean
     }
-  ): Promise<{
-    content: string
-    usage?: {
-      promptTokens: number
-      completionTokens: number
-      totalTokens: number
-    }
-    model?: string
-  }> {
+  ): Promise<AsyncIterable<any>> {
     const service = this.getService(serviceId)
     if (!service) {
       throw new Error(`Service ${serviceId} not found`)
@@ -238,24 +230,11 @@ export class AIServiceManager extends EventEmitter {
 
     try {
       const adapter = AIProviderFactory.getAdapter(service.provider)
-      const startTime = Date.now()
 
-      const result = await adapter.sendChatRequest(service, messages, options)
-
-      // 记录使用统计
-      this.recordUsage(serviceId, {
-        responseTime: Date.now() - startTime,
-        usage: result.usage
+      return await adapter.sendChatRequest(service, messages, {
+        ...options,
+        stream: true
       })
-
-      // 发出事件
-      this.emitServiceEvent(serviceId, 'response', {
-        messages: messages.length,
-        usage: result.usage,
-        model: result.model
-      })
-
-      return result
     } catch (error) {
       logger.error(`Failed to send chat request to service ${serviceId}:`, error)
 

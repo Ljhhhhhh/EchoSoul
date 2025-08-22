@@ -41,7 +41,7 @@ async function checkAndAutoStartChatlogService(appServices: AppServices): Promis
 // 初始化服务
 const appServices = new AppServices()
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -73,6 +73,8 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return mainWindow
 }
 
 // This method will be called when Electron has finished
@@ -113,7 +115,8 @@ app.whenReady().then(async () => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  createWindow()
+  const mainWindow = createWindow()
+  appServices.registerMainWindow(mainWindow)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

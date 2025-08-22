@@ -7,6 +7,7 @@ import { PromptService } from './PromptService'
 import { ReportService } from './ReportService'
 import { TaskManager } from './TaskManager'
 import { createLogger } from '../utils/logger'
+import { BrowserWindow } from 'electron'
 
 const logger = createLogger('AppServices')
 
@@ -19,6 +20,7 @@ export class AppServices {
   private _prompt: PromptService
   private _taskManager: TaskManager
   private _report: ReportService
+  private _mainWindow: BrowserWindow | null = null
 
   constructor() {
     // 初始化服务实例，注意依赖关系
@@ -36,6 +38,24 @@ export class AppServices {
       this._prompt,
       this._taskManager
     )
+  }
+
+  /**
+   * 注册主窗口
+   */
+  registerMainWindow(mainWindow: BrowserWindow): void {
+    this._mainWindow = mainWindow
+    // 为 ReportService 设置 mainWindow
+    this._report.setMainWindow(mainWindow)
+
+    logger.info('MainWindow registered successfully')
+  }
+
+  /**
+   * 获取主窗口
+   */
+  getMainWindow(): BrowserWindow | null {
+    return this._mainWindow
   }
 
   async initialize() {

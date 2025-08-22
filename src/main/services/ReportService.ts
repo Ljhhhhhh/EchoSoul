@@ -1,3 +1,9 @@
+import { app, BrowserWindow } from 'electron'
+import { EventEmitter } from 'events'
+import * as path from 'path'
+import * as fs from 'fs/promises'
+import dayjs from 'dayjs'
+import { v4 as uuidv4 } from 'uuid'
 import { createLogger } from '../utils/logger'
 import type { AnalysisConfig, ReportMeta, TaskStatus, ChatMessage, Contact } from '@types'
 import { DatabaseService } from './DatabaseService'
@@ -5,10 +11,6 @@ import { ChatlogService } from './ChatlogService'
 import { AIServiceManager } from './AIServiceManager'
 import { PromptService } from './PromptService'
 import { TaskManager } from './TaskManager'
-import * as path from 'path'
-import * as fs from 'fs/promises'
-import { app } from 'electron'
-import dayjs from 'dayjs'
 
 const logger = createLogger('ReportService')
 
@@ -23,6 +25,7 @@ export class ReportService {
   private promptService: PromptService
   private taskManager: TaskManager
   private reportsDir: string
+  private mainWindow: BrowserWindow | null = null
 
   constructor(
     databaseService: DatabaseService,
@@ -41,6 +44,30 @@ export class ReportService {
     this.reportsDir = path.join(app.getPath('userData'), 'reports')
 
     logger.info('ReportService initialized')
+  }
+
+  /**
+   * 设置主窗口
+   */
+  setMainWindow(mainWindow: BrowserWindow): void {
+    this.mainWindow = mainWindow
+    logger.info('MainWindow set for ReportService')
+  }
+
+  /**
+   * 获取主窗口
+   */
+  getMainWindow(): BrowserWindow | null {
+    return this.mainWindow
+  }
+
+  /**
+   * 检查主窗口是否可用
+   */
+  private ensureMainWindow(): void {
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) {
+      throw new Error('MainWindow is not available')
+    }
   }
 
   /**
@@ -64,20 +91,70 @@ export class ReportService {
    */
   async generateReport(config: AnalysisConfig): Promise<string> {
     try {
+      // 确保主窗口可用
+      this.ensureMainWindow()
+
       logger.info('Starting report generation...')
 
-      // 使用TaskManager创建任务
-      const taskId = await this.taskManager.createTask()
+      // // 使用TaskManager创建任务
+      // const taskId = await this.taskManager.createTask()
 
-      logger.info(`Report generation task created with ID: ${taskId}`)
+      // logger.info(`Report generation task created with ID: ${taskId}`)
 
-      // 异步执行报告生成
-      this.executeReportGeneration(taskId, config).catch((error) => {
-        logger.error(`Report generation failed for task ${taskId}:`, error)
-        this.updateTaskStatus(taskId, 'failed', 100, `报告生成失败: ${error.message}`)
+      // // 异步执行报告生成
+      // this.executeReportGeneration(taskId, config).catch((error) => {
+      //   logger.error(`Report generation failed for task ${taskId}:`, error)
+      //   this.updateTaskStatus(taskId, 'failed', 100, `报告生成失败: ${error.message}`)
+      // })
+
+      // return taskId
+
+      const reportId = uuidv4()
+
+      const messages = await this.fetchChatMessages(config)
+
+      if (messages.length === 0) {
+        throw new Error('未找到符合条件的聊天记录')
+      }
+
+      // 步骤3: 执行AI分析
+      // TODO: 改为流式返回、不再需要 TaskStatus
+      // const analysisResult = await this.performAIAnalysis(messages, config)
+      const stream = await this.performAIAnalysis(messages, config)
+      let analysisResult = ''
+
+      for await (const chunk of stream) {
+        const token = chunk.choices?.[0]?.delta?.content || ''
+        if (token) {
+          analysisResult += token
+          // 将每个 token 实时发送到渲染进程
+          this.mainWindow?.webContents.send('report-stream-chunk', {
+            reportId,
+            token,
+            content: analysisResult
+          })
+        }
+      }
+
+      // 流结束后，发送完成信号
+      this.mainWindow?.webContents.send('report-stream-end', {
+        reportId,
+        finalContent: analysisResult
       })
 
-      return taskId
+      // 步骤4: 生成报告文件
+      logger.info(`Analysis result: ${analysisResult}`)
+      const reportMeta = await this.generateReportFile(
+        reportId,
+        config,
+        analysisResult,
+        messages.length
+      )
+
+      // 步骤5: 保存报告元数据
+      await this.databaseService.saveReport(reportMeta)
+
+      return reportId
     } catch (error) {
       logger.error('Failed to start report generation:', error)
       throw error
@@ -99,35 +176,30 @@ export class ReportService {
 
       // 步骤2: 准备AI分析
       await this.updateTaskStatus(taskId, 'running', 30, '正在准备AI分析...')
-      const prompt = await this.promptService.getPromptById(config.prompt.id)
-
-      if (!prompt) {
-        throw new Error('未找到指定的提示模板')
-      }
 
       // 步骤3: 执行AI分析
       // TODO: 改为流式返回、不再需要 TaskStatus
       await this.updateTaskStatus(taskId, 'running', 50, '正在执行AI分析...')
-      const analysisResult = await this.performAIAnalysis(messages, prompt.content, config)
+      // const analysisResult = await this.performAIAnalysis(messages, config)
 
-      // 步骤4: 生成报告文件
-      await this.updateTaskStatus(taskId, 'running', 80, '正在生成报告文件...')
-      logger.info(`Analysis result: ${analysisResult}`)
-      const reportMeta = await this.generateReportFile(
-        taskId,
-        config,
-        analysisResult,
-        messages.length
-      )
+      // // 步骤4: 生成报告文件
+      // await this.updateTaskStatus(taskId, 'running', 80, '正在生成报告文件...')
+      // logger.info(`Analysis result: ${analysisResult}`)
+      // const reportMeta = await this.generateReportFile(
+      //   taskId,
+      //   config,
+      //   analysisResult,
+      //   messages.length
+      // )
 
-      // 步骤5: 保存报告元数据
-      await this.updateTaskStatus(taskId, 'running', 95, '正在保存报告信息...')
-      await this.databaseService.saveReport(reportMeta)
+      // // 步骤5: 保存报告元数据
+      // await this.updateTaskStatus(taskId, 'running', 95, '正在保存报告信息...')
+      // await this.databaseService.saveReport(reportMeta)
 
-      // 完成
-      await this.updateTaskStatus(taskId, 'completed', 100, '报告生成完成')
+      // // 完成
+      // await this.updateTaskStatus(taskId, 'completed', 100, '报告生成完成')
 
-      logger.info(`Report generation completed for task ${taskId}`)
+      // logger.info(`Report generation completed for task ${taskId}`)
     } catch (error) {
       logger.error(`Report generation failed for task ${taskId}:`, error)
       await this.updateTaskStatus(taskId, 'failed', 100, `报告生成失败: ${error.message}`)
@@ -166,9 +238,8 @@ export class ReportService {
    */
   private async performAIAnalysis(
     messages: ChatMessage[],
-    prompt: string,
     config: AnalysisConfig
-  ): Promise<string> {
+  ): Promise<AsyncIterable<any>> {
     try {
       // 获取AI服务
       const aiService = this.aiServiceManager.getHealthyService()
@@ -178,21 +249,20 @@ export class ReportService {
 
       const formatMessages = messages
         .map((msg) => {
-          const time = new Date(msg.time).toLocaleString('zh-CN')
+          const time = dayjs(msg.time).format('YYYY-MM-DD HH:mm:ss')
           const senderName = msg.senderName || msg.sender
           return `[${time}] ${senderName}: ${msg.content}`
         })
         .join('\n')
 
       // 执行分析
-      const response = await this.aiServiceManager.sendChatRequest(aiService.id, [
-        { role: 'system', content: prompt },
+      const stream = await this.aiServiceManager.sendChatRequest(aiService.id, [
+        { role: 'system', content: config.prompt.content },
         { role: 'user', content: formatMessages }
       ])
-      const result = response.content
 
       logger.debug('AI analysis completed')
-      return result
+      return stream
     } catch (error) {
       logger.error('Failed to perform AI analysis:', error)
       throw error

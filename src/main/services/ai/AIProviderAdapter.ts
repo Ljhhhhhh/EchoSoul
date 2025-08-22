@@ -68,15 +68,7 @@ export interface AIProviderAdapter {
       maxTokens?: number
       stream?: boolean
     }
-  ): Promise<{
-    content: string
-    usage?: {
-      promptTokens: number
-      completionTokens: number
-      totalTokens: number
-    }
-    model?: string
-  }>
+  ): Promise<AsyncIterable<any>>
 
   /**
    * 获取使用统计
@@ -157,15 +149,7 @@ export abstract class BaseAIProviderAdapter implements AIProviderAdapter {
       maxTokens?: number
       stream?: boolean
     }
-  ): Promise<{
-    content: string
-    usage?: {
-      promptTokens: number
-      completionTokens: number
-      totalTokens: number
-    }
-    model?: string
-  }>
+  ): Promise<AsyncIterable<any>>
   abstract validateApiKey(apiKey: string, baseUrl?: string): Promise<boolean>
 
   /**
