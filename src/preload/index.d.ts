@@ -56,6 +56,20 @@ interface AIServiceAPI {
   sendChatRequest: (serviceId: string, messages: any[], options?: any) => Promise<any>
 }
 
+interface ReportAPI {
+  generateReport: (config: any) => Promise<any>
+  getReports: () => Promise<any[]>
+  getReport: (id: string) => Promise<any>
+  deleteReport: (id: string) => Promise<void>
+}
+
+interface TaskAPI {
+  getStatus: (taskId: string) => Promise<any>
+  cancel: (taskId: string) => Promise<void>
+  list: () => Promise<any[]>
+  getStats: () => Promise<any>
+}
+
 interface CustomAPI {
   initialization: InitializationAPI
   chatlog: ChatlogAPI
