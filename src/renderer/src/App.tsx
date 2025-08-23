@@ -55,7 +55,7 @@ function AppWithInitialization(): React.ReactElement {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/generate" element={<GenerateReport />} />
                   <Route path="/history" element={<ReportHistory />} />
-                  <Route path="/report/:taskId" element={<ReportDetails />} />
+                  <Route path="/report/:reportId" element={<ReportDetails />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

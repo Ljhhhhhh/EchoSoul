@@ -40,9 +40,9 @@ export const useReportFile = ({ reportId, enabled }: UseReportFileOptions) => {
       }))
 
       try {
-        const content = await window.api.report.getReport(reportId)
+        const report = await window.api.report.getReport(reportId)
         setState({
-          content: content || '',
+          content: report.content || '',
           loading: false,
           error: null
         })

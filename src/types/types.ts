@@ -135,7 +135,8 @@ export const ReportMetaSchema = z.object({
       name: z.string().optional()
     })
   }),
-  createdAt: z.string()
+  createdAt: z.string(),
+  content: z.optional(z.string())
 })
 
 export type ReportMeta = z.infer<typeof ReportMetaSchema>

@@ -157,9 +157,11 @@ export const useFormState = (
         prompt: formData.analysisType || { id: '', content: '' }
       }
 
+      console.log(analysisConfig, 'analysisConfig')
+
       // 调用生成报告API
-      const taskId = await window.api.report.generateReport(analysisConfig)
-      console.log('Report generation started with task ID:', taskId)
+      const reportId = await window.api.report.generateReport(analysisConfig)
+      console.log('Report generation started with task ID:', reportId)
 
       // 显示成功消息
       toast({
@@ -168,8 +170,8 @@ export const useFormState = (
         duration: 2000
       })
 
-      // 立即跳转到报告详情页面，传递taskId作为参数
-      navigate(`/report/${taskId}?generating=true`)
+      // 立即跳转到报告详情页面，传递reportId作为参数
+      navigate(`/report/${reportId}`)
     } catch (error) {
       console.error('报告生成失败:', error)
       toast({

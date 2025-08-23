@@ -87,7 +87,7 @@ export class ReportService {
   /**
    * 生成报告
    * @param config 分析配置
-   * @returns 任务ID
+   * @returns 报告ID
    */
   async generateReport(config: AnalysisConfig): Promise<string> {
     try {
@@ -95,19 +95,6 @@ export class ReportService {
       this.ensureMainWindow()
 
       logger.info('Starting report generation...')
-
-      // // 使用TaskManager创建任务
-      // const taskId = await this.taskManager.createTask()
-
-      // logger.info(`Report generation task created with ID: ${taskId}`)
-
-      // // 异步执行报告生成
-      // this.executeReportGeneration(taskId, config).catch((error) => {
-      //   logger.error(`Report generation failed for task ${taskId}:`, error)
-      //   this.updateTaskStatus(taskId, 'failed', 100, `报告生成失败: ${error.message}`)
-      // })
-
-      // return taskId
 
       const reportId = uuidv4()
 
@@ -117,48 +104,77 @@ export class ReportService {
         throw new Error('未找到符合条件的聊天记录')
       }
 
-      // 步骤3: 执行AI分析
-      // TODO: 改为流式返回、不再需要 TaskStatus
-      // const analysisResult = await this.performAIAnalysis(messages, config)
-      const stream = await this.performAIAnalysis(messages, config)
-      let analysisResult = ''
-
-      for await (const chunk of stream) {
-        const token = chunk.choices?.[0]?.delta?.content || ''
-        if (token) {
-          analysisResult += token
-          // 将每个 token 实时发送到渲染进程
-          this.mainWindow?.webContents.send('report-stream-chunk', {
-            reportId,
-            token,
-            content: analysisResult
-          })
-        }
-      }
-
-      // 流结束后，发送完成信号
-      this.mainWindow?.webContents.send('report-stream-end', {
+      // 立即发送开始信号
+      this.mainWindow?.webContents.send('report-stream-start', {
         reportId,
-        finalContent: analysisResult
+        messageCount: messages.length,
+        config: {
+          chatPartner: config.chatPartner,
+          timeRange: config.timeRange,
+          promptName: config.prompt.name
+        }
       })
 
-      // 步骤4: 生成报告文件
-      logger.info(`Analysis result: ${analysisResult}`)
-      const reportMeta = await this.generateReportFile(
-        reportId,
-        config,
-        analysisResult,
-        messages.length
-      )
-
-      // 步骤5: 保存报告元数据
-      await this.databaseService.saveReport(reportMeta)
+      // 异步执行报告生成
+      this.startReportGeneration(reportId, messages, config).catch((error) => {
+        logger.error(`Report generation failed for ${reportId}:`, error)
+        this.mainWindow?.webContents.send('report-stream-error', {
+          reportId,
+          error: error.message
+        })
+      })
 
       return reportId
     } catch (error) {
       logger.error('Failed to start report generation:', error)
       throw error
     }
+  }
+
+  /**
+   * 启动报告生成任务
+   * @param config 分析配置
+   * @returns 任务ID
+   */
+  async startReportGeneration(
+    reportId: string,
+    messages: ChatMessage[],
+    config: AnalysisConfig
+  ): Promise<void> {
+    // 步骤3: 执行AI分析
+    const stream = await this.performAIAnalysis(messages, config)
+    let analysisResult = ''
+
+    for await (const chunk of stream) {
+      const token = chunk.choices?.[0]?.delta?.content || ''
+      if (token) {
+        analysisResult += token
+        // 将每个 token 实时发送到渲染进程
+        this.mainWindow?.webContents.send('report-stream-chunk', {
+          reportId,
+          token,
+          content: analysisResult
+        })
+      }
+    }
+
+    // 步骤4: 生成报告文件
+    logger.info(`Analysis result: ${analysisResult}`)
+    const reportMeta = await this.generateReportFile(
+      reportId,
+      config,
+      analysisResult,
+      messages.length
+    )
+
+    // 步骤5: 保存报告元数据
+    await this.databaseService.saveReport(reportMeta)
+
+    // 所有操作完成后，才发送完成信号
+    this.mainWindow?.webContents.send('report-stream-end', {
+      reportId,
+      finalContent: analysisResult
+    })
   }
 
   /**
@@ -279,8 +295,8 @@ export class ReportService {
     messageCount: number
   ): Promise<ReportMeta> {
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const fileName = `report-${timestamp}.md`
+      const timestamp = dayjs().format('YYYYMMDDHHmmss')
+      const fileName = `${timestamp}.md`
       const filePath = path.join(this.reportsDir, fileName)
 
       // 生成报告内容

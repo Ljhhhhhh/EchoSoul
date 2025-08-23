@@ -44,6 +44,20 @@ export const useStreamingReport = ({ reportId, enabled }: UseStreamingReportOpti
     }
 
     // 事件处理器
+    const handleStreamStart = (
+      event: any,
+      data: { reportId: string; messageCount: number; config: any }
+    ) => {
+      if (data.reportId === reportId) {
+        setState((prev) => ({
+          ...prev,
+          status: 'streaming',
+          error: undefined
+        }))
+        console.log('报告生成开始，消息数量:', data.messageCount)
+      }
+    }
+
     const handleStreamChunk = (
       event: any,
       data: { reportId: string; token: string; content: string }
@@ -80,6 +94,7 @@ export const useStreamingReport = ({ reportId, enabled }: UseStreamingReportOpti
 
     // 使用window.electron.ipcRenderer来监听事件
     const { ipcRenderer } = window.electron
+    ipcRenderer.on('report-stream-start', handleStreamStart)
     ipcRenderer.on('report-stream-chunk', handleStreamChunk)
     ipcRenderer.on('report-stream-end', handleStreamEnd)
     ipcRenderer.on('report-stream-error', handleStreamError)
@@ -92,9 +107,10 @@ export const useStreamingReport = ({ reportId, enabled }: UseStreamingReportOpti
 
     return () => {
       // 清理事件监听器
-      ipcRenderer.removeListener('report-stream-chunk', handleStreamChunk)
-      ipcRenderer.removeListener('report-stream-end', handleStreamEnd)
-      ipcRenderer.removeListener('report-stream-error', handleStreamError)
+      ipcRenderer.removeAllListeners('report-stream-start')
+      ipcRenderer.removeAllListeners('report-stream-chunk')
+      ipcRenderer.removeAllListeners('report-stream-end')
+      ipcRenderer.removeAllListeners('report-stream-error')
     }
   }, [reportId, enabled])
 

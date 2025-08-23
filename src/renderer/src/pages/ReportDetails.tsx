@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react'
 
 // 新的hooks和组件
-import { useReportRoute } from '@/hooks/useReportRoute'
 import { useStreamingReport } from '@/hooks/useStreamingReport'
 import { useReportFile } from '@/hooks/useReportFile'
 import { StreamingMarkdown } from '@/components/StreamingMarkdown'
@@ -29,38 +27,29 @@ import { StreamingMarkdown } from '@/components/StreamingMarkdown'
  * 2. 查看模式：?id=reportId - 显示已生成的报告文件
  */
 const ReportDetails = (): React.ReactElement => {
-  const { taskId } = useParams()
   const navigate = useNavigate()
-
-  // 路由状态管理
-  const { reportId, isGenerating, isViewingMode } = useReportRoute()
+  const { reportId } = useParams()
 
   // 流式报告生成状态（生成模式）
   const streamingReport = useStreamingReport({
-    reportId: taskId || '',
-    enabled: isGenerating && Boolean(taskId)
+    reportId: reportId || '',
+    enabled: Boolean(reportId)
   })
 
   // 报告文件读取状态（查看模式）
   const reportFile = useReportFile({
     reportId: reportId,
-    enabled: isViewingMode
+    enabled: streamingReport.status === 'completed' || streamingReport.status === 'failed'
   })
 
-  // 页面加载时的数据初始化
-  useEffect(() => {
-    if (isGenerating && taskId) {
-      // 生成模式：触发报告生成
-      console.log('开始生成报告，任务ID:', taskId)
-      window.api.report.generateReport(taskId).catch((error) => {
-        console.error('启动报告生成失败:', error)
-        streamingReport.setError('启动报告生成失败: ' + error.message)
-      })
-    }
-  }, [isGenerating, taskId, streamingReport])
+  // 判断是否正在生成
+  const isGenerating =
+    streamingReport.status === 'pending' || streamingReport.status === 'streaming'
 
   // 获取内容和状态
   const getContentAndStatus = () => {
+    console.log('isGenerating', isGenerating)
+    console.log('reportFile', reportFile)
     if (isGenerating) {
       return {
         content: streamingReport.content,
@@ -103,14 +92,14 @@ const ReportDetails = (): React.ReactElement => {
   const renderActions = () => {
     if (isGenerating) {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate('/reports')}
             disabled={isLoading}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 w-4 h-4" />
             返回列表
           </Button>
           {status === 'streaming' && (
@@ -120,7 +109,7 @@ const ReportDetails = (): React.ReactElement => {
               onClick={() => streamingReport.reset()}
               disabled={isLoading}
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="mr-2 w-4 h-4" />
               重新生成
             </Button>
           )}
@@ -128,9 +117,9 @@ const ReportDetails = (): React.ReactElement => {
       )
     } else {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <Button variant="outline" size="sm" onClick={() => navigate('/reports')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 w-4 h-4" />
             返回列表
           </Button>
           <Button
@@ -142,7 +131,7 @@ const ReportDetails = (): React.ReactElement => {
             }}
             disabled={!content}
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="mr-2 w-4 h-4" />
             下载报告
           </Button>
           <Button
@@ -154,7 +143,7 @@ const ReportDetails = (): React.ReactElement => {
             }}
             disabled={!content}
           >
-            <Share2 className="w-4 h-4 mr-2" />
+            <Share2 className="mr-2 w-4 h-4" />
             分享报告
           </Button>
         </div>
@@ -167,9 +156,9 @@ const ReportDetails = (): React.ReactElement => {
       <div className="flex flex-col flex-1">
         {/* 头部 */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-          <div className="flex items-center gap-4 px-6 h-14">
+          <div className="flex gap-4 items-center px-6 h-14">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <Brain className="w-5 h-5 text-primary" />
               <span className="font-semibold">EchoSoul</span>
             </div>
@@ -179,8 +168,8 @@ const ReportDetails = (): React.ReactElement => {
         </div>
 
         {/* 主要内容区域 */}
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-4xl p-6 mx-auto space-y-6">
+        <div className="overflow-auto flex-1">
+          <div className="p-6 mx-auto space-y-6 max-w-4xl">
             {/* 报告头部信息 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -189,15 +178,15 @@ const ReportDetails = (): React.ReactElement => {
             >
               <Card>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <CardTitle>{pageInfo.title}</CardTitle>
                         <Badge variant={pageInfo.badge.variant}>{pageInfo.badge.text}</Badge>
                       </div>
                       <CardDescription>{pageInfo.description}</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex gap-2 items-center text-sm text-muted-foreground">
                       <Clock className="w-4 h-4" />
                       <span>{new Date().toLocaleString()}</span>
                     </div>
@@ -210,19 +199,19 @@ const ReportDetails = (): React.ReactElement => {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          <MessageCircle className="w-6 h-6 mx-auto mb-1" />
+                          <MessageCircle className="mx-auto mb-1 w-6 h-6" />
                         </div>
                         <div className="text-sm text-muted-foreground">分析消息</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          <Brain className="w-6 h-6 mx-auto mb-1" />
+                          <Brain className="mx-auto mb-1 w-6 h-6" />
                         </div>
                         <div className="text-sm text-muted-foreground">AI分析</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          <Wifi className="w-6 h-6 mx-auto mb-1" />
+                          <Wifi className="mx-auto mb-1 w-6 h-6" />
                         </div>
                         <div className="text-sm text-muted-foreground">实时流式</div>
                       </div>

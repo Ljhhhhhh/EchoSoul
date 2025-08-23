@@ -283,18 +283,26 @@ export class DatabaseService {
 
     if (!row) return null
 
+    const reportContent = fs.readFileSync(row.file_path, 'utf-8')
+
     return {
       id: row.id,
       date: row.date,
       title: row.title,
       filePath: row.file_path,
       metadata: JSON.parse(row.metadata),
-      createdAt: row.created_at
+      createdAt: row.created_at,
+      content: reportContent
     }
   }
 
   async deleteReport(id: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized')
+
+    const report = await this.getReportById(id)
+    if (report) {
+      fs.unlinkSync(report.filePath)
+    }
 
     const stmt = this.db.prepare('DELETE FROM reports WHERE id = ?')
     const result = stmt.run(id)
