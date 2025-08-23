@@ -2,8 +2,16 @@
  * Prompt管理Hook
  */
 import { useState, useEffect } from 'react'
-import type { PromptTemplate, PromptState } from '../types'
-import { PromptService } from '../services/promptService'
+import type { PromptTemplate } from '@types'
+
+import { promptService } from '@/services/promptService'
+
+interface PromptState {
+  prompts: PromptTemplate[]
+  selectedPrompt: PromptTemplate | null
+  isLoading: boolean
+  error: string | null
+}
 
 export const usePrompts = () => {
   const [state, setState] = useState<PromptState>({
@@ -18,7 +26,8 @@ export const usePrompts = () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
     try {
-      const prompts = await PromptService.loadPrompts()
+      // 使用新的服务获取所有提示词
+      const prompts = await promptService.getAllPrompts()
       setState((prev) => ({
         ...prev,
         prompts,
@@ -40,7 +49,7 @@ export const usePrompts = () => {
 
   // 根据ID选择Prompt
   const selectPromptById = (id: string) => {
-    const prompt = PromptService.findPromptById(state.prompts, id)
+    const prompt = state.prompts.find((p) => p.id === id) || null
     selectPrompt(prompt)
   }
 

@@ -77,9 +77,6 @@ const GenerateReport: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // TODO: 打印当前条件，查看联系人相关配置是否正确
-    console.log('当前条件:', formState.formData)
-
     // 保存当前条件
     conditionsData.saveCondition(
       formState.formData,

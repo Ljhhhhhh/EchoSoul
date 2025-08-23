@@ -103,7 +103,7 @@ const Settings = (): React.ReactElement => {
               onClick={handleSave}
               className="px-8 text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
             >
-              保存所有设置（接口还没有支持、测试AI服务、SQlite数据库验证）
+              保存所有设置
             </Button>
           </motion.div>
         </div>

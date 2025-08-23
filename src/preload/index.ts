@@ -82,6 +82,33 @@ const api = {
       ipcRenderer.invoke('ai:send-chat-request', serviceId, messages, options)
   },
 
+  // ... existing code ...
+  // 提示词管理相关的API
+  prompt: {
+    // 获取所有提示词
+    getAll: (options?: any) => ipcRenderer.invoke('prompt:getAll', options),
+    // 根据ID获取提示词
+    getById: (id: string) => ipcRenderer.invoke('prompt:getById', id),
+    // 创建新提示词
+    create: (data: any) => ipcRenderer.invoke('prompt:create', data),
+    // 更新提示词
+    update: (id: string, updates: any) => ipcRenderer.invoke('prompt:update', id, updates),
+    // 删除提示词
+    delete: (id: string) => ipcRenderer.invoke('prompt:delete', id),
+    // 复制提示词
+    duplicate: (id: string) => ipcRenderer.invoke('prompt:duplicate', id),
+    // 获取用户自定义提示词
+    getUserPrompts: () => ipcRenderer.invoke('prompt:getUserPrompts'),
+    // 获取内置提示词
+    getBuiltInPrompts: () => ipcRenderer.invoke('prompt:getBuiltInPrompts'),
+    // 搜索提示词
+    search: (query: string) => ipcRenderer.invoke('prompt:search', query),
+    // 验证提示词数据
+    validate: (data: any) => ipcRenderer.invoke('prompt:validate', data),
+    // 获取统计信息
+    getStats: () => ipcRenderer.invoke('prompt:getStats')
+  },
+
   // 报告生成相关的API
   report: {
     // 生成报告

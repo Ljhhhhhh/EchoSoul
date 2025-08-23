@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import type { PromptTemplate } from '../../types'
+import type { PromptTemplate } from '@types'
 
 interface PromptSelectorProps {
   prompts: PromptTemplate[]

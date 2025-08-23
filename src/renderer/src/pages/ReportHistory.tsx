@@ -183,15 +183,15 @@ const ReportHistory = (): React.ReactElement => {
                     <CardContent className="space-y-4">
                       <p className="text-sm text-gray-600 line-clamp-3">{report.summary}</p>
                       <div className="flex gap-2">
+                        <Button variant="ghost" size="sm">
+                          <Download className="w-4 h-4" />
+                        </Button>
                         <Link to={`/report/${report.id}`} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full">
                             <Eye className="mr-2 w-4 h-4" />
                             查看详情
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>

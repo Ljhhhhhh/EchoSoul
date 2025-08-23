@@ -7,7 +7,7 @@ import type {
   PromptOperationResult,
   PromptQueryOptions
 } from '@types'
-import { PromptTemplateSchema, NewPromptTemplateSchema, UpdatePromptTemplateSchema } from '@types'
+import { NewPromptTemplateSchema, UpdatePromptTemplateSchema } from '@types'
 import { BUILT_IN_PROMPTS } from '../utils/prompt'
 import { z } from 'zod'
 
