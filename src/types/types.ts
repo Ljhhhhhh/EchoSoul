@@ -136,7 +136,8 @@ export const ReportMetaSchema = z.object({
     })
   }),
   createdAt: z.string(),
-  content: z.optional(z.string())
+  content: z.optional(z.string()),
+  summary: z.optional(z.string())
 })
 
 export type ReportMeta = z.infer<typeof ReportMetaSchema>
@@ -155,6 +156,18 @@ export const AnalysisConfigSchema = z.object({
     content: z.string()
   })
 })
+
+export interface Report {
+  id: string
+  title: string
+  summary: string
+  createdAt: string
+  timeRange: string
+  targetType: string
+  analysisType: string
+  messageCount: number
+  content?: string
+}
 
 export type AnalysisConfig = z.infer<typeof AnalysisConfigSchema>
 

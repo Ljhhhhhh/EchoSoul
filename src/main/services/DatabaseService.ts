@@ -12,7 +12,7 @@ const logger = createLogger('DatabaseService')
 export class DatabaseService {
   private db: Database.Database | null = null
   private dbPath: string
-  private readonly DB_VERSION = 2
+  private readonly DB_VERSION = 3
 
   constructor() {
     const userDataPath = app.getPath('userData')
@@ -76,6 +76,7 @@ export class DatabaseService {
         file_path TEXT NOT NULL,
         metadata TEXT NOT NULL,
         created_at TEXT NOT NULL,
+        summary TEXT,
         UNIQUE(id)
       )
     `)
@@ -189,6 +190,22 @@ export class DatabaseService {
         logger.info('Migration to version 2 completed')
       }
 
+      if (currentVersion < 3) {
+        // 迁移到版本 3：为 reports 表添加 summary 字段
+        logger.info('Migrating to version 3: Adding summary field to reports table')
+
+        // 检查字段是否已存在，如果不存在则添加
+        try {
+          this.db.exec('ALTER TABLE reports ADD COLUMN summary TEXT')
+          logger.info('Added summary column to reports table')
+        } catch (error) {
+          // 字段可能已存在，忽略错误
+          logger.debug('Summary column may already exist:', error)
+        }
+
+        logger.info('Migration to version 3 completed')
+      }
+
       setVersion.run(this.DB_VERSION)
       logger.info('Database migrations completed')
     }
@@ -217,8 +234,8 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized')
 
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO reports (id, date, title, file_path, metadata, created_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO reports (id, date, title, file_path, metadata, created_at, summary)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `)
 
     stmt.run(
@@ -227,7 +244,8 @@ export class DatabaseService {
       report.title,
       report.filePath,
       JSON.stringify(report.metadata),
-      report.createdAt
+      report.createdAt,
+      report.summary || null
     )
 
     logger.debug(`Saved report: ${report.id}`)
@@ -237,7 +255,7 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized')
 
     const stmt = this.db.prepare(`
-      SELECT id, date, title, file_path, metadata, created_at
+      SELECT id, date, title, file_path, metadata, created_at, summary
       FROM reports
       ORDER BY date DESC, created_at DESC
     `)
@@ -249,6 +267,7 @@ export class DatabaseService {
       file_path: string
       metadata: string
       created_at: string
+      summary: string | null
     }>
 
     return rows.map((row) => ({
@@ -257,7 +276,8 @@ export class DatabaseService {
       title: row.title,
       filePath: row.file_path,
       metadata: JSON.parse(row.metadata),
-      createdAt: row.created_at
+      createdAt: row.created_at,
+      summary: row.summary || undefined
     }))
   }
 
@@ -265,7 +285,7 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized')
 
     const stmt = this.db.prepare(`
-      SELECT id, date, title, file_path, metadata, created_at
+      SELECT id, date, title, file_path, metadata, created_at, summary
       FROM reports
       WHERE id = ?
     `)
@@ -278,12 +298,21 @@ export class DatabaseService {
           file_path: string
           metadata: string
           created_at: string
+          summary: string | null
         }
       | undefined
 
     if (!row) return null
 
-    const reportContent = fs.readFileSync(row.file_path, 'utf-8')
+    // 从文件中读取 content
+    let reportContent: string | undefined
+    if (fs.existsSync(row.file_path)) {
+      try {
+        reportContent = fs.readFileSync(row.file_path, 'utf-8')
+      } catch (error) {
+        logger.warn(`Failed to read report file ${row.file_path}:`, error)
+      }
+    }
 
     return {
       id: row.id,
@@ -292,7 +321,8 @@ export class DatabaseService {
       filePath: row.file_path,
       metadata: JSON.parse(row.metadata),
       createdAt: row.created_at,
-      content: reportContent
+      content: reportContent,
+      summary: row.summary || undefined
     }
   }
 
@@ -312,6 +342,24 @@ export class DatabaseService {
     }
 
     logger.debug(`Deleted report: ${id}`)
+  }
+
+  async updateReportSummary(id: string, summary: string): Promise<boolean> {
+    if (!this.db) throw new Error('Database not initialized')
+
+    const stmt = this.db.prepare(`
+      UPDATE reports
+      SET summary = ?
+      WHERE id = ?
+    `)
+
+    const result = stmt.run(summary, id)
+    const success = result.changes > 0
+
+    if (success) {
+      logger.debug(`Updated report summary: ${id}`)
+    }
+    return success
   }
 
   // 配置相关操作

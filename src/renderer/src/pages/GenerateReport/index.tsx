@@ -5,12 +5,10 @@ import React from 'react'
 import { Sparkles, Wand2 } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { QuickSelectSection } from './components/QuickSelectSection'
 import { TimeRangeSelector } from './components/TimeRangeSelector'
 import { PromptSelector } from './components/PromptSelector'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { useContacts } from './hooks/useContacts'
-import { useConditions } from './hooks/useConditions'
 import { usePrompts } from './hooks/usePrompts'
 import { useFormState } from './hooks/useFormState'
 import { useAiServices } from './hooks/useAiServices'
@@ -27,7 +25,6 @@ const GenerateReport: React.FC = () => {
     contactsData.chatRooms,
     aiServicesData.aiServices
   )
-  const conditionsData = useConditions()
 
   // 当AI服务加载完成且没有选中服务时，自动选择默认服务
   React.useEffect(() => {
@@ -41,48 +38,17 @@ const GenerateReport: React.FC = () => {
         formState.updateField('selectedAiService', defaultServiceId)
       }
     }
-  }, [aiServicesData.loading, aiServicesData.aiServices, formState.formData.selectedAiService])
-
-  // 应用保存的条件
-  const handleApplyCondition = (condition: any) => {
-    formState.updateFormData({
-      timeRange: condition.timeRange,
-      customStartDate: condition.customStartDate,
-      customEndDate: condition.customEndDate,
-      targetType: condition.targetType,
-      // 将数组格式的联系人转换为单个联系人（取第一个）
-      selectedContacts: Array.isArray(condition.selectedContacts)
-        ? condition.selectedContacts[0] || null
-        : condition.selectedContacts,
-      analysisType: condition.analysisType,
-      customPrompt: condition.customPrompt,
-      selectedAiService: condition.selectedAiService || aiServicesData.getDefaultServiceId()
-    })
-
-    // 同步选择的Prompt
-    const promptId =
-      typeof condition.analysisType === 'object'
-        ? condition.analysisType?.id
-        : condition.analysisType
-    if (promptId) {
-      promptsData.selectPromptById(promptId)
-    }
-
-    conditionsData.applyCondition(condition, () => {
-      // 显示成功提示逻辑可以在这里处理
-    })
-  }
+  }, [
+    aiServicesData.loading,
+    aiServicesData.aiServices,
+    formState.formData.selectedAiService,
+    aiServicesData,
+    formState
+  ])
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // 保存当前条件
-    conditionsData.saveCondition(
-      formState.formData,
-      formState.timeRanges,
-      promptsData.selectedPrompt
-    )
 
     // 提交表单
     await formState.submitForm()
@@ -104,9 +70,9 @@ const GenerateReport: React.FC = () => {
   return (
     <div className="flex bg-gray-50">
       <main className="flex-1 p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="max-w-4xl mx-auto">
           {/* 页面标题 */}
-          <div className="flex gap-4 items-center mb-6">
+          <div className="flex items-center gap-4 mb-6">
             <SidebarTrigger />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">生成分析报告</h1>
@@ -114,17 +80,10 @@ const GenerateReport: React.FC = () => {
             </div>
           </div>
 
-          {/* 快速选择区域 */}
-          <QuickSelectSection
-            conditions={conditionsData.sortedConditions}
-            showConditions={conditionsData.showSavedConditions}
-            onToggleDisplay={conditionsData.toggleDisplay}
-            onApplyCondition={handleApplyCondition}
-            onDeleteCondition={conditionsData.deleteCondition}
-          />
+          {/* 快速选择区域已移除 */}
 
           {/* 主要配置区域 */}
-          <div className="mx-auto max-w-4xl">
+          <div className="max-w-4xl mx-auto">
             <Card className="bg-white border-gray-200 shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl text-gray-800">分析配置</CardTitle>
@@ -174,17 +133,17 @@ const GenerateReport: React.FC = () => {
                     <Button
                       type="submit"
                       disabled={formState.isGenerating || !formState.isFormValid}
-                      className="w-full h-12 text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+                      className="w-full h-12 text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
                       onClick={handleSubmit}
                     >
                       {formState.isGenerating ? (
                         <>
-                          <Wand2 className="mr-2 w-4 h-4 animate-spin" />
+                          <Wand2 className="w-4 h-4 mr-2 animate-spin" />
                           正在生成报告...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="mr-2 w-4 h-4" />
+                          <Sparkles className="w-4 h-4 mr-2" />
                           生成分析报告
                         </>
                       )}

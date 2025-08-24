@@ -72,9 +72,9 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="bg-gradient-to-br border-purple-200 from-purple-50/50 to-pink-50/50">
+      <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
         <CardHeader>
-          <CardTitle className="flex gap-2 items-center text-purple-800">
+          <CardTitle className="flex items-center gap-2 text-purple-800">
             <Brain className="w-5 h-5" />
             AI 服务配置
           </CardTitle>
@@ -101,7 +101,7 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
             </div>
           )}
 
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h4 className="font-medium text-purple-800">AI 配置列表</h4>
             <Button
               onClick={() => setShowAddConfig(true)}
@@ -143,16 +143,6 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
                 <p className="text-sm">点击&ldquo;添加配置&rdquo;按钮开始添加</p>
               </div>
             )}
-          </div>
-
-          <div className="p-4 rounded-lg bg-purple-100/50">
-            <h4 className="mb-2 font-medium text-purple-800">使用说明</h4>
-            <ul className="space-y-1 text-sm text-purple-700">
-              <li>• 可以为同一个服务商添加多个不同的配置（不同模型、不同环境等）</li>
-              <li>• 通过顶部下拉框快速切换当前使用的配置</li>
-              <li>• 只有启用的配置才能被选择使用</li>
-              <li>• 支持自定义服务商，可配置任意兼容 OpenAI API 的服务</li>
-            </ul>
           </div>
 
           <div className="p-4 rounded-lg bg-green-100/50">

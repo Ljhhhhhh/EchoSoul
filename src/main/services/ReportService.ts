@@ -1,5 +1,4 @@
 import { app, BrowserWindow } from 'electron'
-import { EventEmitter } from 'events'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 import dayjs from 'dayjs'
@@ -178,52 +177,6 @@ export class ReportService {
   }
 
   /**
-   * 执行报告生成流程
-   */
-  private async executeReportGeneration(taskId: string, config: AnalysisConfig): Promise<void> {
-    try {
-      // 步骤1: 获取聊天数据
-      await this.updateTaskStatus(taskId, 'running', 10, '正在获取聊天数据...')
-      const messages = await this.fetchChatMessages(config)
-
-      if (messages.length === 0) {
-        throw new Error('未找到符合条件的聊天记录')
-      }
-
-      // 步骤2: 准备AI分析
-      await this.updateTaskStatus(taskId, 'running', 30, '正在准备AI分析...')
-
-      // 步骤3: 执行AI分析
-      // TODO: 改为流式返回、不再需要 TaskStatus
-      await this.updateTaskStatus(taskId, 'running', 50, '正在执行AI分析...')
-      // const analysisResult = await this.performAIAnalysis(messages, config)
-
-      // // 步骤4: 生成报告文件
-      // await this.updateTaskStatus(taskId, 'running', 80, '正在生成报告文件...')
-      // logger.info(`Analysis result: ${analysisResult}`)
-      // const reportMeta = await this.generateReportFile(
-      //   taskId,
-      //   config,
-      //   analysisResult,
-      //   messages.length
-      // )
-
-      // // 步骤5: 保存报告元数据
-      // await this.updateTaskStatus(taskId, 'running', 95, '正在保存报告信息...')
-      // await this.databaseService.saveReport(reportMeta)
-
-      // // 完成
-      // await this.updateTaskStatus(taskId, 'completed', 100, '报告生成完成')
-
-      // logger.info(`Report generation completed for task ${taskId}`)
-    } catch (error) {
-      logger.error(`Report generation failed for task ${taskId}:`, error)
-      await this.updateTaskStatus(taskId, 'failed', 100, `报告生成失败: ${error.message}`)
-      throw error
-    }
-  }
-
-  /**
    * 获取聊天消息
    */
   private async fetchChatMessages(config: AnalysisConfig): Promise<ChatMessage[]> {
@@ -317,10 +270,12 @@ export class ReportService {
           chatPartner: config.chatPartner,
           prompt: {
             id: config.prompt.id,
+            name: config.prompt.name,
             content: config.prompt.content
           },
           timeRange: config.timeRange
         },
+        summary: analysisResult.substring(0, 100) + '...',
         createdAt: new Date().toISOString()
       }
 
@@ -371,23 +326,6 @@ ${analysisResult}
     const endDate = dayjs(config.timeRange.end).format('YYYY.MM.DD')
 
     return `${chatPartner} - ${config.prompt.name} (${startDate}~${endDate})`
-  }
-
-  /**
-   * 更新任务状态
-   */
-  private async updateTaskStatus(
-    taskId: string,
-    status: TaskStatus['status'],
-    progress: number,
-    message: string
-  ): Promise<void> {
-    try {
-      await this.taskManager.updateTask(taskId, status, progress, message)
-      logger.debug(`Task ${taskId} status updated: ${status} (${progress}%) - ${message}`)
-    } catch (error) {
-      logger.error(`Failed to update task status for ${taskId}:`, error)
-    }
   }
 
   /**

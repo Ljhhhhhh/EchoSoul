@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Search, Filter, Clock, MessageCircle, Download, Eye } from 'lucide-react'
-import { Report } from '../data/reports'
+import { Report, PromptTemplate } from '@types'
+import { promptService } from '@/services/promptService'
 import dayjs from 'dayjs'
 
 // 适配器函数：将后端的ReportMeta转换为前端的Report格式
@@ -38,23 +39,32 @@ const ReportHistory = (): React.ReactElement => {
   const [filterType, setFilterType] = useState('all')
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
+  const [promptTypes, setPromptTypes] = useState<PromptTemplate[]>([])
 
   useEffect(() => {
-    const loadReports = async () => {
+    const loadData = async () => {
       try {
         setLoading(true)
-        const reportList = await window.api.report.getReports()
+
+        // 并行加载报告和提示词类型
+        const [reportList, prompts] = await Promise.all([
+          window.api.report.getReports(),
+          promptService.getAllPrompts()
+        ])
+
         const adaptedReports = reportList.map(adaptReportMeta)
         setReports(adaptedReports)
+        setPromptTypes(prompts)
       } catch (error) {
-        console.error('Failed to load reports:', error)
+        console.error('Failed to load data:', error)
         setReports([])
+        setPromptTypes([])
       } finally {
         setLoading(false)
       }
     }
 
-    loadReports()
+    loadData()
   }, [])
 
   const filteredReports = reports.filter((report) => {
@@ -65,18 +75,34 @@ const ReportHistory = (): React.ReactElement => {
     return matchesSearch && matchesFilter
   })
 
-  const analysisTypeColors: Record<string, string> = {
-    情感分析: 'bg-pink-100 text-pink-700',
-    人格分析: 'bg-purple-100 text-purple-700',
-    关系分析: 'bg-blue-100 text-blue-700',
-    工作氛围: 'bg-green-100 text-green-700',
-    情商提升: 'bg-orange-100 text-orange-700',
-    思维陷阱: 'bg-red-100 text-red-700'
+  // 动态生成分析类型颜色映射
+  const generateAnalysisTypeColors = () => {
+    const colors = [
+      'bg-pink-100 text-pink-700',
+      'bg-purple-100 text-purple-700',
+      'bg-blue-100 text-blue-700',
+      'bg-green-100 text-green-700',
+      'bg-orange-100 text-orange-700',
+      'bg-red-100 text-red-700',
+      'bg-cyan-100 text-cyan-700',
+      'bg-indigo-100 text-indigo-700',
+      'bg-yellow-100 text-yellow-700',
+      'bg-teal-100 text-teal-700'
+    ]
+
+    const colorMap: Record<string, string> = {}
+    promptTypes.forEach((prompt, index) => {
+      colorMap[prompt.name] = colors[index % colors.length]
+    })
+
+    return colorMap
   }
+
+  const analysisTypeColors = generateAnalysisTypeColors()
 
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
         <SidebarTrigger />
         <div className="flex-1">
           <h1 className="text-2xl font-semibold text-gray-800">历史报告</h1>
@@ -89,7 +115,7 @@ const ReportHistory = (): React.ReactElement => {
         </Link>
       </header>
 
-      <main className="overflow-auto flex-1 p-6">
+      <main className="flex-1 p-6 overflow-auto">
         <div className="mx-auto space-y-6 max-w-7xl">
           {/* Search and Filter */}
           <motion.div
@@ -98,7 +124,7 @@ const ReportHistory = (): React.ReactElement => {
             className="flex flex-col gap-4 md:flex-row"
           >
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2" />
+              <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <Input
                 placeholder="搜索报告..."
                 value={searchTerm}
@@ -108,17 +134,16 @@ const ReportHistory = (): React.ReactElement => {
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full md:w-48">
-                <Filter className="mr-2 w-4 h-4" />
+                <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="筛选类型" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部类型</SelectItem>
-                <SelectItem value="情感分析">情感分析</SelectItem>
-                <SelectItem value="人格分析">人格分析</SelectItem>
-                <SelectItem value="关系分析">关系分析</SelectItem>
-                <SelectItem value="工作氛围">工作氛围</SelectItem>
-                <SelectItem value="情商提升">情商提升</SelectItem>
-                <SelectItem value="思维陷阱">思维陷阱</SelectItem>
+                {promptTypes.map((prompt) => (
+                  <SelectItem key={prompt.id} value={prompt.name}>
+                    {prompt.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </motion.div>
@@ -131,7 +156,7 @@ const ReportHistory = (): React.ReactElement => {
               className="py-12 text-center"
             >
               <div className="mb-4 text-gray-400">
-                <Clock className="mx-auto w-16 h-16 animate-spin" />
+                <Clock className="w-16 h-16 mx-auto animate-spin" />
               </div>
               <h3 className="mb-2 text-lg font-medium text-gray-600">正在加载报告...</h3>
               <p className="text-gray-500">请稍候</p>
@@ -148,25 +173,25 @@ const ReportHistory = (): React.ReactElement => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="h-full bg-white border-gray-200 transition-all duration-300 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
+                  <Card className="h-full transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
                     <CardHeader>
-                      <div className="flex justify-between items-start">
+                      <div className="flex items-start justify-between">
                         <CardTitle className="flex-1 text-lg text-gray-800 line-clamp-2">
                           {report.title}
                         </CardTitle>
                       </div>
                       <CardDescription className="space-y-2">
-                        <div className="flex gap-4 items-center text-sm">
-                          <span className="flex gap-1 items-center">
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {report.createdAt}
                           </span>
-                          <span className="flex gap-1 items-center">
+                          <span className="flex items-center gap-1">
                             <MessageCircle className="w-3 h-3" />
                             {report.messageCount}条消息
                           </span>
                         </div>
-                        <div className="flex gap-2 items-center">
+                        <div className="flex items-center gap-2">
                           <Badge
                             className={
                               analysisTypeColors[report.analysisType] || 'bg-gray-100 text-gray-700'
@@ -188,7 +213,7 @@ const ReportHistory = (): React.ReactElement => {
                         </Button>
                         <Link to={`/report/${report.id}`} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full">
-                            <Eye className="mr-2 w-4 h-4" />
+                            <Eye className="w-4 h-4 mr-2" />
                             查看详情
                           </Button>
                         </Link>
@@ -207,7 +232,7 @@ const ReportHistory = (): React.ReactElement => {
               className="py-12 text-center"
             >
               <div className="mb-4 text-gray-400">
-                <Search className="mx-auto w-16 h-16" />
+                <Search className="w-16 h-16 mx-auto" />
               </div>
               <h3 className="mb-2 text-lg font-medium text-gray-600">没有找到匹配的报告</h3>
               <p className="mb-4 text-gray-500">尝试调整搜索条件或生成新的报告</p>
