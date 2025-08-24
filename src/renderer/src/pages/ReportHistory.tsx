@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,27 +11,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Search, Filter, Clock, MessageCircle, Download, Eye } from 'lucide-react'
+import ReportCard from '@/components/ReportCard'
+import { Search, Filter, Clock } from 'lucide-react'
 import { Report, PromptTemplate } from '@types'
 import { promptService } from '@/services/promptService'
-import dayjs from 'dayjs'
-
-// 适配器函数：将后端的ReportMeta转换为前端的Report格式
-const adaptReportMeta = (reportMeta: any): Report => {
-  return {
-    id: reportMeta.id,
-    title: reportMeta.title,
-    summary: reportMeta.metadata?.prompt?.content || '暂无摘要',
-    createdAt: dayjs(reportMeta.createdAt).format('YYYY-MM-DD'),
-    timeRange: reportMeta.metadata?.timeRange
-      ? `${dayjs(reportMeta.metadata.timeRange.start).format('YYYY-MM-DD')} - ${dayjs(reportMeta.metadata.timeRange.end).format('YYYY-MM-DD')}`
-      : '未知时间范围',
-    targetType: reportMeta.metadata?.chatPartner || '未知目标',
-    analysisType: reportMeta.metadata?.prompt?.name || '未知分析',
-    messageCount: reportMeta.metadata?.messageCount || 0
-  }
-}
 
 const ReportHistory = (): React.ReactElement => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -51,9 +33,7 @@ const ReportHistory = (): React.ReactElement => {
           window.api.report.getReports(),
           promptService.getAllPrompts()
         ])
-
-        const adaptedReports = reportList.map(adaptReportMeta)
-        setReports(adaptedReports)
+        setReports(reportList)
         setPromptTypes(prompts)
       } catch (error) {
         console.error('Failed to load data:', error)
@@ -74,31 +54,6 @@ const ReportHistory = (): React.ReactElement => {
     const matchesFilter = filterType === 'all' || report.analysisType === filterType
     return matchesSearch && matchesFilter
   })
-
-  // 动态生成分析类型颜色映射
-  const generateAnalysisTypeColors = () => {
-    const colors = [
-      'bg-pink-100 text-pink-700',
-      'bg-purple-100 text-purple-700',
-      'bg-blue-100 text-blue-700',
-      'bg-green-100 text-green-700',
-      'bg-orange-100 text-orange-700',
-      'bg-red-100 text-red-700',
-      'bg-cyan-100 text-cyan-700',
-      'bg-indigo-100 text-indigo-700',
-      'bg-yellow-100 text-yellow-700',
-      'bg-teal-100 text-teal-700'
-    ]
-
-    const colorMap: Record<string, string> = {}
-    promptTypes.forEach((prompt, index) => {
-      colorMap[prompt.name] = colors[index % colors.length]
-    })
-
-    return colorMap
-  }
-
-  const analysisTypeColors = generateAnalysisTypeColors()
 
   return (
     <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
@@ -133,7 +88,7 @@ const ReportHistory = (): React.ReactElement => {
               />
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-36">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="筛选类型" />
               </SelectTrigger>
@@ -167,60 +122,16 @@ const ReportHistory = (): React.ReactElement => {
           {!loading && (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredReports.map((report, index) => (
-                <motion.div
+                <ReportCard
                   key={report.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className="h-full transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="flex-1 text-lg text-gray-800 line-clamp-2">
-                          {report.title}
-                        </CardTitle>
-                      </div>
-                      <CardDescription className="space-y-2">
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {report.createdAt}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MessageCircle className="w-3 h-3" />
-                            {report.messageCount}条消息
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            className={
-                              analysisTypeColors[report.analysisType] || 'bg-gray-100 text-gray-700'
-                            }
-                          >
-                            {report.analysisType}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {report.targetType}
-                          </Badge>
-                        </div>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-gray-600 line-clamp-3">{report.summary}</p>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Link to={`/report/${report.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full">
-                            <Eye className="w-4 h-4 mr-2" />
-                            查看详情
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  report={report}
+                  index={index}
+                  showActions={true}
+                  onDownload={(report) => {
+                    console.log('下载报告:', report.id)
+                    // TODO: 实现下载功能
+                  }}
+                />
               ))}
             </div>
           )}

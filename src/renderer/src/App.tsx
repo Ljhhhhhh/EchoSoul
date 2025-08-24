@@ -9,7 +9,7 @@ import { AppSidebar } from './components/AppSidebar'
 import Dashboard from '@/pages/Dashboard'
 import GenerateReport from '@/pages/GenerateReport/index'
 import ReportHistory from '@/pages/ReportHistory'
-import ReportDetails from '@/pages/ReportDetails'
+import ReportDetail from '@renderer/pages/ReportDetail'
 import Settings from '@/pages/Settings/index'
 import NotFound from '@/pages/NotFound'
 import InitializationPage from '@/pages/InitializationPage'
@@ -55,7 +55,7 @@ function AppWithInitialization(): React.ReactElement {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/generate" element={<GenerateReport />} />
                   <Route path="/history" element={<ReportHistory />} />
-                  <Route path="/report/:reportId" element={<ReportDetails />} />
+                  <Route path="/report/:reportId" element={<ReportDetail />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

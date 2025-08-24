@@ -23,22 +23,7 @@ export function AppSidebar(): React.ReactElement {
 
   // 模拟状态数据 - 实际项目中应该从context或hooks获取
   const systemStatus = {
-    chatlogService: 'connected', // connected | disconnected | error
-    aiService: 'connected',
-    currentAiProvider: 'OpenAI GPT-4'
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return 'bg-green-500'
-      case 'disconnected':
-        return 'bg-gray-400'
-      case 'error':
-        return 'bg-red-500'
-      default:
-        return 'bg-gray-400'
-    }
+    chatlogService: 'connected' // connected | disconnected | error
   }
 
   const getStatusText = (status: string) => {
@@ -109,60 +94,62 @@ export function AppSidebar(): React.ReactElement {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* 系统状态区域 */}
+        {/* 系统状态与控制区域 - 简约设计 */}
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
-            <div className="px-3 py-3 space-y-3">
-              {/* 服务状态 */}
-              <div className="space-y-3">
+            <div className="px-3 pb-4 space-y-4">
+              {/* Chatlog 服务状态 - 极简设计 */}
+              <div className="relative p-3 transition-all duration-200 border rounded-lg group/status border-slate-200/80 bg-white/60 hover:bg-white/80 hover:border-slate-300/60">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-700">Chatlog服务</span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${getStatusColor(systemStatus.chatlogService)}`}
-                    />
-                    <span className="text-xs text-gray-600">
-                      {getStatusText(systemStatus.chatlogService)}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          systemStatus.chatlogService === 'connected'
+                            ? 'bg-emerald-500'
+                            : systemStatus.chatlogService === 'error'
+                              ? 'bg-red-500'
+                              : 'bg-amber-500'
+                        }`}
+                      ></div>
+                      {systemStatus.chatlogService === 'connected' && (
+                        <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500/30 animate-ping"></div>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">Chatlog 服务</span>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-700">AI服务</span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${getStatusColor(systemStatus.aiService)}`}
-                    />
-                    <span className="text-xs text-gray-600">
-                      {getStatusText(systemStatus.aiService)}
-                    </span>
-                  </div>
+                  <span className="text-xs text-slate-500">
+                    {getStatusText(systemStatus.chatlogService)}
+                  </span>
                 </div>
               </div>
 
-              {/* 分隔线 */}
-              <div className="border-t border-orange-100/50"></div>
+              {/* 简约分隔线 */}
+              <div className="h-px bg-slate-200/60"></div>
 
-              {/* 退出功能 - 使用与主导航相同的组件结构 */}
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={handleQuitApp}
-                    className="group/quit relative overflow-hidden rounded-lg border border-orange-100/50 bg-gradient-to-r from-orange-50/30 to-red-50/30 p-3 transition-all duration-300 ease-out hover:border-red-200 hover:from-red-50 hover:to-red-100 hover:shadow-md hover:shadow-red-100/50 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
-                  >
-                    <LogOut className="w-4 h-4 text-gray-600 transition-all duration-300 ease-out group-hover/quit:text-red-600 group-hover/quit:rotate-12 group-hover/quit:scale-110" />
-                    <span className="text-sm font-medium text-gray-700 transition-all duration-300 ease-out group-hover/quit:text-red-700">
-                      退出软件
-                    </span>
+              {/* 退出应用 - 简约设计 */}
+              <button
+                onClick={handleQuitApp}
+                className="group/exit relative w-full flex items-center gap-3 px-3 py-3 rounded-lg border border-slate-200/80 bg-white/60 transition-all duration-200 hover:bg-red-50/80 hover:border-red-200/80 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-200/50"
+              >
+                {/* 图标 */}
+                <div className="flex items-center justify-center w-8 h-8 transition-colors duration-200 rounded-md bg-slate-100 group-hover/exit:bg-red-100">
+                  <LogOut className="w-4 h-4 transition-colors duration-200 text-slate-600 group-hover/exit:text-red-600" />
+                </div>
 
-                    {/* 微光效果 */}
-                    <div className="absolute inset-0 transition-transform duration-700 ease-out -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover/quit:translate-x-full"></div>
+                {/* 文字内容 */}
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium transition-colors duration-200 text-slate-700 group-hover/exit:text-red-700">
+                    退出应用
+                  </div>
+                  <div className="text-xs transition-colors duration-200 text-slate-500 group-hover/exit:text-red-500">
+                    关闭 EchoSoul
+                  </div>
+                </div>
 
-                    {/* 背景粒子效果 */}
-                    <div className="absolute w-1 h-1 transition-all duration-500 ease-out rounded-full top-1 right-1 bg-red-300/0 group-hover/quit:bg-red-300/60 group-hover/quit:animate-pulse"></div>
-                    <div className="absolute w-1 h-1 transition-all duration-700 ease-out delay-100 rounded-full bottom-1 left-1 bg-red-300/0 group-hover/quit:bg-red-300/40 group-hover/quit:animate-ping"></div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
+                {/* 状态指示 */}
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/exit:bg-red-400 transition-colors duration-200"></div>
+              </button>
             </div>
           </SidebarGroupContent>
         </SidebarGroup>

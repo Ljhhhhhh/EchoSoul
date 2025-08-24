@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import ReportCard from '@/components/ReportCard'
 import dayjs from 'dayjs'
 import type { Report } from '@types'
 
@@ -46,13 +47,17 @@ const Dashboard = (): React.ReactElement => {
   const totalMessages = reports.reduce((sum, report) => sum + report.messageCount, 0)
   const uniqueTargets = [...new Set(reports.map((report) => report.targetType))].length
 
-  // 加载报告数据
+  // 加载报告数据 - 现在可以选择直接使用reportMeta或转换后的report
   const loadReports = async () => {
     try {
       setLoading(true)
       const reportList = await window.api.report.getReports()
+      // 方式1：预先转换数据（推荐用于批量处理）
       const adaptedReports = reportList.map(adaptReportMeta)
       setReports(adaptedReports)
+
+      // 方式2：也可以保存原始数据，在组件中直接使用reportMeta属性
+      // setRawReportMetas(reportList)
     } catch (error) {
       console.error('Failed to load reports:', error)
       toast.error('加载报告失败', {
@@ -328,45 +333,14 @@ const Dashboard = (): React.ReactElement => {
                   </motion.div>
                 ))
               ) : recentReports.length > 0 ? (
-                // 有报告数据
+                // 有报告数据 - 演示两种使用方式
                 recentReports.map((report, index) => (
-                  <motion.div
-                    key={report.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                  >
-                    <Link to={`/report/${report.id}`}>
-                      <Card className="transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30">
-                        <CardHeader>
-                          <CardTitle className="text-lg text-gray-800 line-clamp-1">
-                            {report.title}
-                          </CardTitle>
-                          <CardDescription className="flex items-center gap-4 text-sm">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {report.createdAt}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MessageCircle className="w-3 h-3" />
-                              {report.messageCount}条消息
-                            </span>
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600 line-clamp-2">{report.summary}</p>
-                          <div className="flex items-center gap-2 mt-3">
-                            <span className="px-2 py-1 text-xs text-orange-700 bg-orange-100 rounded-full">
-                              {report.analysisType}
-                            </span>
-                            <span className="px-2 py-1 text-xs text-blue-700 bg-blue-100 rounded-full">
-                              {report.targetType}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  </motion.div>
+                  // 方式1: 直接传入已转换的Report对象（当前使用）
+                  <ReportCard key={report.id} report={report} delay={0.3 + index * 0.1} />
+
+                  // 方式2: 直接传入原始ReportMeta数据让组件内部转换
+                  // <ReportCard key={reportMeta.id} reportMeta={reportMeta} delay={0.3 + index * 0.1} />
+                  // 这种方式在有原始reportMeta数据时使用，组件会自动调用内部的adaptReportMeta函数
                 ))
               ) : (
                 // 空状态

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import type { FormData, TimeRange, DataStats } from '../types'
 import { DataStatsService } from '../services/dataStatsService'
-import { useToast } from '../../../hooks/use-toast'
+import { useToast } from '@renderer/hooks/use-toast'
 
 const initialFormData: FormData = {
   timeRange: '',
@@ -170,8 +170,8 @@ export const useFormState = (
         duration: 2000
       })
 
-      // 立即跳转到报告详情页面，传递reportId作为参数
-      navigate(`/report/${reportId}`)
+      // 立即跳转到报告详情页面，传递reportId作为参数，并标识为生成模式
+      navigate(`/report/${reportId}?mode=generating`)
     } catch (error) {
       console.error('报告生成失败:', error)
       toast({
@@ -198,7 +198,16 @@ export const useFormState = (
   }
 
   const isFormValid = useMemo(() => {
-    return validateForm()
+    // 检查必填字段
+    const hasTimeRange = !!formData.timeRange
+    const hasAnalysisType = !!formData.analysisType
+    const hasSelectedContacts = !!formData.selectedContacts
+    const hasSelectedAiService = !!formData.selectedAiService
+
+    // 如果没有可用的AI服务，则不要求选择AI服务
+    const aiServiceRequired = aiServices.length > 0 ? hasSelectedAiService : true
+
+    return hasTimeRange && hasAnalysisType && hasSelectedContacts && aiServiceRequired
   }, [formData, aiServices])
 
   return {

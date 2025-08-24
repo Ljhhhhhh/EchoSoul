@@ -5,7 +5,7 @@ import { useReducer, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { FormData, TimeRange, DataStats } from '../types'
 import { DataStatsService } from '../services/dataStatsService'
-import { useToast } from '../../../hooks/use-toast'
+import { useToast } from '@renderer/hooks/use-toast'
 
 // 表单状态管理的 Action 类型
 type FormAction =
@@ -21,13 +21,16 @@ interface FormState extends FormData {
   isGenerating: boolean
 }
 
+// TODO: 默认AI服务选择逻辑
 const initialFormState: FormState = {
   timeRange: '',
   customStartDate: '',
   customEndDate: '',
   targetType: '',
   selectedContacts: null,
-  analysisType: '',
+  analysisType: null,
+  selectedAiService: null,
+  selectedContactName: null,
   customPrompt: '',
   isGenerating: false
 }
