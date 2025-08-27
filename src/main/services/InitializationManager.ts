@@ -75,18 +75,6 @@ export class InitializationManager extends EventEmitter {
   }
 
   /**
-   * 设置工作目录
-   */
-  setWorkDir(workDir: string): void {
-    try {
-      this.serviceContainer.initializationOrchestrator.setWorkDir(workDir)
-    } catch (error) {
-      logger.error('Failed to set work directory:', error)
-      throw error
-    }
-  }
-
-  /**
    * 获取配置信息
    * 这是一个新实现的方法，返回当前的配置状态
    */

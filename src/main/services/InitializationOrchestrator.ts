@@ -15,8 +15,6 @@ import {
   ERROR_MESSAGES,
   USER_ACTION_MESSAGES
 } from '../types/initialization'
-import * as path from 'path'
-import * as os from 'os'
 
 const logger = createLogger('InitializationOrchestrator')
 
@@ -176,7 +174,6 @@ export class InitializationOrchestrator extends EventEmitter {
     const steps = [
       InitializationStep.CHECKING_WECHAT,
       InitializationStep.GETTING_KEY,
-      InitializationStep.SELECTING_WORKDIR,
       InitializationStep.DECRYPTING_DATABASE,
       InitializationStep.STARTING_SERVICE
     ]
@@ -207,9 +204,6 @@ export class InitializationOrchestrator extends EventEmitter {
           break
         case InitializationStep.GETTING_KEY:
           result = await this.getWeChatKey()
-          break
-        case InitializationStep.SELECTING_WORKDIR:
-          result = await this.selectWorkDir()
           break
         case InitializationStep.DECRYPTING_DATABASE:
           result = await this.decryptDatabase()
@@ -286,33 +280,6 @@ export class InitializationOrchestrator extends EventEmitter {
       success: false,
       message: result.error || 'Failed to obtain WeChat key'
     }
-  }
-
-  /**
-   * 选择工作目录
-   */
-  private async selectWorkDir(): Promise<InitializationResult> {
-    const savedWorkDir = this.services.configService.getChatlogWorkDir()
-    const defaultWorkDir = path.join(os.homedir(), 'Documents', 'EchoSoul', 'chatlog_data')
-
-    if (savedWorkDir && savedWorkDir !== defaultWorkDir) {
-      logger.info('Using saved work directory:', savedWorkDir)
-      return { success: true, message: 'Using saved directory' }
-    }
-
-    // 发送事件让前端显示目录选择对话框
-    this.updateStepStatus(
-      InitializationStep.SELECTING_WORKDIR,
-      InitializationStatus.WAITING_USER_INPUT
-    )
-    this.updateStepUserAction(InitializationStep.SELECTING_WORKDIR, 'select_workdir')
-
-    // 暂时使用默认目录
-    const selectedDir = defaultWorkDir
-    this.services.configService.setChatlogWorkDir(selectedDir)
-    logger.info('Work directory selected:', selectedDir)
-
-    return { success: true, message: 'Directory selected', data: selectedDir }
   }
 
   /**
@@ -472,10 +439,6 @@ export class InitializationOrchestrator extends EventEmitter {
     if (!this.isRunning) {
       await this.executeStep(this.state.currentStep)
     }
-  }
-
-  setWorkDir(workDir: string): void {
-    this.services.configService.setChatlogWorkDir(workDir)
   }
 
   /**

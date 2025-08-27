@@ -145,7 +145,8 @@ const ReportDetail = (): React.ReactElement => {
             variant="outline"
             size="sm"
             onClick={() => {
-              // TODO: 实现分享功能
+              // TODO: 初始化的时候，也需要记录解密时间
+              // TODO: 实现分享功能，海报式的设计 可以看 github.com/gcui-art/markdown-to-image
               console.log('分享报告')
             }}
             disabled={!content}

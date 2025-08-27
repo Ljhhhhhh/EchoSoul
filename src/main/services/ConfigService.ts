@@ -3,6 +3,7 @@ import { createLogger } from '../utils/logger'
 import type { UserSettings } from '@types'
 import * as path from 'path'
 import * as os from 'os'
+import { app } from 'electron'
 
 const logger = createLogger('ConfigService')
 
@@ -28,6 +29,22 @@ export class ConfigService {
   private userStore: Store<UserSettings>
   private projectStore: Store<ProjectConfig>
 
+  /**
+   * 获取应用根目录
+   * 开发模式：项目根目录
+   * 生产模式：可执行文件所在目录的父目录
+   */
+  private getAppRootDir(): string {
+    if (app.isPackaged) {
+      // 生产模式：获取可执行文件所在目录的父目录
+      // 这样在 Windows 和 Mac 上都能得到应用的安装目录
+      return path.dirname(path.dirname(app.getPath('exe')))
+    } else {
+      // 开发模式：使用项目根目录
+      return process.cwd()
+    }
+  }
+
   private defaultUserSettings: UserSettings = {
     llmProvider: 'openrouter',
     aiServices: [],
@@ -42,8 +59,8 @@ export class ConfigService {
   private defaultProjectConfig: ProjectConfig = {
     wechat: {},
     chatlog: {
-      baseUrl: 'http://127.0.0.1:5030',
-      workDir: path.join(os.homedir(), 'Documents', 'EchoSoul', 'chatlog_data')
+      baseUrl: 'http://127.0.0.1:5030'
+      // workDir 将在 getChatlogWorkDir() 中动态计算
     },
     initialization: {
       autoStartService: true
@@ -127,12 +144,11 @@ export class ConfigService {
 
   /**
    * 获取聊天日志工作目录
+   * 使用应用根目录下的 data/chatlog_data 目录
    */
   getChatlogWorkDir(): string {
-    return this.projectStore.get(
-      'chatlog.workDir',
-      path.join(os.homedir(), 'Documents', 'EchoSoul', 'chatlog_data')
-    )
+    const defaultWorkDir = path.join(this.getAppRootDir(), 'data', 'chatlog_data')
+    return this.projectStore.get('chatlog.workDir', defaultWorkDir)
   }
 
   /**

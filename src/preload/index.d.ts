@@ -5,7 +5,6 @@ interface InitializationAPI {
   start: () => Promise<{ success: boolean; error?: string }>
   getState: () => Promise<any>
   retryFromStep: (step: string) => Promise<{ success: boolean; error?: string }>
-  selectWorkDir: () => Promise<{ success: boolean; workDir?: string; error?: string }>
   getDiagnostics: () => Promise<{
     success: boolean
     results?: any

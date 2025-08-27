@@ -10,7 +10,6 @@ import { Progress } from '@/components/ui/progress'
 // 图标导入
 import {
   Sparkles,
-  FolderOpen,
   RefreshCw,
   CheckCircle2,
   AlertCircle,
@@ -74,8 +73,7 @@ const InitializationPage: React.FC = () => {
         return <MessageSquare {...iconProps} />
       case 'getting_key':
         return <Key {...iconProps} />
-      case 'selecting_workdir':
-        return <FolderOpen {...iconProps} />
+
       case 'decrypting_database':
         return <Database {...iconProps} />
       case 'starting_service':
@@ -117,20 +115,6 @@ const InitializationPage: React.FC = () => {
       console.error('重试初始化失败:', error)
     } finally {
       setIsRetrying(false)
-    }
-  }, [])
-
-  // 选择工作目录
-  const selectWorkDir = useCallback(async () => {
-    try {
-      const result = await window.api.initialization.selectWorkDir()
-      if (result.success) {
-        console.log('工作目录选择成功:', result.workDir)
-      } else {
-        console.error('选择目录失败:', result.error)
-      }
-    } catch (error) {
-      console.error('选择目录失败:', error)
     }
   }, [])
 
@@ -254,15 +238,6 @@ const InitializationPage: React.FC = () => {
               {isRetrying ? '重试中...' : '重试初始化'}
             </Button>
           )}
-
-          {/* 选择目录按钮 */}
-          {currentStep?.status === 'waiting_user_input' &&
-            currentStep?.step === 'selecting_workdir' && (
-              <Button variant="default" size="lg" onClick={selectWorkDir} className="w-full">
-                <FolderOpen className="w-5 h-5 mr-2" />
-                选择工作目录
-              </Button>
-            )}
         </div>
 
         {/* 步骤概览 */}

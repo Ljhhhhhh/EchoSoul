@@ -5,7 +5,6 @@
 export enum InitializationStep {
   CHECKING_WECHAT = 'checking_wechat',
   GETTING_KEY = 'getting_key',
-  SELECTING_WORKDIR = 'selecting_workdir',
   DECRYPTING_DATABASE = 'decrypting_database',
   STARTING_SERVICE = 'starting_service',
   COMPLETED = 'completed'
@@ -70,18 +69,14 @@ export const INITIALIZATION_STEPS_CONFIG: Record<
   [InitializationStep.CHECKING_WECHAT]: {
     title: '检查微信状态',
     description: '正在检查微信是否正在运行...',
-    weight: 10
+    weight: 15
   },
   [InitializationStep.GETTING_KEY]: {
     title: '获取微信密钥',
     description: '正在获取微信数据解密密钥...',
-    weight: 20
+    weight: 25
   },
-  [InitializationStep.SELECTING_WORKDIR]: {
-    title: '选择数据目录',
-    description: '请选择解密数据的保存位置...',
-    weight: 10
-  },
+
   [InitializationStep.DECRYPTING_DATABASE]: {
     title: '解密数据库',
     description: '正在解密微信数据库文件...',
@@ -90,7 +85,7 @@ export const INITIALIZATION_STEPS_CONFIG: Record<
   [InitializationStep.STARTING_SERVICE]: {
     title: '启动服务',
     description: '正在启动 Chatlog 服务...',
-    weight: 20
+    weight: 10
   },
   [InitializationStep.COMPLETED]: {
     title: '初始化完成',
@@ -103,7 +98,7 @@ export const INITIALIZATION_STEPS_CONFIG: Record<
 export enum InitializationError {
   WECHAT_NOT_RUNNING = 'wechat_not_running',
   KEY_GENERATION_FAILED = 'key_generation_failed',
-  WORKDIR_INVALID = 'workdir_invalid',
+
   DECRYPTION_FAILED = 'decryption_failed',
   SERVICE_START_FAILED = 'service_start_failed',
   UNKNOWN_ERROR = 'unknown_error'
@@ -112,7 +107,7 @@ export enum InitializationError {
 export const ERROR_MESSAGES: Record<InitializationError, string> = {
   [InitializationError.WECHAT_NOT_RUNNING]: '微信未运行，请启动微信后重试',
   [InitializationError.KEY_GENERATION_FAILED]: '获取微信密钥失败，请确保微信正在运行',
-  [InitializationError.WORKDIR_INVALID]: '选择的目录无效或无权限访问',
+
   [InitializationError.DECRYPTION_FAILED]: '数据库解密失败，请检查密钥和数据路径',
   [InitializationError.SERVICE_START_FAILED]: 'Chatlog 服务启动失败',
   [InitializationError.UNKNOWN_ERROR]: '发生未知错误'
@@ -121,7 +116,7 @@ export const ERROR_MESSAGES: Record<InitializationError, string> = {
 // 用户操作提示
 export const USER_ACTION_MESSAGES: Record<string, string> = {
   start_wechat: '请启动微信应用，然后点击重试',
-  select_workdir: '请选择一个用于保存解密数据的目录',
+
   wait_decryption: '数据库解密可能需要几分钟时间，请耐心等待',
   restart_app: '如果问题持续存在，请重启应用'
 }

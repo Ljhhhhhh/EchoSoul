@@ -8,7 +8,6 @@ const api = {
     start: () => ipcRenderer.invoke('initialization:start'),
     getState: () => ipcRenderer.invoke('initialization:getState'),
     retryFromStep: (step: string) => ipcRenderer.invoke('initialization:retryFromStep', step),
-    selectWorkDir: () => ipcRenderer.invoke('initialization:selectWorkDir'),
     getDiagnostics: () => ipcRenderer.invoke('initialization:getDiagnostics'),
     hasDecryptedData: () => ipcRenderer.invoke('initialization:hasDecryptedData'),
 

@@ -1,4 +1,4 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { createLogger } from '../utils/logger'
 import { ProcessUtils } from '../utils/processUtils'
 import { InitializationManager } from '../services/InitializationManager'
@@ -93,34 +93,6 @@ export function registerInitializationHandlers(): void {
       return { success: true }
     } catch (error: any) {
       logger.error('Failed to retry from step:', error)
-      return { success: false, error: error.message }
-    }
-  })
-
-  // 选择工作目录
-  ipcMain.handle('initialization:selectWorkDir', async () => {
-    try {
-      const result = await dialog.showOpenDialog({
-        title: '选择数据保存目录',
-        message: '请选择一个目录来保存解密后的微信数据',
-        properties: ['openDirectory', 'createDirectory'],
-        buttonLabel: '选择此目录'
-      })
-
-      if (result.canceled || result.filePaths.length === 0) {
-        return { success: false, canceled: true }
-      }
-
-      const selectedPath = result.filePaths[0]
-
-      // 设置工作目录
-      if (initializationManager) {
-        initializationManager.setWorkDir(selectedPath)
-      }
-
-      return { success: true, path: selectedPath }
-    } catch (error: any) {
-      logger.error('Failed to select work directory:', error)
       return { success: false, error: error.message }
     }
   })
