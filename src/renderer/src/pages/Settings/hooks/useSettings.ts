@@ -7,12 +7,12 @@ import {
   createAIServiceConfig,
   extractSimpleConfig
 } from '../types'
-import { DEFAULT_SETTINGS, BUILT_IN_PROMPTS } from '../constants'
+import { DEFAULT_SETTINGS } from '../constants'
 
 export const useSettings = () => {
   const [settings, setSettings] = useState<SettingsState>({
     ...DEFAULT_SETTINGS,
-    promptTemplates: BUILT_IN_PROMPTS
+    promptTemplates: []
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,16 +24,25 @@ export const useSettings = () => {
         setLoading(true)
         setError(null)
 
-        // 加载AI服务配置
-        const aiServices = await window.api.aiService.getAllServices()
+        // 并行加载AI服务配置与提示词
+        const [aiServices, prompts] = await Promise.all([
+          window.api.aiService.getAllServices(),
+          window.api.prompt.getAll()
+        ])
+
+        const normalizedPrompts: PromptTemplate[] = (prompts || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          content: p.content,
+          isBuiltIn: Boolean(p.isBuiltIn),
+          createdAt: p.createdAt,
+          updatedAt: p.updatedAt
+        }))
 
         setSettings((prev) => ({
           ...prev,
           aiConfigs: aiServices,
-          promptTemplates: [
-            ...BUILT_IN_PROMPTS,
-            ...prev.promptTemplates.filter((p) => !p.isBuiltIn)
-          ]
+          promptTemplates: normalizedPrompts
         }))
       } catch (err) {
         console.error('Failed to initialize settings:', err)

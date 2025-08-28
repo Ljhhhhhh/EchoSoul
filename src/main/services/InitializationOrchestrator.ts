@@ -103,6 +103,8 @@ export class InitializationOrchestrator extends EventEmitter {
     })
   }
 
+  // TODO: 初始化完成应该要检查 project-config.json 是不是有 wechatKey 字段，如果没有，则需要提示用户重新初始化，现在好像只检查有没有解密后的workDir
+
   /**
    * 开始初始化流程
    */
@@ -281,6 +283,8 @@ export class InitializationOrchestrator extends EventEmitter {
       message: result.error || 'Failed to obtain WeChat key'
     }
   }
+
+  // TODO: 跟 chatlogService.ts 存在很多重复代码
 
   /**
    * 解密数据库

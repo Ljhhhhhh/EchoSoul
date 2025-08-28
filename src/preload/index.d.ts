@@ -69,11 +69,26 @@ interface TaskAPI {
   getStats: () => Promise<any>
 }
 
+interface PromptAPI {
+  getAll: (options?: any) => Promise<any[]>
+  getById: (id: string) => Promise<any | null>
+  create: (data: any) => Promise<{ success: boolean; message?: string; data?: any }>
+  update: (id: string, updates: any) => Promise<{ success: boolean; message?: string; data?: any }>
+  delete: (id: string) => Promise<{ success: boolean; message?: string }>
+  duplicate: (id: string) => Promise<{ success: boolean; message?: string; data?: any }>
+  getUserPrompts: () => Promise<any[]>
+  getBuiltInPrompts: () => Promise<any[]>
+  search: (query: string) => Promise<any[]>
+  validate: (data: any) => Promise<{ valid: boolean; errors?: string[] }>
+  getStats: () => Promise<{ total: number; userCreated: number; builtIn: number }>
+}
+
 interface CustomAPI {
   initialization: InitializationAPI
   chatlog: ChatlogAPI
   app: AppAPI
   aiService: AIServiceAPI
+  prompt: PromptAPI
   report: ReportAPI
   task: TaskAPI
 }

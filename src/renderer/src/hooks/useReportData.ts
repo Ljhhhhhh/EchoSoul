@@ -175,6 +175,7 @@ export function useReportData({
   )
 
   // 获取报告内容（带重试机制）
+  // TODO:
   const fetchReportContent = useCallback(
     async (filePath: string, attempt = 0): Promise<void> => {
       try {
@@ -296,21 +297,12 @@ export function useReportData({
       pollingAttempts.current = 0
       clearError()
 
-      const success = await window.api.task.cancel(taskId)
-      if (success) {
-        toast({
-          title: '任务已取消',
-          description: '报告生成任务已成功取消',
-          duration: 3000
-        })
-      } else {
-        toast({
-          title: '取消失败',
-          description: '无法取消当前任务，请稍后重试',
-          variant: 'destructive',
-          duration: 3000
-        })
-      }
+      await window.api.task.cancel(taskId)
+      toast({
+        title: '任务已取消',
+        description: '报告生成任务已成功取消',
+        duration: 3000
+      })
     } catch (err) {
       console.error('Failed to cancel task:', err)
       setErrorState('取消任务时发生错误', 'network')

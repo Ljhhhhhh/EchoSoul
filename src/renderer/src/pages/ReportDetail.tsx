@@ -19,6 +19,7 @@ import {
 import { useStreamingReport } from '@/hooks/useStreamingReport'
 import { useReportFile } from '@/hooks/useReportFile'
 import { StreamingMarkdown } from '@/components/StreamingMarkdown'
+import { ShareReport } from '@/components/ShareReport'
 
 /**
  * 报告详情页面
@@ -141,19 +142,7 @@ const ReportDetail = (): React.ReactElement => {
             <Download className="w-4 h-4 mr-2" />
             下载报告
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              // TODO: 初始化的时候，也需要记录解密时间
-              // TODO: 实现分享功能，海报式的设计 可以看 github.com/gcui-art/markdown-to-image
-              console.log('分享报告')
-            }}
-            disabled={!content}
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            分享报告
-          </Button>
+          <ShareReport content={content || ''} reportId={reportId || ''} disabled={!content} />
         </div>
       )
     }
