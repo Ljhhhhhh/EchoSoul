@@ -314,6 +314,13 @@ export class InitializationOrchestrator extends EventEmitter {
       chatlogPath: this.services.chatlogPath
     })
 
+    // 如果解密成功，记录当前时间戳
+    if (result.success) {
+      const currentTime = new Date().toISOString()
+      this.services.configService.setLastDataUpdateTime(currentTime)
+      logger.info(`Database decrypted successfully at ${currentTime}`)
+    }
+
     return {
       success: result.success,
       message:
