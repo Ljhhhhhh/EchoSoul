@@ -53,19 +53,14 @@ const ReportCard: React.FC<ReportCardProps> = ({
     console.error('ReportCard: 必须提供 report 或 reportMeta 属性')
     return null
   }
-  // 动态生成分析类型颜色
+  // 动态生成分析类型颜色 - 使用主题颜色
   const getAnalysisTypeColor = (analysisType: string) => {
+    // 使用主题语义化颜色
     const colors = [
-      'bg-pink-100 text-pink-700',
-      'bg-purple-100 text-purple-700',
-      'bg-blue-100 text-blue-700',
-      'bg-green-100 text-green-700',
-      'bg-orange-100 text-orange-700',
-      'bg-red-100 text-red-700',
-      'bg-cyan-100 text-cyan-700',
-      'bg-indigo-100 text-indigo-700',
-      'bg-yellow-100 text-yellow-700',
-      'bg-teal-100 text-teal-700'
+      'bg-primary/10 text-primary',
+      'bg-secondary/50 text-secondary-foreground',
+      'bg-accent/50 text-accent-foreground',
+      'bg-muted text-muted-foreground'
     ]
     const hash = analysisType.split('').reduce((a, b) => {
       a = (a << 5) - a + b.charCodeAt(0)
@@ -84,12 +79,12 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
   const cardContent = (
     <Card
-      className={`h-full transition-all duration-300 bg-white border-gray-200 hover:shadow-lg hover:border-orange-200 hover:bg-gradient-to-br hover:from-orange-50/30 hover:to-amber-50/30`}
+      className={`h-full transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:bg-secondary/20`}
     >
       <CardHeader>
         <div className="flex items-start justify-between">
           <CardTitle
-            className={`flex-1 text-gray-800 ${variant === 'compact' ? 'text-base line-clamp-1' : 'text-lg line-clamp-2'}`}
+            className={`flex-1 text-foreground ${variant === 'compact' ? 'text-base line-clamp-1' : 'text-lg line-clamp-2'}`}
           >
             {report.title}
           </CardTitle>
@@ -117,7 +112,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <p
-          className={`text-sm text-gray-600 ${variant === 'compact' ? 'line-clamp-2' : 'line-clamp-3'}`}
+          className={`text-sm text-muted-foreground ${variant === 'compact' ? 'line-clamp-2' : 'line-clamp-3'}`}
         >
           {report.summary}
         </p>
@@ -142,12 +137,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
         )}
         {!showActions && variant === 'default' && (
           <div className="flex items-center gap-2 mt-3">
-            <span className="px-2 py-1 text-xs text-orange-700 bg-orange-100 rounded-full">
+            <Badge className={getAnalysisTypeColor(report.analysisType)}>
               {report.analysisType}
-            </span>
-            <span className="px-2 py-1 text-xs text-blue-700 bg-blue-100 rounded-full">
-              {report.targetType}
-            </span>
+            </Badge>
+            <Badge variant="outline">{report.targetType}</Badge>
           </div>
         )}
       </CardContent>

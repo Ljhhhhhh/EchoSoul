@@ -1,9 +1,9 @@
-import { AiConfig, ProviderTemplate } from '../types'
+import { SimpleAiConfig, ProviderTemplate } from '../types'
 
 /**
  * 验证 AI 配置是否有效
  */
-export const validateAiConfig = (config: Partial<AiConfig>): boolean => {
+export const validateAiConfig = (config: Partial<SimpleAiConfig>): boolean => {
   return !!(config.name?.trim() && config.provider && config.apiKey?.trim())
 }
 
@@ -24,35 +24,37 @@ export const createDefaultConfig = (
   apiKey: string,
   customModel?: string,
   customBaseUrl?: string
-): AiConfig => {
+): SimpleAiConfig => {
   return {
-    id: generateConfigId(),
     name,
     provider,
     apiKey,
     model: customModel || template.defaultModel,
     baseUrl: customBaseUrl || template.baseUrl,
-    enabled: true
+    isEnabled: true
   }
 }
 
 /**
  * 检查配置名称是否已存在
  */
-export const isConfigNameExists = (name: string, configs: AiConfig[]): boolean => {
+export const isConfigNameExists = (name: string, configs: SimpleAiConfig[]): boolean => {
   return configs.some((config) => config.name.toLowerCase() === name.toLowerCase())
 }
 
 /**
  * 获取启用的配置列表
  */
-export const getEnabledConfigs = (configs: AiConfig[]): AiConfig[] => {
-  return configs.filter((config) => config.enabled)
+export const getEnabledConfigs = (configs: SimpleAiConfig[]): SimpleAiConfig[] => {
+  return configs.filter((config) => config.isEnabled)
 }
 
 /**
- * 根据 ID 查找配置
+ * 根据名称查找配置
  */
-export const findConfigById = (id: string, configs: AiConfig[]): AiConfig | undefined => {
-  return configs.find((config) => config.id === id)
+export const findConfigByName = (
+  name: string,
+  configs: SimpleAiConfig[]
+): SimpleAiConfig | undefined => {
+  return configs.find((config) => config.name === name)
 }

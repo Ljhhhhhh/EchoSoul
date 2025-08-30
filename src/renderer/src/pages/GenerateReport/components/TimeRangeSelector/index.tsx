@@ -38,8 +38,8 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="space-y-4">
         <div className="flex gap-4 items-center">
-          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
-            <Calendar className="w-5 h-5 text-blue-500" />
+          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-foreground">
+            <Calendar className="w-5 h-5 text-primary" />
             时间范围
           </Label>
           <div className="flex-1">
@@ -59,7 +59,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               {timeRange === 'custom' && (
                 <>
                   <div className="-mt-6">
-                    <Label htmlFor="startDate" className="text-xs text-gray-500">
+                    <Label htmlFor="startDate" className="text-xs text-muted-foreground">
                       开始日期
                     </Label>
                     <Input
@@ -71,7 +71,7 @@ export const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                     />
                   </div>
                   <div className="-mt-6">
-                    <Label htmlFor="endDate" className="text-xs text-gray-500">
+                    <Label htmlFor="endDate" className="text-xs text-muted-foreground">
                       结束日期
                     </Label>
                     <Input

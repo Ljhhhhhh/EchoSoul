@@ -108,7 +108,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     return (
       <Avatar className="w-8 h-8">
         <AvatarFallback
-          className={isGroup ? 'text-purple-600 bg-purple-100' : 'text-blue-600 bg-blue-100'}
+          className={isGroup ? 'text-primary bg-primary/10' : 'text-primary bg-primary/10'}
         >
           {isGroup ? <GroupIcon className="w-4 h-4" /> : initial}
         </AvatarFallback>
@@ -141,8 +141,8 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
       <div className="space-y-6">
         {/* 分析对象类型选择 */}
         <div className="flex gap-4 items-center">
-          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
-            <Users className="w-5 h-5 text-green-500" />
+          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-foreground">
+            <Users className="w-5 h-5 text-primary" />
             分析对象
           </Label>
           <div className="flex-1">
@@ -168,7 +168,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
 
         {/* 联系人选择 */}
         <div className="flex gap-4 items-start">
-          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700 mt-2">
+          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-foreground mt-2">
             选择{targetType === 'personal' ? '好友' : '群聊'}
           </Label>
           <div className="flex-1">
@@ -182,7 +182,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                   <div className="flex items-center">
                     <Search className="mr-2 w-4 h-4 shrink-0" />
                     {!selectedContact ? (
-                      <span className="text-gray-500">
+                      <span className="text-muted-foreground">
                         选择{targetType === 'personal' ? '好友' : '群聊'}
                       </span>
                     ) : (
@@ -191,13 +191,13 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                   </div>
                   {selectedContact && (
                     <div
-                      className="p-1 h-auto rounded transition-colors cursor-pointer hover:bg-red-100 shrink-0"
+                      className="p-1 h-auto rounded transition-colors cursor-pointer hover:bg-destructive/10 shrink-0"
                       onClick={(e) => {
                         e.stopPropagation()
                         onClearAll()
                       }}
                     >
-                      <X className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                      <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                     </div>
                   )}
                 </Button>
@@ -232,14 +232,14 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
                               {renderContactAvatar(contact)}
                               {renderContactInfo(contact)}
                               {selectedContact === displayValue && (
-                                <UserCheck className="w-4 h-4 text-green-600" />
+                                <UserCheck className="w-4 h-4 text-primary" />
                               )}
                             </div>
                           )
                         })}
                       </div>
                     ) : (
-                      <div className="p-4 text-sm text-center text-gray-500">
+                      <div className="p-4 text-sm text-center text-muted-foreground">
                         暂无{targetType === 'personal' ? '好友' : '群聊'}数据
                       </div>
                     )}

@@ -15,6 +15,7 @@ import NotFound from '@/pages/NotFound'
 import InitializationPage from '@/pages/InitializationPage'
 import { InitializationChecker } from '@/components/InitializationChecker'
 import { useInitializationStatus } from '@/hooks/useInitializationStatus'
+import { useTheme } from './hooks/useTheme'
 
 const queryClient = new QueryClient()
 
@@ -69,6 +70,9 @@ function AppWithInitialization(): React.ReactElement {
 }
 
 function App(): React.ReactElement {
+  // 初始化主题系统
+  useTheme()
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

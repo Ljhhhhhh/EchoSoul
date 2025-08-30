@@ -33,8 +33,8 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
     >
       <div className="space-y-4">
         <div className="flex gap-4 items-center">
-          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-gray-700">
-            <FileText className="w-5 h-5 text-purple-500" />
+          <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-foreground">
+            <FileText className="w-5 h-5 text-primary" />
             分析模板
           </Label>
           <Select value={selectedPrompt?.id || ''} onValueChange={onPromptSelect}>
@@ -46,7 +46,9 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
                 <SelectItem key={prompt.id} value={prompt.id}>
                   <div className="flex gap-2 items-center">
                     <span>{prompt.name}</span>
-                    {prompt.isBuiltIn && <span className="text-xs text-gray-500">(内置)</span>}
+                    {prompt.isBuiltIn && (
+                      <span className="text-xs text-muted-foreground">(内置)</span>
+                    )}
                   </div>
                 </SelectItem>
               ))}
@@ -58,11 +60,11 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="ml-[116px] p-4 bg-purple-50 border border-purple-200 rounded-lg"
+            className="ml-[116px] p-4 bg-secondary/50 border border-border rounded-lg"
           >
-            <div className="text-sm text-purple-700">
+            <div className="text-sm text-foreground">
               <div className="mb-1 font-medium">模板预览：</div>
-              <div className="text-purple-600 line-clamp-2">{selectedPrompt.content}</div>
+              <div className="text-muted-foreground line-clamp-2">{selectedPrompt.content}</div>
             </div>
           </motion.div>
         )}

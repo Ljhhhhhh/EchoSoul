@@ -44,35 +44,35 @@ export const AIServiceSelector: React.FC<AIServiceSelectorProps> = ({
     }
   }
 
-  // 获取提供商颜色
+  // 获取提供商颜色 - 使用主题颜色
   const getProviderColor = (provider: string) => {
     switch (provider) {
       case 'openai':
-        return 'bg-green-100 text-green-800'
+        return 'bg-primary/10 text-primary'
       case 'anthropic':
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-secondary/50 text-secondary-foreground'
       case 'gemini':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-accent/50 text-accent-foreground'
       case 'deepseek':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-muted text-muted-foreground'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
   if (enabledServices.length === 0) {
     return (
-      <div className="p-4 text-center rounded-lg border border-gray-300 border-dashed">
-        <Cpu className="mx-auto mb-2 w-8 h-8 text-gray-400" />
-        <p className="text-sm text-gray-500">暂无可用的AI服务</p>
-        <p className="mt-1 text-xs text-gray-400">请先在设置中配置AI服务</p>
+      <div className="p-4 text-center rounded-lg border border-border border-dashed">
+        <Cpu className="mx-auto mb-2 w-8 h-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">暂无可用的AI服务</p>
+        <p className="mt-1 text-xs text-muted-foreground">请先在设置中配置AI服务</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">选择AI模型</label>
+      <label className="text-sm font-medium text-foreground">选择AI模型</label>
 
       <Select value={selectedServiceId || ''} onValueChange={onServiceSelect} disabled={disabled}>
         <SelectTrigger className="w-full">
@@ -99,7 +99,7 @@ export const AIServiceSelector: React.FC<AIServiceSelectorProps> = ({
                 {getProviderIcon(service.provider)}
                 <div className="flex-1">
                   <div className="font-medium">{service.name}</div>
-                  <div className="text-xs text-gray-500">{service.description}</div>
+                  <div className="text-xs text-muted-foreground">{service.description}</div>
                 </div>
                 <Badge
                   variant="secondary"
@@ -119,7 +119,7 @@ export const AIServiceSelector: React.FC<AIServiceSelectorProps> = ({
       </Select>
 
       {selectedService && (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           提供商: {selectedService.provider} | 模型: {selectedService.model}
         </div>
       )}

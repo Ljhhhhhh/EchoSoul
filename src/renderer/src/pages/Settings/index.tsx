@@ -2,32 +2,32 @@ import { motion } from 'framer-motion'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { useSettings } from './hooks/useSettings'
 import { useToastNotifications } from './hooks/useToastNotifications'
-import { EnvironmentTab } from './components/EnvironmentTab'
+import { useTheme } from '../../hooks/useTheme'
 import { AiServiceTab } from './components/AiServiceTab'
-import { PrivacyTab } from './components/PrivacyTab'
-import { GeneralTab } from './components/GeneralTab'
 import { PromptManagementTab } from './components/PromptManagementTab'
+import { THEME_OPTIONS } from './constants'
 
 const Settings = (): React.ReactElement => {
   const {
     settings,
-    updateChatlogWorkDir,
     updateCurrentAiConfig,
-    updateNotifications,
-    updateAutoBackup,
-    updateTheme,
     addAiConfig,
     removeAiConfig,
     updateAiConfig,
     testAiConfig,
-    testTempAiConfig,
-    addPromptTemplate,
-    updatePromptTemplate,
-    removePromptTemplate
+    testTempAiConfig
   } = useSettings()
 
+  const { theme, setTheme } = useTheme()
   const { showSaveSuccess } = useToastNotifications()
 
   const handleSave = (): void => {
@@ -35,32 +35,36 @@ const Settings = (): React.ReactElement => {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
+    <div className="flex flex-col w-full h-full bg-background">
+      <header className="flex sticky top-0 z-10 gap-4 items-center px-6 py-4 border-b border-border backdrop-blur-sm bg-card/80">
         <SidebarTrigger />
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">设置</h1>
-          <p className="text-sm text-gray-600">配置你的 EchoSoul 应用</p>
+          <h1 className="text-2xl font-semibold text-foreground">设置</h1>
+          <p className="text-sm text-muted-foreground">配置你的 EchoSoul 应用</p>
+        </div>
+        <div className="ml-auto">
+          <Select value={theme} onValueChange={setTheme}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="选择主题" />
+            </SelectTrigger>
+            <SelectContent>
+              {THEME_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </header>
 
       <main className="overflow-auto flex-1 p-6">
         <div className="mx-auto max-w-4xl">
-          <Tabs defaultValue="environment" className="space-y-6">
-            <TabsList className="grid grid-cols-5 w-full">
-              <TabsTrigger value="environment">环境配置</TabsTrigger>
+          <Tabs defaultValue="ai" className="space-y-6">
+            <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="ai">AI 服务</TabsTrigger>
               <TabsTrigger value="prompts">提示词管理</TabsTrigger>
-              <TabsTrigger value="privacy">隐私安全</TabsTrigger>
-              <TabsTrigger value="general">通用设置</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="environment">
-              <EnvironmentTab
-                chatlogWorkDir={settings.chatlogWorkDir}
-                onChatlogWorkDirChange={updateChatlogWorkDir}
-              />
-            </TabsContent>
 
             <TabsContent value="ai">
               <AiServiceTab
@@ -78,19 +82,6 @@ const Settings = (): React.ReactElement => {
             <TabsContent value="prompts">
               <PromptManagementTab />
             </TabsContent>
-
-            <TabsContent value="privacy">
-              <PrivacyTab autoBackup={settings.autoBackup} onAutoBackupChange={updateAutoBackup} />
-            </TabsContent>
-
-            <TabsContent value="general">
-              <GeneralTab
-                notifications={settings.notifications}
-                theme={settings.theme}
-                onNotificationsChange={updateNotifications}
-                onThemeChange={updateTheme}
-              />
-            </TabsContent>
           </Tabs>
 
           <motion.div
@@ -99,10 +90,7 @@ const Settings = (): React.ReactElement => {
             transition={{ delay: 0.3 }}
             className="flex justify-center mt-8"
           >
-            <Button
-              onClick={handleSave}
-              className="px-8 text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-            >
+            <Button onClick={handleSave} className="px-8">
               保存所有设置
             </Button>
           </motion.div>

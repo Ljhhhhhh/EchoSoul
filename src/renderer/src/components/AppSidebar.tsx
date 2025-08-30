@@ -56,22 +56,20 @@ export function AppSidebar(): React.ReactElement {
   }
 
   return (
-    <Sidebar className="border-r border-orange-100">
-      <SidebarHeader className="border-b border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50">
+    <Sidebar className="border-r border-border">
+      <SidebarHeader className="border-b border-border bg-secondary/50">
         <div className="flex items-center gap-3 px-4 py-4">
-          <div className="flex items-center justify-center w-10 h-10 shadow-lg bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl">
-            <Heart className="text-white" size={24} />
+          <div className="flex items-center justify-center w-10 h-10 shadow-lg bg-primary rounded-xl">
+            <Heart className="text-primary-foreground" size={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-transparent bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text">
-              EchoSoul
-            </h1>
-            <p className="text-xs text-orange-600/70">AI 聊天洞察</p>
+            <h1 className="text-xl font-bold text-primary">EchoSoul</h1>
+            <p className="text-xs text-muted-foreground">AI 聊天洞察</p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-gradient-to-b from-orange-50/50 to-white">
+      <SidebarContent className="bg-background">
         {/* 主导航菜单 - 移除了冗余的"主要功能"标签 */}
         <SidebarGroup>
           <SidebarGroupContent>
@@ -81,7 +79,7 @@ export function AppSidebar(): React.ReactElement {
                   <SidebarMenuButton
                     asChild
                     isActive={location.pathname === item.href}
-                    className="hover:bg-orange-100/60 data-[active=true]:bg-gradient-to-r data-[active=true]:from-orange-200 data-[active=true]:to-amber-200 data-[active=true]:text-orange-800"
+                    className="hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-primary data-[active=true]:text-primary-foreground"
                   >
                     <Link to={item.href}>
                       <item.icon className="w-4 h-4" />
@@ -99,56 +97,56 @@ export function AppSidebar(): React.ReactElement {
           <SidebarGroupContent>
             <div className="px-3 pb-4 space-y-4">
               {/* Chatlog 服务状态 - 极简设计 */}
-              <div className="relative p-3 transition-all duration-200 border rounded-lg group/status border-slate-200/80 bg-white/60 hover:bg-white/80 hover:border-slate-300/60">
+              <div className="relative p-3 transition-all duration-200 border rounded-lg group/status border-border bg-card hover:bg-secondary">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <div
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${
                           systemStatus.chatlogService === 'connected'
-                            ? 'bg-emerald-500'
+                            ? 'bg-green-500'
                             : systemStatus.chatlogService === 'error'
-                              ? 'bg-red-500'
-                              : 'bg-amber-500'
+                              ? 'bg-destructive'
+                              : 'bg-yellow-500'
                         }`}
                       ></div>
                       {systemStatus.chatlogService === 'connected' && (
-                        <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500/30 animate-ping"></div>
+                        <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500/30 animate-ping"></div>
                       )}
                     </div>
-                    <span className="text-sm font-medium text-slate-700">Chatlog 服务</span>
+                    <span className="text-sm font-medium text-foreground">Chatlog 服务</span>
                   </div>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-muted-foreground">
                     {getStatusText(systemStatus.chatlogService)}
                   </span>
                 </div>
               </div>
 
               {/* 简约分隔线 */}
-              <div className="h-px bg-slate-200/60"></div>
+              <div className="h-px bg-border"></div>
 
               {/* 退出应用 - 简约设计 */}
               <button
                 onClick={handleQuitApp}
-                className="group/exit relative w-full flex items-center gap-3 px-3 py-3 rounded-lg border border-slate-200/80 bg-white/60 transition-all duration-200 hover:bg-red-50/80 hover:border-red-200/80 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-200/50"
+                className="group/exit relative w-full flex items-center gap-3 px-3 py-3 rounded-lg border border-border bg-card transition-all duration-200 hover:bg-destructive/10 hover:border-destructive/20 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-destructive/20"
               >
                 {/* 图标 */}
-                <div className="flex items-center justify-center w-8 h-8 transition-colors duration-200 rounded-md bg-slate-100 group-hover/exit:bg-red-100">
-                  <LogOut className="w-4 h-4 transition-colors duration-200 text-slate-600 group-hover/exit:text-red-600" />
+                <div className="flex items-center justify-center w-8 h-8 transition-colors duration-200 rounded-md bg-muted group-hover/exit:bg-destructive/20">
+                  <LogOut className="w-4 h-4 transition-colors duration-200 text-muted-foreground group-hover/exit:text-destructive" />
                 </div>
 
                 {/* 文字内容 */}
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium transition-colors duration-200 text-slate-700 group-hover/exit:text-red-700">
+                  <div className="text-sm font-medium transition-colors duration-200 text-foreground group-hover/exit:text-destructive">
                     退出应用
                   </div>
-                  <div className="text-xs transition-colors duration-200 text-slate-500 group-hover/exit:text-red-500">
+                  <div className="text-xs transition-colors duration-200 text-muted-foreground group-hover/exit:text-destructive/70">
                     关闭 EchoSoul
                   </div>
                 </div>
 
                 {/* 状态指示 */}
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover/exit:bg-red-400 transition-colors duration-200"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground group-hover/exit:bg-destructive transition-colors duration-200"></div>
               </button>
             </div>
           </SidebarGroupContent>

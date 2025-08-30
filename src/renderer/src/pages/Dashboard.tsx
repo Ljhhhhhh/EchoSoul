@@ -161,16 +161,16 @@ const Dashboard = (): React.ReactElement => {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
+    <div className="flex flex-col w-full h-full bg-background">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-border backdrop-blur-sm bg-card/80">
         <SidebarTrigger />
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-800">欢迎回来</h1>
-          <p className="text-sm text-gray-600">让AI帮你发现聊天中的深层洞察</p>
+          <h1 className="text-2xl font-bold text-foreground">欢迎回来</h1>
+          <p className="text-sm text-muted-foreground">让AI帮你发现聊天中的深层洞察</p>
         </div>
         <div className="flex items-center gap-4">
           {lastUpdateTime && (
-            <span>
+            <span className="text-muted-foreground">
               上次同步:{' '}
               {lastUpdateTime ? dayjs(lastUpdateTime).format('YYYY-MM-DD HH:mm') : '未同步'}
             </span>
@@ -178,9 +178,9 @@ const Dashboard = (): React.ReactElement => {
           <Button
             onClick={handleUpdateData}
             disabled={isUpdating || isStartingService}
-            variant="link"
+            variant="ghost"
             size="sm"
-            className="flex flex-col items-center h-auto py-3 text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+            className="flex flex-col items-center h-auto py-3"
           >
             <div className="flex items-center gap-2">
               <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
@@ -197,41 +197,32 @@ const Dashboard = (): React.ReactElement => {
             animate={{ opacity: 1, y: 0 }}
             className="grid grid-cols-1 gap-6 md:grid-cols-2"
           >
-            <Card className="transition-all duration-300 border-orange-200 bg-gradient-to-br from-orange-100/50 to-amber-100/50 hover:shadow-lg">
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-800">
+                <CardTitle className="flex items-center gap-2 text-primary">
                   <Sparkles className="w-5 h-5" />
                   生成新报告
                 </CardTitle>
-                <CardDescription className="text-orange-700/80">
-                  分析你的微信聊天记录，获得个性化洞察
-                </CardDescription>
+                <CardDescription>分析你的微信聊天记录，获得个性化洞察</CardDescription>
               </CardHeader>
               <CardContent>
                 <Link to="/generate">
-                  <Button className="w-full text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
-                    开始分析
-                  </Button>
+                  <Button className="w-full">开始分析</Button>
                 </Link>
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-300 border-blue-200 bg-gradient-to-br from-blue-100/50 to-indigo-100/50 hover:shadow-lg">
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-800">
+                <CardTitle className="flex items-center gap-2 text-primary">
                   <FileText className="w-5 h-5" />
                   查看历史报告
                 </CardTitle>
-                <CardDescription className="text-blue-700/80">
-                  回顾之前的分析结果，追踪你的成长轨迹
-                </CardDescription>
+                <CardDescription>回顾之前的分析结果，追踪你的成长轨迹</CardDescription>
               </CardHeader>
               <CardContent>
                 <Link to="/history">
-                  <Button
-                    variant="outline"
-                    className="w-full text-blue-700 border-blue-300 hover:bg-blue-50"
-                  >
+                  <Button variant="outline" className="w-full">
                     查看历史
                   </Button>
                 </Link>
@@ -246,39 +237,39 @@ const Dashboard = (): React.ReactElement => {
             transition={{ delay: 0.1 }}
             className="grid grid-cols-1 gap-6 md:grid-cols-3"
           >
-            <Card className="border-green-200 bg-gradient-to-br from-green-100/50 to-emerald-100/50">
+            <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-800">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-primary">
                   <TrendingUp className="w-4 h-4" />
                   总报告数
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-900">{totalReports}</div>
+                <div className="text-2xl font-bold text-foreground">{totalReports}</div>
               </CardContent>
             </Card>
 
-            <Card className="border-purple-200 bg-gradient-to-br from-purple-100/50 to-pink-100/50">
+            <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-800">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-primary">
                   <MessageCircle className="w-4 h-4" />
                   分析消息数
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-900">{totalMessages}</div>
+                <div className="text-2xl font-bold text-foreground">{totalMessages}</div>
               </CardContent>
             </Card>
 
-            <Card className="border-teal-200 bg-gradient-to-br from-teal-100/50 to-cyan-100/50">
+            <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium text-teal-800">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-primary">
                   <Users className="w-4 h-4" />
                   已分析聊天对象
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-teal-900">{uniqueTargets}</div>
+                <div className="text-2xl font-bold text-foreground">{uniqueTargets}</div>
               </CardContent>
             </Card>
           </motion.div>
@@ -290,14 +281,9 @@ const Dashboard = (): React.ReactElement => {
             transition={{ delay: 0.2 }}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">最近的报告</h2>
+              <h2 className="text-xl font-semibold text-foreground">最近的报告</h2>
               <Link to="/history">
-                <Button
-                  variant="ghost"
-                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                >
-                  查看全部
-                </Button>
+                <Button variant="ghost">查看全部</Button>
               </Link>
             </div>
 
@@ -311,22 +297,22 @@ const Dashboard = (): React.ReactElement => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
                   >
-                    <Card className="transition-all duration-300 bg-white border-gray-200">
+                    <Card className="transition-all duration-300">
                       <CardHeader>
-                        <div className="h-5 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-5 bg-muted rounded animate-pulse"></div>
                         <div className="flex gap-4">
-                          <div className="w-20 h-3 bg-gray-200 rounded animate-pulse"></div>
-                          <div className="w-16 h-3 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="w-20 h-3 bg-muted rounded animate-pulse"></div>
+                          <div className="w-16 h-3 bg-muted rounded animate-pulse"></div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <div className="h-3 bg-gray-200 rounded animate-pulse"></div>
-                          <div className="w-3/4 h-3 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-3 bg-muted rounded animate-pulse"></div>
+                          <div className="w-3/4 h-3 bg-muted rounded animate-pulse"></div>
                         </div>
                         <div className="flex gap-2 mt-3">
-                          <div className="w-16 h-5 bg-gray-200 rounded animate-pulse"></div>
-                          <div className="w-12 h-5 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="w-16 h-5 bg-muted rounded animate-pulse"></div>
+                          <div className="w-12 h-5 bg-muted rounded animate-pulse"></div>
                         </div>
                       </CardContent>
                     </Card>
@@ -335,12 +321,7 @@ const Dashboard = (): React.ReactElement => {
               ) : recentReports.length > 0 ? (
                 // 有报告数据 - 演示两种使用方式
                 recentReports.map((report, index) => (
-                  // 方式1: 直接传入已转换的Report对象（当前使用）
                   <ReportCard key={report.id} report={report} delay={0.3 + index * 0.1} />
-
-                  // 方式2: 直接传入原始ReportMeta数据让组件内部转换
-                  // <ReportCard key={reportMeta.id} reportMeta={reportMeta} delay={0.3 + index * 0.1} />
-                  // 这种方式在有原始reportMeta数据时使用，组件会自动调用内部的adaptReportMeta函数
                 ))
               ) : (
                 // 空状态
@@ -350,17 +331,15 @@ const Dashboard = (): React.ReactElement => {
                   transition={{ delay: 0.3 }}
                   className="col-span-full"
                 >
-                  <Card className="transition-all duration-300 bg-white border-gray-200">
+                  <Card className="transition-all duration-300">
                     <CardContent className="flex flex-col items-center justify-center py-12">
-                      <FileText className="w-12 h-12 mb-4 text-gray-400" />
-                      <h3 className="mb-2 text-lg font-medium text-gray-600">暂无报告</h3>
-                      <p className="mb-4 text-sm text-center text-gray-500">
+                      <FileText className="w-12 h-12 mb-4 text-muted-foreground" />
+                      <h3 className="mb-2 text-lg font-medium text-foreground">暂无报告</h3>
+                      <p className="mb-4 text-sm text-center text-muted-foreground">
                         还没有生成过任何分析报告，开始分析你的聊天记录吧！
                       </p>
                       <Link to="/generate">
-                        <Button className="text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
-                          开始分析
-                        </Button>
+                        <Button>开始分析</Button>
                       </Link>
                     </CardContent>
                   </Card>

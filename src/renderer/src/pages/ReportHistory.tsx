@@ -56,17 +56,15 @@ const ReportHistory = (): React.ReactElement => {
   })
 
   return (
-    <div className="flex flex-col w-full h-full bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-orange-100 backdrop-blur-sm bg-white/80">
+    <div className="flex flex-col w-full h-full bg-background">
+      <header className="sticky top-0 z-10 flex items-center gap-4 px-6 py-4 border-b border-border backdrop-blur-sm bg-card/80">
         <SidebarTrigger />
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold text-gray-800">历史报告</h1>
-          <p className="text-sm text-gray-600">查看和管理你的所有分析报告</p>
+          <h1 className="text-2xl font-semibold text-foreground">历史报告</h1>
+          <p className="text-sm text-muted-foreground">查看和管理你的所有分析报告</p>
         </div>
         <Link to="/generate">
-          <Button className="text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
-            生成新报告
-          </Button>
+          <Button>生成新报告</Button>
         </Link>
       </header>
 
@@ -79,7 +77,7 @@ const ReportHistory = (): React.ReactElement => {
             className="flex flex-col gap-4 md:flex-row"
           >
             <div className="relative flex-1">
-              <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+              <Search className="absolute w-4 h-4 text-muted-foreground transform -translate-y-1/2 left-3 top-1/2" />
               <Input
                 placeholder="搜索报告..."
                 value={searchTerm}
@@ -110,11 +108,11 @@ const ReportHistory = (): React.ReactElement => {
               animate={{ opacity: 1 }}
               className="py-12 text-center"
             >
-              <div className="mb-4 text-gray-400">
+              <div className="mb-4 text-muted-foreground">
                 <Clock className="w-16 h-16 mx-auto animate-spin" />
               </div>
-              <h3 className="mb-2 text-lg font-medium text-gray-600">正在加载报告...</h3>
-              <p className="text-gray-500">请稍候</p>
+              <h3 className="mb-2 text-lg font-medium text-foreground">正在加载报告...</h3>
+              <p className="text-muted-foreground">请稍候</p>
             </motion.div>
           )}
 
@@ -142,15 +140,13 @@ const ReportHistory = (): React.ReactElement => {
               animate={{ opacity: 1 }}
               className="py-12 text-center"
             >
-              <div className="mb-4 text-gray-400">
+              <div className="mb-4 text-muted-foreground">
                 <Search className="w-16 h-16 mx-auto" />
               </div>
-              <h3 className="mb-2 text-lg font-medium text-gray-600">没有找到匹配的报告</h3>
-              <p className="mb-4 text-gray-500">尝试调整搜索条件或生成新的报告</p>
+              <h3 className="mb-2 text-lg font-medium text-foreground">没有找到匹配的报告</h3>
+              <p className="mb-4 text-muted-foreground">尝试调整搜索条件或生成新的报告</p>
               <Link to="/generate">
-                <Button className="text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
-                  生成新报告
-                </Button>
+                <Button>生成新报告</Button>
               </Link>
             </motion.div>
           )}

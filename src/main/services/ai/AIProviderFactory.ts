@@ -138,11 +138,7 @@ class GeminiAdapter extends BaseAIProviderAdapter {
     _config: AIServiceConfig,
     _messages: Array<{ role: string; content: string }>,
     _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
-  ): Promise<{
-    content: string
-    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
-    model?: string
-  }> {
+  ): Promise<AsyncIterable<any>> {
     // TODO: 实现 Gemini 聊天请求
     throw new Error('Gemini adapter not fully implemented yet')
   }
@@ -189,11 +185,7 @@ class DeepSeekAdapter extends BaseAIProviderAdapter {
     _config: AIServiceConfig,
     _messages: Array<{ role: string; content: string }>,
     _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
-  ): Promise<{
-    content: string
-    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
-    model?: string
-  }> {
+  ): Promise<AsyncIterable<any>> {
     // TODO: 实现 DeepSeek 聊天请求
     throw new Error('DeepSeek adapter not fully implemented yet')
   }
@@ -236,11 +228,7 @@ class LocalAdapter extends BaseAIProviderAdapter {
     _config: AIServiceConfig,
     _messages: Array<{ role: string; content: string }>,
     _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
-  ): Promise<{
-    content: string
-    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
-    model?: string
-  }> {
+  ): Promise<AsyncIterable<any>> {
     // TODO: 实现本地模型聊天请求
     throw new Error('Local adapter not fully implemented yet')
   }

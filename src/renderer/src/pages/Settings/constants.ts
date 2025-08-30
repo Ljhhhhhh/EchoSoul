@@ -54,15 +54,19 @@ export const DEFAULT_SETTINGS = {
   aiConfigs: [],
   notifications: true,
   autoBackup: true,
-  theme: 'warm',
+  theme: 'system',
   promptTemplates: []
 }
 
 export const THEME_OPTIONS = [
-  { value: 'warm', label: '温暖橙色（推荐）' },
-  { value: 'cool', label: '清新蓝色' },
-  { value: 'nature', label: '自然绿色' },
-  { value: 'elegant', label: '优雅紫色' }
+  { value: 'system', label: '跟随系统', file: null },
+  { value: 'candyland', label: '糖果乐园', file: 'candyland.css' },
+  { value: 'clean-slate', label: '简洁石板', file: 'clean-slate.css' },
+  { value: 'cyberpunk', label: '赛博朋克', file: 'cyberpunk.css' },
+  { value: 'ocean-breeze', label: '海洋微风', file: 'ocean-breeze.css' },
+  { value: 'soft-pop', label: '柔和流行', file: 'soft-pop.css' },
+  { value: 'starry-night', label: '星空夜晚', file: 'starry-night.css' },
+  { value: 'twitter', label: 'Twitter 风格', file: 'twitter.css' }
 ]
 
 export const DEFAULT_NEW_PROMPT = {

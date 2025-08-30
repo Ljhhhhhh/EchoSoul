@@ -72,9 +72,9 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="border-purple-200 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-800">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <Brain className="w-5 h-5" />
             AI 服务配置
           </CardTitle>
@@ -102,13 +102,8 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
           )}
 
           <div className="flex items-center justify-between">
-            <h4 className="font-medium text-purple-800">AI 配置列表</h4>
-            <Button
-              onClick={() => setShowAddConfig(true)}
-              className="text-white bg-purple-600 hover:bg-purple-700"
-            >
-              添加配置
-            </Button>
+            <h4 className="font-medium text-primary">AI 配置列表</h4>
+            <Button onClick={() => setShowAddConfig(true)}>添加配置</Button>
           </div>
 
           {showAddConfig && (
@@ -138,16 +133,16 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
             ))}
 
             {aiConfigs.length === 0 && (
-              <div className="py-8 text-center text-gray-500">
+              <div className="py-8 text-center text-muted-foreground">
                 <p>暂无 AI 配置</p>
                 <p className="text-sm">点击&ldquo;添加配置&rdquo;按钮开始添加</p>
               </div>
             )}
           </div>
 
-          <div className="p-4 rounded-lg bg-green-100/50">
-            <h4 className="mb-2 font-medium text-green-800">安全提醒</h4>
-            <p className="text-sm text-green-700">
+          <div className="p-4 rounded-lg bg-muted">
+            <h4 className="mb-2 font-medium text-foreground">安全提醒</h4>
+            <p className="text-sm text-muted-foreground">
               所有 API Key 将安全存储在本地，不会上传到任何服务器。
               所有聊天数据的分析都在你的设备上进行处理。
             </p>

@@ -68,15 +68,15 @@ const GenerateReport: React.FC = () => {
   }
 
   return (
-    <div className="flex bg-gray-50">
+    <div className="flex bg-background">
       <main className="flex-1 p-6">
         <div className="max-w-4xl mx-auto">
           {/* 页面标题 */}
           <div className="flex items-center gap-4 mb-6">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">生成分析报告</h1>
-              <p className="text-gray-600">配置你的个性化聊天分析</p>
+              <h1 className="text-2xl font-bold text-foreground">生成分析报告</h1>
+              <p className="text-muted-foreground">配置你的个性化聊天分析</p>
             </div>
           </div>
 
@@ -84,9 +84,9 @@ const GenerateReport: React.FC = () => {
 
           {/* 主要配置区域 */}
           <div className="max-w-4xl mx-auto">
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="shadow-sm">
               <CardHeader className="pb-4">
-                <CardTitle className="text-xl text-gray-800">分析配置</CardTitle>
+                <CardTitle className="text-xl text-foreground">分析配置</CardTitle>
                 <CardDescription>配置你的聊天记录分析参数</CardDescription>
               </CardHeader>
               <CardContent className="space-y-8">
@@ -129,11 +129,11 @@ const GenerateReport: React.FC = () => {
                   />
 
                   {/* 生成按钮 */}
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-4 border-t border-border">
                     <Button
                       type="submit"
                       disabled={formState.isGenerating || !formState.isFormValid}
-                      className="w-full h-12 text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+                      className="w-full h-12 shadow-lg"
                       onClick={handleSubmit}
                     >
                       {formState.isGenerating ? (

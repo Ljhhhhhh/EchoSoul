@@ -36,9 +36,9 @@ export const PromptManagementTab: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="bg-gradient-to-br border-indigo-200 from-indigo-50/50 to-purple-50/50">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex gap-2 items-center text-indigo-800">
+          <CardTitle className="flex gap-2 items-center text-primary">
             <FileText className="w-5 h-5" />
             提示词管理
           </CardTitle>
@@ -60,11 +60,7 @@ export const PromptManagementTab: React.FC = () => {
               </div>
             </div>
             <div className="flex items-end">
-              <Button
-                onClick={() => setShowAddPrompt(true)}
-                disabled={loading}
-                className="text-white bg-indigo-600 hover:bg-indigo-700"
-              >
+              <Button onClick={() => setShowAddPrompt(true)} disabled={loading}>
                 {loading ? (
                   <Loader2 className="mr-2 w-4 h-4 animate-spin" />
                 ) : (
@@ -77,30 +73,30 @@ export const PromptManagementTab: React.FC = () => {
 
           {/* 统计信息 */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 bg-white rounded-lg border">
-              <div className="text-2xl font-bold text-indigo-600">{promptTemplates.length}</div>
-              <div className="text-sm text-gray-600">总提示词数</div>
+            <div className="p-4 bg-card rounded-lg border">
+              <div className="text-2xl font-bold text-primary">{promptTemplates.length}</div>
+              <div className="text-sm text-muted-foreground">总提示词数</div>
             </div>
-            <div className="p-4 bg-white rounded-lg border">
-              <div className="text-2xl font-bold text-green-600">{userPrompts.length}</div>
-              <div className="text-sm text-gray-600">自定义提示词</div>
+            <div className="p-4 bg-card rounded-lg border">
+              <div className="text-2xl font-bold text-primary">{userPrompts.length}</div>
+              <div className="text-sm text-muted-foreground">自定义提示词</div>
             </div>
-            <div className="p-4 bg-white rounded-lg border">
-              <div className="text-2xl font-bold text-blue-600">{builtInPrompts.length}</div>
-              <div className="text-sm text-gray-600">内置提示词</div>
+            <div className="p-4 bg-card rounded-lg border">
+              <div className="text-2xl font-bold text-primary">{builtInPrompts.length}</div>
+              <div className="text-sm text-muted-foreground">内置提示词</div>
             </div>
           </div>
 
           {/* 提示词列表 */}
           <div>
-            <h4 className="mb-4 font-medium text-indigo-800">
+            <h4 className="mb-4 font-medium text-primary">
               提示词列表 ({filteredPrompts.length})
               {loading && <Loader2 className="inline ml-2 w-4 h-4 animate-spin" />}
             </h4>
             <div className="grid gap-4">
               {loading && promptTemplates.length === 0 ? (
-                <div className="py-12 text-center text-gray-500">
-                  <Loader2 className="mx-auto mb-4 w-16 h-16 text-gray-300 animate-spin" />
+                <div className="py-12 text-center text-muted-foreground">
+                  <Loader2 className="mx-auto mb-4 w-16 h-16 text-muted-foreground animate-spin" />
                   <h3 className="mb-2 text-lg font-medium">加载中...</h3>
                   <p>正在获取提示词数据</p>
                 </div>
@@ -118,14 +114,11 @@ export const PromptManagementTab: React.FC = () => {
                   ))}
 
                   {filteredPrompts.length === 0 && !loading && (
-                    <div className="py-12 text-center text-gray-500">
-                      <FileText className="mx-auto mb-4 w-16 h-16 text-gray-300" />
+                    <div className="py-12 text-center text-muted-foreground">
+                      <FileText className="mx-auto mb-4 w-16 h-16 text-muted-foreground" />
                       <h3 className="mb-2 text-lg font-medium">没有找到匹配的提示词</h3>
                       <p className="mb-4">尝试调整搜索条件或创建新的提示词</p>
-                      <Button
-                        onClick={() => setShowAddPrompt(true)}
-                        className="text-white bg-indigo-600 hover:bg-indigo-700"
-                      >
+                      <Button onClick={() => setShowAddPrompt(true)}>
                         <Plus className="mr-2 w-4 h-4" />
                         添加提示词
                       </Button>
@@ -137,9 +130,9 @@ export const PromptManagementTab: React.FC = () => {
           </div>
 
           {/* 使用说明 */}
-          <div className="p-4 rounded-lg bg-indigo-100/50">
-            <h4 className="mb-2 font-medium text-indigo-800">使用说明</h4>
-            <ul className="space-y-1 text-sm text-indigo-700">
+          <div className="p-4 rounded-lg bg-muted">
+            <h4 className="mb-2 font-medium text-foreground">使用说明</h4>
+            <ul className="space-y-1 text-sm text-muted-foreground">
               <li>• 内置提示词不可编辑或删除，但可以复制后修改</li>
               <li>• 自定义提示词支持完整的增删改查操作</li>
               <li>• 在生成报告时可以选择使用这些提示词模板</li>

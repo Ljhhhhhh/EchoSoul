@@ -56,7 +56,7 @@ export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
   )
 
   return (
-    <Card className="border-blue-200 bg-blue-50/30">
+    <Card className="border-primary/20 bg-secondary/30">
       <CardHeader className="pb-3">
         <CardTitle className="text-base">添加新的 AI 配置</CardTitle>
       </CardHeader>
@@ -111,11 +111,7 @@ export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
                 onClick={() => setShowPassword(!showPassword)}
                 className="flex absolute right-2 top-1/2 justify-center items-center w-8 h-8 text-gray-500 rounded transition-colors -translate-y-1/2 hover:text-gray-700 hover:bg-gray-100"
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             <Button

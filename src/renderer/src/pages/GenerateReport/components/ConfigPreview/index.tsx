@@ -45,21 +45,23 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 当前配置摘要 */}
-        <div className="p-3 rounded-lg bg-gray-50">
+        <div className="p-3 rounded-lg bg-secondary/50">
           <div className="space-y-1 text-sm">
             <div>
-              <span className="text-gray-500">时间：</span>
-              <span className="font-medium">
+              <span className="text-muted-foreground">时间：</span>
+              <span className="font-medium text-foreground">
                 {timeRanges.find((t) => t.value === timeRange)?.label || '未选择'}
               </span>
             </div>
             <div>
-              <span className="text-gray-500">对象：</span>
-              <span className="font-medium">{getTargetLabel()}</span>
+              <span className="text-muted-foreground">对象：</span>
+              <span className="font-medium text-foreground">{getTargetLabel()}</span>
             </div>
             <div>
-              <span className="text-gray-500">模板：</span>
-              <span className="font-medium">{selectedPrompt?.name || '未选择'}</span>
+              <span className="text-muted-foreground">模板：</span>
+              <span className="font-medium text-foreground">
+                {selectedPrompt?.name || '未选择'}
+              </span>
             </div>
           </div>
         </div>
@@ -70,16 +72,16 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
-            className="p-4 border border-blue-200 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50"
+            className="p-4 border border-primary/20 rounded-lg bg-primary/5"
           >
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
-              <div className="text-sm font-medium text-blue-800">预计数据量</div>
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <div className="text-sm font-medium text-primary">预计数据量</div>
             </div>
-            <div className="mb-1 text-2xl font-bold text-blue-900">
+            <div className="mb-1 text-2xl font-bold text-foreground">
               {dataStats.messageCount.toLocaleString()} 条消息
             </div>
-            <div className="text-sm text-blue-600">
+            <div className="text-sm text-muted-foreground">
               覆盖 {dataStats.daysCovered} 天，{dataStats.contactsInvolved} 个联系人
             </div>
           </motion.div>
@@ -89,7 +91,7 @@ export const ConfigPreview: React.FC<ConfigPreviewProps> = ({
         <Button
           type="submit"
           disabled={isGenerating || !isFormValid}
-          className="w-full h-12 text-white shadow-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50"
+          className="w-full h-12 shadow-lg"
           onClick={onSubmit}
         >
           {isGenerating ? (
