@@ -1,4 +1,5 @@
-import { ipcMain, app, BrowserWindow } from 'electron'
+import { ipcMain, app, BrowserWindow, dialog } from 'electron'
+import { promises as fs } from 'fs'
 import { AppServices } from '../services/AppServices'
 import { createLogger } from '../utils/logger'
 import { setupPromptHandlers } from './promptHandlers'
@@ -45,18 +46,6 @@ export function setupIpcHandlers(services: AppServices) {
       throw error
     }
   })
-
-  ipcMain.handle(
-    'config:test-api',
-    async (_, provider: string, apiKey: string): Promise<boolean> => {
-      try {
-        return await services.config.testApiKey(provider, apiKey)
-      } catch (error) {
-        logger.error('Failed to test API key:', error)
-        return false
-      }
-    }
-  )
 
   // chatlog服务
   ipcMain.handle('chatlog:status', async () => {
@@ -413,7 +402,6 @@ export function setupIpcHandlers(services: AppServices) {
     }
   })
 
-  // 开发和调试用的IPC处理器 (TODO: 实现调度服务)
   if (process.env.NODE_ENV === 'development') {
     ipcMain.handle('dev:trigger-daily-report', async () => {
       try {
@@ -426,6 +414,53 @@ export function setupIpcHandlers(services: AppServices) {
       }
     })
   }
+
+  // 文件操作
+  ipcMain.handle(
+    'file:export-markdown',
+    async (
+      _,
+      content: string,
+      defaultFileName?: string
+    ): Promise<{ success: boolean; filePath?: string; error?: string }> => {
+      try {
+        const mainWindow = BrowserWindow.getAllWindows().find((win) => !win.isDestroyed())
+        if (!mainWindow) {
+          throw new Error('没有找到主窗口')
+        }
+
+        // 生成默认文件名
+        const defaultName =
+          defaultFileName || `报告_${new Date().toLocaleDateString().replace(/\//g, '-')}.md`
+
+        // 显示保存对话框
+        const result = await dialog.showSaveDialog(mainWindow, {
+          title: '导出Markdown报告',
+          defaultPath: defaultName,
+          filters: [
+            { name: 'Markdown文件', extensions: ['md'] },
+            { name: '所有文件', extensions: ['*'] }
+          ]
+        })
+
+        if (result.canceled || !result.filePath) {
+          return { success: false, error: '用户取消了保存' }
+        }
+
+        // 写入文件
+        await fs.writeFile(result.filePath, content, 'utf-8')
+
+        logger.info(`Markdown文件已导出至: ${result.filePath}`)
+        return { success: true, filePath: result.filePath }
+      } catch (error) {
+        logger.error('导出Markdown文件失败:', error)
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : '未知错误'
+        }
+      }
+    }
+  )
 
   // 应用控制
   ipcMain.handle('app:quit', async (): Promise<void> => {
@@ -440,3 +475,10 @@ export function setupIpcHandlers(services: AppServices) {
 
   logger.info('IPC handlers setup completed')
 }
+
+// TODO:
+// 1. 报告详情返回列表 404
+// 2. 海报标题去掉日期
+// 3. 调整提示词
+// 4. 生成完成报告后又会变成正在生成报告
+// 5. 生成报告支持自定义提示词，后端已经实现

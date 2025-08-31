@@ -102,9 +102,6 @@ export class InitializationOrchestrator extends EventEmitter {
       }
     })
   }
-
-  // TODO: 初始化完成应该要检查 project-config.json 是不是有 wechatKey 字段，如果没有，则需要提示用户重新初始化，现在好像只检查有没有解密后的workDir
-
   /**
    * 开始初始化流程
    */
@@ -138,10 +135,10 @@ export class InitializationOrchestrator extends EventEmitter {
    * 检查现有配置
    */
   private async checkExistingConfiguration(): Promise<boolean> {
-    const wechatKey = this.services.configService.getWeChatKey()
     const workDir = this.services.configService.getChatlogWorkDir()
 
-    if (!wechatKey || !workDir) {
+    // 仅要求存在工作目录
+    if (!workDir) {
       logger.info('No existing configuration found')
       return false
     }

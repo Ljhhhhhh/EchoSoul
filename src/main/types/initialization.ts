@@ -118,5 +118,6 @@ export const USER_ACTION_MESSAGES: Record<string, string> = {
   start_wechat: '请启动微信应用，然后点击重试',
 
   wait_decryption: '数据库解密可能需要几分钟时间，请耐心等待',
-  restart_app: '如果问题持续存在，请重启应用'
+  restart_app: '如果问题持续存在，请重启应用',
+  missing_wechat_key: '未检测到微信密钥，请重新初始化以获取密钥'
 }

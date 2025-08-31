@@ -42,7 +42,7 @@ export const PromptManagementTab: React.FC = () => {
             <FileText className="w-5 h-5" />
             提示词管理
           </CardTitle>
-          <CardDescription>管理你的自定义提示词，创建个性化的分析模板</CardDescription>
+          <CardDescription>管理你的自定义提示词，创建个性化的提示词</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 搜索和添加 */}
@@ -127,17 +127,6 @@ export const PromptManagementTab: React.FC = () => {
                 </>
               )}
             </div>
-          </div>
-
-          {/* 使用说明 */}
-          <div className="p-4 rounded-lg bg-muted">
-            <h4 className="mb-2 font-medium text-foreground">使用说明</h4>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• 内置提示词不可编辑或删除，但可以复制后修改</li>
-              <li>• 自定义提示词支持完整的增删改查操作</li>
-              <li>• 在生成报告时可以选择使用这些提示词模板</li>
-              <li>• 提示词内容支持多行文本和结构化格式</li>
-            </ul>
           </div>
         </CardContent>
       </Card>

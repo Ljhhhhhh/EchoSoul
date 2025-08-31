@@ -45,8 +45,6 @@ export type {
   IChatlogApiService,
   ApiServiceConfig,
   GetMessagesParams,
-  GetContactsParams,
-  ChatroomInfo,
   SessionInfo,
   ApiResult
 } from './api'

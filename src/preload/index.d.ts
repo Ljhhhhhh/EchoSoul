@@ -43,6 +43,7 @@ interface AIServiceAPI {
   addOrUpdateService: (config: any) => Promise<void>
   updateService: (config: any) => Promise<void>
   removeService: (serviceId: string) => Promise<void>
+  setPrimaryService: (serviceId: string) => Promise<void>
   testService: (config: any) => Promise<{ success: boolean; error?: string; details?: any }>
   testTempService: (config: any) => Promise<{ success: boolean; error?: string; details?: any }>
   getServiceStatus: (serviceId: string) => Promise<any>
@@ -83,6 +84,17 @@ interface PromptAPI {
   getStats: () => Promise<{ total: number; userCreated: number; builtIn: number }>
 }
 
+interface FileAPI {
+  exportMarkdown: (
+    content: string,
+    defaultFileName?: string
+  ) => Promise<{
+    success: boolean
+    filePath?: string
+    error?: string
+  }>
+}
+
 interface CustomAPI {
   initialization: InitializationAPI
   chatlog: ChatlogAPI
@@ -91,6 +103,7 @@ interface CustomAPI {
   prompt: PromptAPI
   report: ReportAPI
   task: TaskAPI
+  file: FileAPI
 }
 
 declare global {

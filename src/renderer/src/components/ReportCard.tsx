@@ -40,6 +40,7 @@ interface ReportCardProps {
 
 const ReportCard: React.FC<ReportCardProps> = ({
   report: propReport,
+  reportMeta,
   index = 0,
   delay,
   showActions = false,
@@ -47,7 +48,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
   onDownload
 }) => {
   // 优先使用传入的report，如果没有则从reportMeta转换
-  const report = propReport ? adaptReportMeta(propReport) : null
+  const report = propReport || (reportMeta ? adaptReportMeta(reportMeta) : null)
 
   if (!report) {
     console.error('ReportCard: 必须提供 report 或 reportMeta 属性')

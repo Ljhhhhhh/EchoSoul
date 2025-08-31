@@ -3,6 +3,9 @@ import { BaseAIProviderAdapter, type AIProviderAdapter } from './AIProviderAdapt
 import { OpenAIAdapter } from './OpenAIAdapter'
 import { AnthropicAdapter } from './AnthropicAdapter'
 import { OpenRouterAdapter } from './OpenRouterAdapter'
+import { DeepSeekAdapter } from './DeepSeekAdapter'
+import { SiliconFlowAdapter } from './SiliconFlowAdapter'
+import { MoonshotAdapter } from './MoonshotAdapter'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('AIProviderFactory')
@@ -32,7 +35,16 @@ export class AIProviderFactory {
    * @returns 提供商列表
    */
   static getAvailableProviders(): AIProvider[] {
-    return ['openai', 'anthropic', 'gemini', 'openrouter', 'deepseek', 'local']
+    return [
+      'openai',
+      'anthropic',
+      'openrouter',
+      'deepseek',
+      'siliconflow',
+      'moonshot',
+      'gemini',
+      'local'
+    ]
   }
 
   /**
@@ -84,14 +96,20 @@ export class AIProviderFactory {
       case 'anthropic':
         return new AnthropicAdapter()
 
-      case 'gemini':
-        return new GeminiAdapter()
-
       case 'openrouter':
         return new OpenRouterAdapter()
 
       case 'deepseek':
         return new DeepSeekAdapter()
+
+      case 'siliconflow':
+        return new SiliconFlowAdapter()
+
+      case 'moonshot':
+        return new MoonshotAdapter()
+
+      case 'gemini':
+        return new GeminiAdapter()
 
       case 'local':
         return new LocalAdapter()
@@ -141,53 +159,6 @@ class GeminiAdapter extends BaseAIProviderAdapter {
   ): Promise<AsyncIterable<any>> {
     // TODO: 实现 Gemini 聊天请求
     throw new Error('Gemini adapter not fully implemented yet')
-  }
-}
-
-/**
- * DeepSeek 适配器（基于 OpenAI 兼容接口）
- */
-class DeepSeekAdapter extends BaseAIProviderAdapter {
-  readonly provider: AIProvider = 'deepseek'
-  readonly name = 'DeepSeek'
-  readonly description = 'DeepSeek AI models'
-  readonly supportedModels = ['deepseek-chat', 'deepseek-coder']
-  readonly defaultModel = 'deepseek-chat'
-  readonly requiresApiKey = true
-  readonly supportsCustomBaseUrl = true
-
-  private readonly defaultBaseUrl = 'https://api.deepseek.com/v1'
-
-  async validateApiKey(apiKey: string, baseUrl?: string): Promise<boolean> {
-    // TODO: 实现 DeepSeek API 密钥验证
-    try {
-      const url = `${baseUrl || this.defaultBaseUrl}/models`
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`
-        }
-      })
-      return response.ok
-    } catch {
-      return false
-    }
-  }
-
-  async testConnection(_config: AIServiceConfig): Promise<AIServiceTestResult> {
-    // TODO: 实现 DeepSeek 连接测试
-    return {
-      success: false,
-      error: 'DeepSeek adapter not fully implemented yet'
-    }
-  }
-
-  async sendChatRequest(
-    _config: AIServiceConfig,
-    _messages: Array<{ role: string; content: string }>,
-    _options?: { temperature?: number; maxTokens?: number; stream?: boolean }
-  ): Promise<AsyncIterable<any>> {
-    // TODO: 实现 DeepSeek 聊天请求
-    throw new Error('DeepSeek adapter not fully implemented yet')
   }
 }
 

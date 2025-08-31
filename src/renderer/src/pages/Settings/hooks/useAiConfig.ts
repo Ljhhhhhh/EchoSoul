@@ -62,7 +62,8 @@ export const useAiConfig = ({
   }
 
   const handleTestConfig = async () => {
-    if (!newConfig.name.trim() || !newConfig.apiKey.trim()) {
+    // 测试时只需要 API Key，不需要配置名称
+    if (!newConfig.apiKey.trim() || !newConfig.provider) {
       return
     }
 
@@ -71,9 +72,12 @@ export const useAiConfig = ({
       const template = PROVIDER_TEMPLATES[newConfig.provider]
       const configId = Date.now().toString()
 
+      // 测试时使用临时名称，如果用户没有填写名称
+      const testName = newConfig.name.trim() || `${template.name} 测试配置`
+
       const aiConfig = createAIServiceConfig(
         {
-          name: newConfig.name,
+          name: testName,
           provider: newConfig.provider as any,
           apiKey: newConfig.apiKey,
           model: newConfig.model || template.defaultModel,
@@ -91,21 +95,22 @@ export const useAiConfig = ({
           if (result.details?.availableModels) {
             setAvailableModels(result.details.availableModels)
           }
-          showAiTestSuccess(newConfig.name)
+          showAiTestSuccess(template.name)
         } else {
           setIsTestPassed(false)
-          showAiTestError(newConfig.name, result.error || '测试失败')
+          showAiTestError(template.name, result.error || '测试失败')
         }
       } else {
         // 如果没有临时测试函数，使用现有的测试逻辑
         await onTestConfig(configId)
         setIsTestPassed(true)
-        showAiTestSuccess(newConfig.name)
+        showAiTestSuccess(template.name)
       }
     } catch (error) {
       console.error('AI service test failed:', error)
       const errorMessage = error instanceof Error ? error.message : '未知错误'
-      showAiTestError(newConfig.name, errorMessage)
+      const template = PROVIDER_TEMPLATES[newConfig.provider]
+      showAiTestError(template.name, errorMessage)
       setIsTestPassed(false)
     } finally {
       setIsTestingConfig(false)
@@ -159,11 +164,16 @@ export const useAiConfig = ({
     }
   }
 
-  const handleSwitchConfig = (configId: string) => {
+  const handleSwitchConfig = async (configId: string) => {
     const config = aiConfigs.find((c) => c.id === configId)
-    onSwitchConfig(configId)
-    if (config) {
-      showConfigSwitchSuccess(config.name)
+    try {
+      await onSwitchConfig(configId)
+      if (config) {
+        showConfigSwitchSuccess(config.name)
+      }
+    } catch (error) {
+      console.error('Failed to switch config:', error)
+      // 不显示错误toast，因为useSettings会处理错误
     }
   }
 

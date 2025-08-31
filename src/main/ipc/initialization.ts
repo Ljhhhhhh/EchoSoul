@@ -134,7 +134,8 @@ export function registerInitializationHandlers(): void {
     try {
       // 如果 initializationManager 已经存在，使用它
       if (initializationManager) {
-        return await initializationManager.hasDecryptedData()
+        const hasData = await initializationManager.hasDecryptedData()
+        return hasData
       }
 
       // 如果 initializationManager 不存在，直接使用底层服务检查

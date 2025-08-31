@@ -13,13 +13,13 @@ import {
 } from '@/components/ui/select'
 import ReportCard from '@/components/ReportCard'
 import { Search, Filter, Clock } from 'lucide-react'
-import { Report, PromptTemplate } from '@types'
+import { ReportMeta, PromptTemplate } from '@types'
 import { promptService } from '@/services/promptService'
 
 const ReportHistory = (): React.ReactElement => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<ReportMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [promptTypes, setPromptTypes] = useState<PromptTemplate[]>([])
 
@@ -47,11 +47,12 @@ const ReportHistory = (): React.ReactElement => {
     loadData()
   }, [])
 
-  const filteredReports = reports.filter((report) => {
+  const filteredReports = reports.filter((reportMeta) => {
     const matchesSearch =
-      report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.summary.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterType === 'all' || report.analysisType === filterType
+      reportMeta.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (reportMeta.summary || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter =
+      filterType === 'all' || (reportMeta.metadata?.prompt?.name || '未知分析') === filterType
     return matchesSearch && matchesFilter
   })
 
@@ -119,10 +120,10 @@ const ReportHistory = (): React.ReactElement => {
           {/* Reports Grid */}
           {!loading && (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredReports.map((report, index) => (
+              {filteredReports.map((reportMeta, index) => (
                 <ReportCard
-                  key={report.id}
-                  report={report}
+                  key={reportMeta.id}
+                  reportMeta={reportMeta}
                   index={index}
                   showActions={true}
                   onDownload={(report) => {

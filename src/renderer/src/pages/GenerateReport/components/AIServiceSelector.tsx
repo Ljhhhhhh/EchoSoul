@@ -39,6 +39,18 @@ export const AIServiceSelector: React.FC<AIServiceSelectorProps> = ({
         return <Zap className="w-4 h-4" />
       case 'anthropic':
         return <Cpu className="w-4 h-4" />
+      case 'gemini':
+        return <Cpu className="w-4 h-4" />
+      case 'siliconflow':
+        return <Cpu className="w-4 h-4" />
+      case 'moonshot':
+        return <Cpu className="w-4 h-4" />
+      case 'local':
+        return <Cpu className="w-4 h-4" />
+      case 'deepseek':
+        return <Cpu className="w-4 h-4" />
+      case 'openrouter':
+        return <Cpu className="w-4 h-4" />
       default:
         return <Cpu className="w-4 h-4" />
     }
@@ -55,6 +67,14 @@ export const AIServiceSelector: React.FC<AIServiceSelectorProps> = ({
         return 'bg-accent/50 text-accent-foreground'
       case 'deepseek':
         return 'bg-muted text-muted-foreground'
+      case 'siliconflow':
+        return 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
+      case 'moonshot':
+        return 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300'
+      case 'local':
+        return 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300'
+      case 'openrouter':
+        return 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300'
       default:
         return 'bg-muted text-muted-foreground'
     }

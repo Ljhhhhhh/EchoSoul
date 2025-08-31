@@ -118,7 +118,7 @@ export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
               type="button"
               variant={isTestPassed ? 'default' : 'outline'}
               onClick={onTest}
-              disabled={!newConfig.apiKey || isTestLoading || isLoading}
+              disabled={!newConfig.provider || !newConfig.apiKey || isTestLoading || isLoading}
               className={isTestPassed ? 'bg-green-600 hover:bg-green-700' : ''}
             >
               {isTestLoading ? '验证中...' : isTestPassed ? '已验证' : '验证'}

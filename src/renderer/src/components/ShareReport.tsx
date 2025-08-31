@@ -140,7 +140,7 @@ export const ShareReport: React.FC<ShareReportProps> = ({
             </Badge>
           </Md2PosterHeader>
 
-          <Md2PosterContent className="text-sm leading-relaxed px-2">
+          <Md2PosterContent className="text-sm leading-relaxed px-8">
             {processContent(content || '暂无内容')}
           </Md2PosterContent>
 

@@ -9,12 +9,11 @@ export type ThemeMode =
   | 'ocean-breeze'
   | 'soft-pop'
   | 'starry-night'
-  | 'twitter'
+  | 'vercel'
 
 interface UseThemeReturn {
   theme: ThemeMode
   setTheme: (theme: ThemeMode) => void
-  systemTheme: 'light' | 'dark'
 }
 
 // 当前活跃的主题样式表元素
@@ -28,83 +27,63 @@ const themeImports = {
   'ocean-breeze.css': () => import('../style/ocean-breeze.css?inline'),
   'soft-pop.css': () => import('../style/soft-pop.css?inline'),
   'starry-night.css': () => import('../style/starry-night.css?inline'),
-  'twitter.css': () => import('../style/twitter.css?inline')
+  'vercel.css': () => import('../style/vercel.css?inline')
 }
 
 // 应用主题到 DOM
-const applyTheme = async (theme: ThemeMode, systemTheme: 'light' | 'dark') => {
-  const root = document.documentElement
-
+const applyTheme = async (theme: ThemeMode) => {
   // 移除之前的主题样式表
   if (currentThemeStylesheet) {
     currentThemeStylesheet.remove()
     currentThemeStylesheet = null
   }
 
-  // 清除所有主题相关的类名
-  root.classList.remove('dark')
-
   if (theme === 'system') {
     // 跟随系统主题，不加载额外的主题文件，使用默认样式
-    if (systemTheme === 'dark') {
-      root.classList.add('dark')
-    }
-  } else {
-    // 找到对应的主题配置
-    const themeConfig = THEME_OPTIONS.find((option) => option.value === theme)
-    if (themeConfig && themeConfig.file) {
-      try {
-        // 使用预定义的导入函数
-        const themeImporter = themeImports[themeConfig.file as keyof typeof themeImports]
-        if (themeImporter) {
-          const themeModule = await themeImporter()
+    return
+  }
 
-          // 创建style元素并插入CSS内容
-          const style = document.createElement('style')
-          style.id = 'dynamic-theme'
-          // 确保主题CSS具有更高的优先级，添加到head的最后
-          style.textContent = themeModule.default
-          document.head.appendChild(style)
+  // 找到对应的主题配置
+  const themeConfig = THEME_OPTIONS.find((option) => option.value === theme)
+  if (themeConfig && themeConfig.file) {
+    try {
+      // 使用预定义的导入函数
+      const themeImporter = themeImports[themeConfig.file as keyof typeof themeImports]
+      if (themeImporter) {
+        const themeModule = await themeImporter()
 
-          currentThemeStylesheet = style
-        } else {
-          throw new Error(`Theme importer not found for ${themeConfig.file}`)
-        }
-      } catch (error) {
-        console.error(`Failed to load theme ${themeConfig.file}:`, error)
+        // 创建style元素并插入CSS内容
+        const style = document.createElement('style')
+        style.id = 'dynamic-theme'
+        // 确保主题CSS具有更高的优先级，添加到head的最后
+        style.textContent = themeModule.default
+        document.head.appendChild(style)
 
-        // 回退方案：尝试使用link标签
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = `/src/renderer/src/style/${themeConfig.file}`
-        link.id = 'dynamic-theme'
-
-        await new Promise<void>((resolve, reject) => {
-          link.onload = () => resolve()
-          link.onerror = () => reject(new Error(`Failed to load theme: ${themeConfig.file}`))
-          document.head.appendChild(link)
-        })
-
-        currentThemeStylesheet = link
+        currentThemeStylesheet = style
+      } else {
+        throw new Error(`Theme importer not found for ${themeConfig.file}`)
       }
+    } catch (error) {
+      console.error(`Failed to load theme ${themeConfig.file}:`, error)
 
-      // 检测系统主题偏好并应用dark类
-      if (systemTheme === 'dark') {
-        root.classList.add('dark')
-      }
+      // 回退方案：尝试使用link标签
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = `/src/renderer/src/style/${themeConfig.file}`
+      link.id = 'dynamic-theme'
+
+      await new Promise<void>((resolve, reject) => {
+        link.onload = () => resolve()
+        link.onerror = () => reject(new Error(`Failed to load theme: ${themeConfig.file}`))
+        document.head.appendChild(link)
+      })
+
+      currentThemeStylesheet = link
     }
   }
 }
 
 export const useTheme = (): UseThemeReturn => {
-  // 检测系统主题
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-    return 'light'
-  })
-
   // 从 localStorage 获取保存的主题，默认跟随系统
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window !== 'undefined') {
@@ -117,23 +96,11 @@ export const useTheme = (): UseThemeReturn => {
     return 'system'
   })
 
-  // 监听系统主题变化
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemTheme(e.matches ? 'dark' : 'light')
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
   // 应用主题
   useEffect(() => {
     const loadTheme = async () => {
       try {
-        await applyTheme(theme, systemTheme)
+        await applyTheme(theme)
       } catch (error) {
         console.error('Failed to apply theme:', error)
         // 如果主题加载失败，回退到系统主题
@@ -145,7 +112,7 @@ export const useTheme = (): UseThemeReturn => {
     }
 
     loadTheme()
-  }, [theme, systemTheme])
+  }, [theme])
 
   // 设置主题并保存到 localStorage
   const setTheme = useCallback((newTheme: ThemeMode) => {
@@ -155,8 +122,7 @@ export const useTheme = (): UseThemeReturn => {
 
   return {
     theme,
-    setTheme,
-    systemTheme
+    setTheme
   }
 }
 
@@ -165,15 +131,14 @@ export const initializeTheme = async () => {
   if (typeof window === 'undefined') return
 
   const savedTheme = localStorage.getItem('echosoul-theme') as ThemeMode | null
-  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   const validThemes: ThemeMode[] = THEME_OPTIONS.map((option) => option.value) as ThemeMode[]
   const theme = savedTheme && validThemes.includes(savedTheme) ? savedTheme : 'system'
 
   try {
-    await applyTheme(theme, systemTheme)
+    await applyTheme(theme)
   } catch (error) {
     console.error('Failed to initialize theme:', error)
     // 回退到系统主题
-    await applyTheme('system', systemTheme)
+    await applyTheme('system')
   }
 }

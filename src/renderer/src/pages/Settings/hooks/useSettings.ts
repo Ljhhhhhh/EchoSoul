@@ -59,8 +59,30 @@ export const useSettings = () => {
     setSettings((prev) => ({ ...prev, chatlogWorkDir: workDir }))
   }
 
-  const updateCurrentAiConfig = (configId: string) => {
-    setSettings((prev) => ({ ...prev, currentAiConfig: configId }))
+  const updateCurrentAiConfig = async (configId: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // 调用后端API设置主要服务
+      await window.api.aiService.setPrimaryService(configId)
+
+      // 重新加载AI服务列表以获取更新的isPrimary状态
+      const updatedAiServices = await window.api.aiService.getAllServices()
+
+      // 更新本地状态
+      setSettings((prev) => ({
+        ...prev,
+        currentAiConfig: configId,
+        aiConfigs: updatedAiServices
+      }))
+    } catch (err) {
+      console.error('Failed to update current AI config:', err)
+      setError('设置默认AI配置失败')
+      throw err
+    } finally {
+      setLoading(false)
+    }
   }
 
   const updateNotifications = (enabled: boolean) => {

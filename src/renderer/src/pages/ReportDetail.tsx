@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import {
   ArrowLeft,
   Download,
-  Share2,
   Clock,
   MessageCircle,
   Brain,
   RefreshCw,
-  Wifi
+  Wifi,
+  Sparkles
 } from 'lucide-react'
 
 // 新的hooks和组件
@@ -54,7 +54,9 @@ const ReportDetail = (): React.ReactElement => {
   // 判断是否正在生成（仅在生成模式下判断）
   const isGenerating =
     isGeneratingMode &&
-    (streamingReport.status === 'pending' || streamingReport.status === 'streaming')
+    (streamingReport.status === 'pending' ||
+      streamingReport.status === 'naming' ||
+      streamingReport.status === 'streaming')
 
   // 获取内容和状态
   const getContentAndStatus = () => {
@@ -81,8 +83,11 @@ const ReportDetail = (): React.ReactElement => {
   const getPageInfo = () => {
     if (isGenerating) {
       return {
-        title: '正在生成报告',
-        description: '正在使用AI分析聊天数据，请耐心等待...',
+        title: streamingReport.status === 'naming' ? '正在为提示词命名…' : '正在生成报告',
+        description:
+          streamingReport.status === 'naming'
+            ? '正在生成一个合适的名称'
+            : '正在分析聊天数据，请耐心等待...',
         badge: { text: '生成中', variant: 'default' as const }
       }
     } else {
@@ -96,6 +101,17 @@ const ReportDetail = (): React.ReactElement => {
 
   const pageInfo = getPageInfo()
 
+  // 当流式完成或失败时，自动退出生成模式，切换到查看模式
+  // 通过移除 URL 中的 mode=generating 参数，防止再次进入流式逻辑
+  if (
+    isGeneratingMode &&
+    (streamingReport.status === 'completed' || streamingReport.status === 'failed')
+  ) {
+    const params = new URLSearchParams(searchParams)
+    params.delete('mode')
+    navigate(`/report/${reportId}?${params.toString()}`, { replace: true })
+  }
+
   // 操作按钮
   const renderActions = () => {
     if (isGenerating) {
@@ -104,7 +120,7 @@ const ReportDetail = (): React.ReactElement => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/reports')}
+            onClick={() => navigate('/history')}
             disabled={isLoading}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -126,16 +142,30 @@ const ReportDetail = (): React.ReactElement => {
     } else {
       return (
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate('/reports')}>
+          <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             返回列表
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              // TODO: 实现下载功能
-              console.log('下载报告')
+            onClick={async () => {
+              if (!content) return
+
+              try {
+                const defaultFileName = `报告_${reportId}_${new Date().toLocaleDateString().replace(/\//g, '-')}.md`
+                const result = await window.api.file.exportMarkdown(content, defaultFileName)
+
+                if (result.success) {
+                  // 可以在这里添加成功提示，比如toast通知
+                  console.log('报告导出成功:', result.filePath)
+                } else {
+                  console.error('导出失败:', result.error)
+                  // 可以在这里添加错误提示
+                }
+              } catch (error) {
+                console.error('导出过程中发生错误:', error)
+              }
             }}
             disabled={!content}
           >
@@ -212,6 +242,12 @@ const ReportDetail = (): React.ReactElement => {
                         </div>
                         <div className="text-sm text-muted-foreground">实时流式</div>
                       </div>
+                      {streamingReport.status === 'naming' && (
+                        <div className="col-span-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                          <Sparkles className="w-4 h-4" /> 正在为提示词命名
+                          {streamingReport.promptName ? `：${streamingReport.promptName}` : '…'}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 )}

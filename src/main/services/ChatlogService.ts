@@ -1,9 +1,8 @@
 import { createLogger } from '../utils/logger'
-import type { ChatMessage, Contact, ChatlogStatus } from '../../types'
+import type { ChatMessage, Contact, ChatlogStatus, ChatRoom } from '../../types'
 import { ConfigService } from './ConfigService'
 import { createServiceContainer, ServiceContainer } from './ServiceFactory'
 import { getChatlogProgramPath } from '../utils/resourceManager'
-import { ChatroomInfo } from './api'
 
 const logger = createLogger('ChatlogService')
 
@@ -104,7 +103,7 @@ export class ChatlogService {
   /**
    * 获取群聊列表
    */
-  async getChatroomList(): Promise<ChatroomInfo[]> {
+  async getChatroomList(): Promise<ChatRoom[]> {
     try {
       const result = await this.serviceContainer.apiService.getChatroomList()
       return result.success ? result.data || [] : []
@@ -215,7 +214,7 @@ export class ChatlogService {
     canStartServer: boolean
   }> {
     try {
-      // 检查密钥
+      // 检查密钥（不再作为 canStartServer 的硬性前置条件）
       const keyObtained = !!this.configService.getWeChatKey()
 
       // 检查解密数据
@@ -236,6 +235,7 @@ export class ChatlogService {
       return {
         keyObtained,
         databaseDecrypted,
+        // 只要有解密数据且服务未运行即可尝试启动
         canStartServer: databaseDecrypted && !isServiceRunning
       }
     } catch (error) {

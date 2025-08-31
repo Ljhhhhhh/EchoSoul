@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 
 export interface StreamingState {
   content: string
-  status: 'pending' | 'streaming' | 'completed' | 'failed'
+  status: 'pending' | 'naming' | 'streaming' | 'completed' | 'failed'
   error?: string
+  promptName?: string
 }
 
 export interface UseStreamingReportOptions {
@@ -58,6 +59,19 @@ export const useStreamingReport = ({ reportId, enabled }: UseStreamingReportOpti
       }
     }
 
+    const handleStreamStatus = (
+      event: any,
+      data: { reportId: string; status: string; message?: string; promptName?: string }
+    ) => {
+      if (data.reportId !== reportId) return
+      if (data.status === 'generating_prompt_name') {
+        setState((prev) => ({ ...prev, status: 'naming', error: undefined }))
+      }
+      if (data.promptName) {
+        setState((prev) => ({ ...prev, promptName: data.promptName }))
+      }
+    }
+
     const handleStreamChunk = (
       event: any,
       data: { reportId: string; token: string; content: string }
@@ -95,19 +109,23 @@ export const useStreamingReport = ({ reportId, enabled }: UseStreamingReportOpti
     // 使用window.electron.ipcRenderer来监听事件
     const { ipcRenderer } = window.electron
     ipcRenderer.on('report-stream-start', handleStreamStart)
+    ipcRenderer.on('report-stream-status', handleStreamStatus)
     ipcRenderer.on('report-stream-chunk', handleStreamChunk)
     ipcRenderer.on('report-stream-end', handleStreamEnd)
     ipcRenderer.on('report-stream-error', handleStreamError)
 
-    // 初始化流式状态
-    setState((prev) => ({
-      ...prev,
-      status: 'pending'
-    }))
+    // 初始化流式状态：仅当初次启用或reportId变化时且当前状态不是completed/failed时重置
+    setState((prev) => {
+      if (prev.status === 'completed' || prev.status === 'failed') {
+        return prev
+      }
+      return { ...prev, status: 'pending' }
+    })
 
     return () => {
       // 清理事件监听器
       ipcRenderer.removeAllListeners('report-stream-start')
+      ipcRenderer.removeAllListeners('report-stream-status')
       ipcRenderer.removeAllListeners('report-stream-chunk')
       ipcRenderer.removeAllListeners('report-stream-end')
       ipcRenderer.removeAllListeners('report-stream-error')

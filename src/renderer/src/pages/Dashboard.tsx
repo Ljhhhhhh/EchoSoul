@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import ReportCard from '@/components/ReportCard'
 import dayjs from 'dayjs'
-import type { Report } from '@types'
+import type { ReportMeta } from '@types'
 
 import {
   Sparkles,
@@ -19,45 +19,29 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-// 适配器函数：将后端的ReportMeta转换为前端的Report格式
-const adaptReportMeta = (reportMeta: any): Report => {
-  return {
-    id: reportMeta.id,
-    title: reportMeta.title,
-    summary: reportMeta.summary || '暂无摘要',
-    createdAt: dayjs(reportMeta.createdAt).format('YYYY-MM-DD'),
-    timeRange: reportMeta.metadata?.timeRange
-      ? `${dayjs(reportMeta.metadata.timeRange.start).format('MM-DD')} 至 ${dayjs(reportMeta.metadata.timeRange.end).format('MM-DD')}`
-      : '未知时间范围',
-    targetType: reportMeta.metadata?.chatPartner || '未知对象',
-    analysisType: reportMeta.metadata?.prompt?.name || '未知分析',
-    messageCount: reportMeta.metadata?.messageCount || 0
-  }
-}
-
 const Dashboard = (): React.ReactElement => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [isStartingService, setIsStartingService] = useState(false)
   const [lastUpdateTime, setLastUpdateTime] = useState<string | undefined>(undefined)
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<ReportMeta[]>([])
   const [loading, setLoading] = useState(true)
 
   const recentReports = reports.slice(0, 3)
   const totalReports = reports.length
-  const totalMessages = reports.reduce((sum, report) => sum + report.messageCount, 0)
-  const uniqueTargets = [...new Set(reports.map((report) => report.targetType))].length
+  const totalMessages = reports.reduce(
+    (sum, report) => sum + (report.metadata?.messageCount || 0),
+    0
+  )
+  const uniqueTargets = [
+    ...new Set(reports.map((report) => report.metadata?.chatPartner || '未知对象'))
+  ].length
 
-  // 加载报告数据 - 现在可以选择直接使用reportMeta或转换后的report
+  // 加载报告数据
   const loadReports = async () => {
     try {
       setLoading(true)
       const reportList = await window.api.report.getReports()
-      // 方式1：预先转换数据（推荐用于批量处理）
-      const adaptedReports = reportList.map(adaptReportMeta)
-      setReports(adaptedReports)
-
-      // 方式2：也可以保存原始数据，在组件中直接使用reportMeta属性
-      // setRawReportMetas(reportList)
+      setReports(reportList)
     } catch (error) {
       console.error('Failed to load reports:', error)
       toast.error('加载报告失败', {
@@ -319,9 +303,13 @@ const Dashboard = (): React.ReactElement => {
                   </motion.div>
                 ))
               ) : recentReports.length > 0 ? (
-                // 有报告数据 - 演示两种使用方式
-                recentReports.map((report, index) => (
-                  <ReportCard key={report.id} report={report} delay={0.3 + index * 0.1} />
+                // 有报告数据
+                recentReports.map((reportMeta, index) => (
+                  <ReportCard
+                    key={reportMeta.id}
+                    reportMeta={reportMeta}
+                    delay={0.3 + index * 0.1}
+                  />
                 ))
               ) : (
                 // 空状态

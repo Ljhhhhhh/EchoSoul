@@ -1,7 +1,7 @@
 /**
  * 表单状态管理Hook
  */
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import type { FormData, TimeRange, DataStats } from '../types'
@@ -29,6 +29,25 @@ export const useFormState = (
   const { toast } = useToast()
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [isGenerating, setIsGenerating] = useState(false)
+
+  // 自动选择默认的AI服务
+  useEffect(() => {
+    if (aiServices.length > 0 && !formData.selectedAiService) {
+      // 查找主要服务
+      const primaryService = aiServices.find(
+        (service: any) => service.isPrimary && service.isEnabled
+      )
+      // 如果没有主要服务，则选择第一个启用的服务
+      const defaultService = primaryService || aiServices.find((service: any) => service.isEnabled)
+
+      if (defaultService) {
+        setFormData((prev) => ({
+          ...prev,
+          selectedAiService: defaultService.id
+        }))
+      }
+    }
+  }, [aiServices, formData.selectedAiService])
 
   // 时间范围选项
   const timeRanges: TimeRange[] = [
@@ -150,25 +169,32 @@ export const useFormState = (
       )
 
       // 构造 AnalysisConfig 对象
+      const isCustom = !formData.analysisType && !!formData.customPrompt?.trim()
+      const promptConfig = isCustom
+        ? {
+            id: null,
+            name: '',
+            content: formData.customPrompt.trim(),
+            isTemporary: true
+          }
+        : {
+            id: formData.analysisType?.id || null,
+            name: formData.analysisType?.name,
+            content: formData.analysisType?.content || '',
+            isTemporary: false
+          }
+
       const analysisConfig = {
         timeRange: timeRangeConfig,
         participants: formData.selectedContacts,
         chatPartner: formData.selectedContactName,
-        prompt: formData.analysisType || { id: '', content: '' }
+        prompt: promptConfig,
+        aiServiceId: formData.selectedAiService // 传递选择的AI服务ID
       }
-
-      console.log(analysisConfig, 'analysisConfig')
 
       // 调用生成报告API
       const reportId = await window.api.report.generateReport(analysisConfig)
       console.log('Report generation started with task ID:', reportId)
-
-      // 显示成功消息
-      toast({
-        title: '报告生成已开始',
-        description: '正在跳转到报告详情页面...',
-        duration: 2000
-      })
 
       // 立即跳转到报告详情页面，传递reportId作为参数，并标识为生成模式
       navigate(`/report/${reportId}?mode=generating`)
@@ -187,7 +213,7 @@ export const useFormState = (
   const validateForm = (): boolean => {
     // 检查必填字段
     const hasTimeRange = !!formData.timeRange
-    const hasAnalysisType = !!formData.analysisType
+    const hasAnalysisType = !!formData.analysisType || !!formData.customPrompt?.trim()
     const hasSelectedContacts = !!formData.selectedContacts
     const hasSelectedAiService = !!formData.selectedAiService
 
@@ -200,7 +226,7 @@ export const useFormState = (
   const isFormValid = useMemo(() => {
     // 检查必填字段
     const hasTimeRange = !!formData.timeRange
-    const hasAnalysisType = !!formData.analysisType
+    const hasAnalysisType = !!formData.analysisType || !!formData.customPrompt?.trim()
     const hasSelectedContacts = !!formData.selectedContacts
     const hasSelectedAiService = !!formData.selectedAiService
 

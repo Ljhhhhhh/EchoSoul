@@ -7,6 +7,8 @@ export const AIProviderSchema = z.enum([
   'gemini',
   'openrouter',
   'deepseek',
+  'siliconflow',
+  'moonshot',
   'local'
 ])
 
@@ -130,9 +132,11 @@ export const ReportMetaSchema = z.object({
     participants: z.string(),
     chatPartner: z.string(),
     prompt: z.object({
-      id: z.string(),
+      id: z.string().nullable(),
       content: z.string(),
-      name: z.string().optional()
+      name: z.string().optional(),
+      isTemporary: z.boolean().optional(),
+      generatedName: z.string().optional() // AI生成的名称
     })
   }),
   createdAt: z.string(),
@@ -151,10 +155,13 @@ export const AnalysisConfigSchema = z.object({
   participants: z.string(),
   chatPartner: z.string(),
   prompt: z.object({
-    id: z.string(),
-    name: z.string(),
-    content: z.string()
-  })
+    id: z.string().nullable(), // 临时提示词为 null
+    name: z.string().optional(), // 临时提示词初始为空，AI生成后填充
+    content: z.string(),
+    isTemporary: z.boolean().default(false),
+    generatedName: z.string().optional() // AI生成的名称
+  }),
+  aiServiceId: z.string().optional() // 指定的AI服务ID
 })
 
 export interface Report {

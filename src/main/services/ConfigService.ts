@@ -98,12 +98,6 @@ export class ConfigService {
     logger.info('User settings updated')
   }
 
-  async testApiKey(provider: string, apiKey: string): Promise<boolean> {
-    // TODO: 实现API Key测试逻辑
-    logger.info(`Testing API key for provider: ${provider}：${apiKey}`)
-    return true
-  }
-
   async cleanup() {
     logger.info('ConfigService cleaned up')
   }

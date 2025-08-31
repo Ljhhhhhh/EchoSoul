@@ -84,6 +84,78 @@ export class ReportService {
   }
 
   /**
+   * 使用AI服务智能归纳临时提示词名称
+   */
+  private async generatePromptName(promptContent: string): Promise<string> {
+    try {
+      const aiService = this.aiServiceManager.getHealthyService()
+      if (!aiService) {
+        logger.warn('No healthy AI service available for prompt naming, using fallback')
+        return this.generateFallbackPromptName(promptContent)
+      }
+
+      const namingPrompt = `请为以下提示词生成一个简洁、准确的中文名称（不超过10个字）：
+
+${promptContent}
+
+要求：
+1. 名称要体现提示词的核心分析目标
+2. 使用中文，简洁明了
+3. 不要包含"提示词"、"分析"等词汇
+4. 只返回名称，不要其他解释
+
+名称：`
+
+      const response = await this.aiServiceManager.sendChatRequest(aiService.id, [
+        { role: 'user', content: namingPrompt }
+      ])
+
+      let generatedName = ''
+      for await (const chunk of response) {
+        const token = chunk.choices?.[0]?.delta?.content || ''
+        if (token) {
+          generatedName += token
+        }
+      }
+
+      // 清理和验证生成的名称
+      const cleanName = generatedName.trim().replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g, '')
+      if (cleanName.length > 0 && cleanName.length <= 15) {
+        logger.info(`AI generated prompt name: ${cleanName}`)
+        return cleanName
+      } else {
+        logger.warn(`AI generated invalid name: ${cleanName}, using fallback`)
+        return this.generateFallbackPromptName(promptContent)
+      }
+    } catch (error) {
+      logger.error('Failed to generate prompt name with AI:', error)
+      return this.generateFallbackPromptName(promptContent)
+    }
+  }
+
+  /**
+   * 生成回退的提示词名称
+   */
+  private generateFallbackPromptName(promptContent: string): string {
+    // 简单的关键词提取和命名逻辑
+    const content = promptContent.toLowerCase()
+
+    if (content.includes('情感') || content.includes('emotion')) {
+      return '情感分析'
+    } else if (content.includes('关系') || content.includes('relationship')) {
+      return '关系分析'
+    } else if (content.includes('总结') || content.includes('summary')) {
+      return '对话总结'
+    } else if (content.includes('主题') || content.includes('topic')) {
+      return '主题分析'
+    } else if (content.includes('时间') || content.includes('time')) {
+      return '时间线分析'
+    } else {
+      return `自定义分析 ${dayjs().format('MM-DD HH:mm')}`
+    }
+  }
+
+  /**
    * 生成报告
    * @param config 分析配置
    * @returns 报告ID
@@ -97,20 +169,44 @@ export class ReportService {
 
       const reportId = uuidv4()
 
+      // 如果是临时提示词且没有名称，先生成名称
+      if (config.prompt.isTemporary && !config.prompt.name) {
+        logger.info('Generating name for temporary prompt...')
+
+        // 发送命名状态更新
+        this.mainWindow?.webContents.send('report-stream-status', {
+          reportId,
+          status: 'generating_prompt_name',
+          message: '正在为提示词生成智能名称...'
+        })
+
+        try {
+          const generatedName = await this.generatePromptName(config.prompt.content)
+          config.prompt.generatedName = generatedName
+          config.prompt.name = generatedName
+
+          logger.info(`Generated prompt name: ${generatedName}`)
+        } catch (error) {
+          logger.error('Failed to generate prompt name:', error)
+          config.prompt.name = this.generateFallbackPromptName(config.prompt.content)
+        }
+      }
+
       const messages = await this.fetchChatMessages(config)
 
       if (messages.length === 0) {
         throw new Error('未找到符合条件的聊天记录')
       }
 
-      // 立即发送开始信号
+      // 发送开始信号（包含最终的配置信息）
       this.mainWindow?.webContents.send('report-stream-start', {
         reportId,
         messageCount: messages.length,
         config: {
           chatPartner: config.chatPartner,
           timeRange: config.timeRange,
-          promptName: config.prompt.name
+          promptName: config.prompt.name, // 现在已经有名称了
+          isTemporaryPrompt: config.prompt.isTemporary
         }
       })
 
@@ -210,11 +306,28 @@ export class ReportService {
     config: AnalysisConfig
   ): Promise<AsyncIterable<any>> {
     try {
-      // 获取AI服务
-      const aiService = this.aiServiceManager.getHealthyService()
+      // 获取AI服务 - 优先使用指定的服务，否则使用健康的服务
+      let aiService = null
+      if (config.aiServiceId) {
+        aiService = this.aiServiceManager.getService(config.aiServiceId)
+        if (!aiService || !aiService.isEnabled) {
+          logger.warn(
+            `Specified AI service ${config.aiServiceId} is not available, falling back to default`
+          )
+          aiService = null
+        }
+      }
+
+      // 如果没有指定服务或指定服务不可用，使用健康的服务
+      if (!aiService) {
+        aiService = this.aiServiceManager.getHealthyService()
+      }
+
       if (!aiService) {
         throw new Error('没有可用的AI服务')
       }
+
+      logger.info(`Using AI service: ${aiService.name} (${aiService.provider})`)
 
       const formatMessages = messages
         .map((msg) => {
@@ -271,7 +384,9 @@ export class ReportService {
           prompt: {
             id: config.prompt.id,
             name: config.prompt.name,
-            content: config.prompt.content
+            content: config.prompt.content,
+            isTemporary: config.prompt.isTemporary,
+            generatedName: config.prompt.generatedName
           },
           timeRange: config.timeRange
         },
@@ -322,10 +437,9 @@ ${analysisResult}
    */
   private generateReportTitle(config: AnalysisConfig): string {
     const chatPartner = config.chatPartner
-    const startDate = dayjs(config.timeRange.start).format('YYYY.MM.DD')
-    const endDate = dayjs(config.timeRange.end).format('YYYY.MM.DD')
+    const promptName = config.prompt.generatedName || config.prompt.name || '自定义分析'
 
-    return `${chatPartner} - ${config.prompt.name} (${startDate}~${endDate})`
+    return `${chatPartner} - ${promptName}`
   }
 
   /**

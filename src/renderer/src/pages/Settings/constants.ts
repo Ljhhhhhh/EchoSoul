@@ -13,11 +13,17 @@ export const PROVIDER_TEMPLATES: ProviderTemplates = {
     baseUrl: 'https://api.anthropic.com',
     requiresBaseUrl: false
   },
-  google: {
+  gemini: {
     name: 'Google (Gemini)',
     defaultModel: 'gemini-pro',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
     requiresBaseUrl: false
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    defaultModel: 'openai/gpt-3.5-turbo',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    requiresBaseUrl: true
   },
   deepseek: {
     name: 'DeepSeek',
@@ -25,10 +31,22 @@ export const PROVIDER_TEMPLATES: ProviderTemplates = {
     baseUrl: 'https://api.deepseek.com',
     requiresBaseUrl: true
   },
-  openrouter: {
-    name: 'OpenRouter',
-    defaultModel: 'openai/gpt-3.5-turbo',
-    baseUrl: 'https://openrouter.ai/api/v1',
+  siliconflow: {
+    name: 'SiliconFlow (硅基流动)',
+    defaultModel: 'Qwen/Qwen2.5-7B-Instruct',
+    baseUrl: 'https://api.siliconflow.cn/v1',
+    requiresBaseUrl: true
+  },
+  moonshot: {
+    name: 'Moonshot (月之暗面)',
+    defaultModel: 'moonshot-v1-8k',
+    baseUrl: 'https://api.moonshot.cn/v1',
+    requiresBaseUrl: true
+  },
+  local: {
+    name: '本地模型 (Ollama)',
+    defaultModel: 'llama3',
+    baseUrl: 'http://localhost:11434/v1',
     requiresBaseUrl: true
   },
   custom: {
@@ -59,14 +77,14 @@ export const DEFAULT_SETTINGS = {
 }
 
 export const THEME_OPTIONS = [
-  { value: 'system', label: '跟随系统', file: null },
+  { value: 'system', label: '默认主题', file: null },
   { value: 'candyland', label: '糖果乐园', file: 'candyland.css' },
   { value: 'clean-slate', label: '简洁石板', file: 'clean-slate.css' },
   { value: 'cyberpunk', label: '赛博朋克', file: 'cyberpunk.css' },
   { value: 'ocean-breeze', label: '海洋微风', file: 'ocean-breeze.css' },
   { value: 'soft-pop', label: '柔和流行', file: 'soft-pop.css' },
   { value: 'starry-night', label: '星空夜晚', file: 'starry-night.css' },
-  { value: 'twitter', label: 'Twitter 风格', file: 'twitter.css' }
+  { value: '简约线条', label: 'Vercel', file: 'vercel.css' }
 ]
 
 export const DEFAULT_NEW_PROMPT = {

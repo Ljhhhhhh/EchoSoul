@@ -26,6 +26,9 @@ const GenerateReport: React.FC = () => {
     aiServicesData.aiServices
   )
 
+  // Prompt选择值（支持自定义）
+  const [promptSelection, setPromptSelection] = React.useState<string>('')
+
   // 当AI服务加载完成且没有选中服务时，自动选择默认服务
   React.useEffect(() => {
     if (
@@ -56,6 +59,14 @@ const GenerateReport: React.FC = () => {
 
   // 处理Prompt选择
   const handlePromptSelect = (promptId: string) => {
+    setPromptSelection(promptId)
+    if (promptId === '__custom__') {
+      // 选择自定义，清空已选模板，启用自定义输入
+      promptsData.selectPrompt(null)
+      formState.updateField('analysisType', null)
+      return
+    }
+
     promptsData.selectPromptById(promptId)
     const selectedPrompt = promptsData.prompts.find((p) => p.id === promptId)
     if (selectedPrompt) {
@@ -125,7 +136,12 @@ const GenerateReport: React.FC = () => {
                   <PromptSelector
                     prompts={promptsData.prompts}
                     selectedPrompt={promptsData.selectedPrompt}
+                    selectedValue={promptSelection}
                     onPromptSelect={handlePromptSelect}
+                    enableCustom
+                    isCustomSelected={promptSelection === '__custom__'}
+                    customPrompt={formState.formData.customPrompt}
+                    onCustomPromptChange={(v) => formState.updateField('customPrompt', v)}
                   />
 
                   {/* 生成按钮 */}

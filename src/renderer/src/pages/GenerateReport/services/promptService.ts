@@ -60,7 +60,6 @@ export class PromptService {
    */
   static async loadPrompts(): Promise<PromptTemplate[]> {
     try {
-      // TODO: 后续可以从API加载自定义Prompt
       return this.getBuiltInPrompts()
     } catch (error) {
       console.error('Failed to load prompts:', error)

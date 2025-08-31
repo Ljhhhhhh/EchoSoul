@@ -62,6 +62,10 @@ const api = {
     // 删除AI服务
     removeService: (serviceId: string) => ipcRenderer.invoke('ai:remove-service', serviceId),
 
+    // 设置主要AI服务
+    setPrimaryService: (serviceId: string) =>
+      ipcRenderer.invoke('ai:set-primary-service', serviceId),
+
     // 测试AI服务连接
     testService: (serviceId: string) => ipcRenderer.invoke('ai:test-service', serviceId),
     testTempService: (config: any) => ipcRenderer.invoke('ai:test-temp-service', config),
@@ -130,6 +134,13 @@ const api = {
     list: () => ipcRenderer.invoke('task:list'),
     // 获取任务统计
     getStats: () => ipcRenderer.invoke('task:stats')
+  },
+
+  // 文件操作相关的API
+  file: {
+    // 导出Markdown文件
+    exportMarkdown: (content: string, defaultFileName?: string) =>
+      ipcRenderer.invoke('file:export-markdown', content, defaultFileName)
   }
 }
 
