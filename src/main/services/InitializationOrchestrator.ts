@@ -261,7 +261,7 @@ export class InitializationOrchestrator extends EventEmitter {
     // 检查是否已有保存的密钥
     const savedKey = this.services.configService.getWeChatKey()
     if (savedKey) {
-      logger.info('Using saved WeChat key')
+      logger.info(`Using saved WeChat key: ${savedKey}`)
       return { success: true, message: 'Using saved key' }
     }
 

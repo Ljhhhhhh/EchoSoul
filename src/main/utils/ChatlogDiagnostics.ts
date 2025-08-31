@@ -1,6 +1,7 @@
 import { createLogger } from './logger'
 import { ProcessUtils } from './processUtils'
 import { ChatlogHttpClient } from '../services/ChatlogHttpClient'
+import { getChatlogProgramPath } from './resources'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
@@ -92,22 +93,17 @@ export class ChatlogDiagnostics {
   private async checkChatlogExecutable(): Promise<DiagnosticResult> {
     try {
       const platform = process.platform
-      let chatlogPath: string
 
-      // 确定 chatlog 可执行文件路径
-      const resourcesPath = this.getResourcesPath()
-
-      if (platform === 'darwin') {
-        chatlogPath = path.join(resourcesPath, 'chatlog_mac', 'chatlog')
-      } else if (platform === 'win32') {
-        chatlogPath = path.join(resourcesPath, 'chatlog_windows', 'chatlog.exe')
-      } else {
+      if (platform !== 'darwin' && platform !== 'win32') {
         return {
           category: 'Chatlog 可执行文件',
           status: 'error',
           message: `不支持的平台: ${platform}`
         }
       }
+
+      // 使用新的资源导入方式获取 chatlog 可执行文件路径
+      const chatlogPath = getChatlogProgramPath()
 
       if (fs.existsSync(chatlogPath)) {
         const stats = fs.statSync(chatlogPath)
@@ -289,13 +285,6 @@ export class ChatlogDiagnostics {
   }
 
   // 辅助方法
-  private getResourcesPath(): string {
-    if (process.env.NODE_ENV === 'development') {
-      return path.join(process.cwd(), 'apps', 'electron', 'resource')
-    } else {
-      return path.join(process.resourcesPath, 'app.asar.unpacked', 'apps', 'electron', 'resource')
-    }
-  }
 
   private findDbFiles(dir: string): string[] {
     const files: string[] = []

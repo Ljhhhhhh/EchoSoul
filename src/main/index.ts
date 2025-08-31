@@ -4,7 +4,7 @@ import { createLogger } from './utils/logger'
 
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { AppServices } from './services/AppServices'
-import icon from '../../resources/icon.png?asset'
+import { getIconPath } from './utils/resources'
 
 import { setupIpcHandlers } from './ipc/handlers'
 import { registerInitializationHandlers, cleanupInitializationManager } from './ipc/initialization'
@@ -50,7 +50,7 @@ function createWindow(): BrowserWindow {
     autoHideMenuBar: true,
     // titleBarStyle: 'hidden',
 
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'linux' ? { icon: getIconPath() } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false

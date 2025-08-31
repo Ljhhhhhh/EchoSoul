@@ -2,6 +2,10 @@ import { app } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
 import { createLogger } from './logger'
+import {
+  getHandleExePath as getNewHandleExePath,
+  getChatlogProgramPath as getNewChatlogProgramPath
+} from './resources'
 
 const logger = createLogger('ResourceManager')
 
@@ -151,11 +155,13 @@ export function getResourcePath(relativePath: string): string {
 }
 
 export function getHandleExePath(): string {
-  return resourceManager.getHandleExePath()
+  // 兼容旧代码 - 重新导出新的资源导入方式
+  return getNewHandleExePath()
 }
 
 export function getChatlogProgramPath(): string {
-  return resourceManager.getChatlogProgramPath()
+  // 兼容旧代码 - 重新导出新的资源导入方式
+  return getNewChatlogProgramPath()
 }
 
 export function validateResources() {

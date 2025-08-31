@@ -2,7 +2,7 @@ import { createLogger } from '../utils/logger'
 import type { ChatMessage, Contact, ChatlogStatus, ChatRoom } from '../../types'
 import { ConfigService } from './ConfigService'
 import { createServiceContainer, ServiceContainer } from './ServiceFactory'
-import { getChatlogProgramPath } from '../utils/resourceManager'
+import { getChatlogProgramPath } from '../utils/resources'
 
 const logger = createLogger('ChatlogService')
 

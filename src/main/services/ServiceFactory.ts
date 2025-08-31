@@ -9,7 +9,7 @@ import {
 import { ProcessService } from './process/ProcessService'
 import { ChatlogApiService } from './api/ChatlogApiService'
 import { InitializationOrchestrator, ServiceDependencies } from './InitializationOrchestrator'
-import { getChatlogProgramPath } from '../utils/resourceManager'
+import { getChatlogProgramPath } from '../utils/resources'
 
 const logger = createLogger('ServiceFactory')
 
