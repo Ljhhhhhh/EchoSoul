@@ -68,15 +68,15 @@ const statusConfig = {
   }
 }
 
-export function ReportProgress({ 
-  taskStatus, 
-  onCancel, 
-  onRetry, 
-  error, 
-  retryCount = 0, 
+export function ReportProgress({
+  taskStatus,
+  onCancel,
+  onRetry,
+  error,
+  retryCount = 0,
   isLoading = false,
   clearError,
-  className 
+  className
 }: ReportProgressProps) {
   if (!taskStatus) {
     return (
@@ -147,9 +147,7 @@ export function ReportProgress({
             <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
               <div className="flex gap-2 items-center">
                 <RotateCcw className="w-4 h-4 text-orange-500" />
-                <span className="text-sm text-orange-700">
-                  正在重试... ({retryCount}/3)
-                </span>
+                <span className="text-sm text-orange-700">正在重试... ({retryCount}/3)</span>
               </div>
             </div>
           )}
