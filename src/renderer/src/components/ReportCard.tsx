@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Clock, MessageCircle, Download, Eye } from 'lucide-react'
 import dayjs from 'dayjs'
 import type { Report, ReportMeta } from '@types'
@@ -54,21 +53,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
     console.error('ReportCard: 必须提供 report 或 reportMeta 属性')
     return null
   }
-  // 动态生成分析类型颜色 - 使用主题颜色
-  const getAnalysisTypeColor = (analysisType: string) => {
-    // 使用主题语义化颜色
-    const colors = [
-      'bg-primary/10 text-primary',
-      'bg-secondary/50 text-secondary-foreground',
-      'bg-accent/50 text-accent-foreground',
-      'bg-muted text-muted-foreground'
-    ]
-    const hash = analysisType.split('').reduce((a, b) => {
-      a = (a << 5) - a + b.charCodeAt(0)
-      return a & a
-    }, 0)
-    return colors[Math.abs(hash) % colors.length]
-  }
 
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -80,7 +64,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
   const cardContent = (
     <Card
-      className={`h-full transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:bg-secondary/20`}
+      className={`h-full min-w-[248px] transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:bg-secondary/20`}
     >
       <CardHeader>
         <div className="flex items-start justify-between">
@@ -100,14 +84,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
               <MessageCircle className="w-3 h-3" />
               {report.messageCount}条消息
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className={getAnalysisTypeColor(report.analysisType)}>
-              {report.analysisType}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {report.targetType}
-            </Badge>
           </div>
         </CardDescription>
       </CardHeader>
@@ -134,14 +110,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 查看详情
               </Button>
             </Link>
-          </div>
-        )}
-        {!showActions && variant === 'default' && (
-          <div className="flex items-center gap-2 mt-3">
-            <Badge className={getAnalysisTypeColor(report.analysisType)}>
-              {report.analysisType}
-            </Badge>
-            <Badge variant="outline">{report.targetType}</Badge>
           </div>
         )}
       </CardContent>

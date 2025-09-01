@@ -19,7 +19,6 @@ const logger = createLogger('AIServiceManager')
 export class AIServiceManager extends EventEmitter {
   private services = new Map<string, AIServiceConfig>()
   private statuses = new Map<string, AIServiceStatus>()
-  private healthCheckInterval: NodeJS.Timeout | null = null
   private usageStats = new Map<string, AIUsageStats>()
 
   constructor(private configService: ConfigService) {
@@ -27,7 +26,7 @@ export class AIServiceManager extends EventEmitter {
   }
 
   /**
-   * 初始化 AI 服务管理器
+   * 初始化 AI 服务管理
    */
   async initialize(): Promise<void> {
     try {
@@ -35,9 +34,6 @@ export class AIServiceManager extends EventEmitter {
 
       // 加载已保存的服务配置
       await this.loadServicesFromConfig()
-
-      // 启动健康检查
-      this.startHealthChecks()
 
       logger.info('AI Service Manager initialized successfully')
     } catch (error) {
@@ -52,9 +48,6 @@ export class AIServiceManager extends EventEmitter {
   async cleanup(): Promise<void> {
     try {
       logger.info('Cleaning up AI Service Manager...')
-
-      // 停止健康检查
-      this.stopHealthChecks()
 
       // 清理适配器
       await AIProviderFactory.cleanup()
@@ -317,11 +310,11 @@ export class AIServiceManager extends EventEmitter {
     }
 
     // 清除其他服务的主要标记
-    for (const [id, svc] of this.services) {
+    this.services.forEach((svc, id) => {
       if (svc.isPrimary) {
         this.services.set(id, { ...svc, isPrimary: false })
       }
-    }
+    })
 
     // 设置当前服务为主要服务
     this.services.set(serviceId, { ...service, isPrimary: true })
@@ -390,30 +383,6 @@ export class AIServiceManager extends EventEmitter {
       const newStatus = { ...currentStatus, ...updates }
       this.statuses.set(serviceId, newStatus)
       this.emit('service:status-changed', serviceId, newStatus)
-    }
-  }
-
-  /**
-   * 启动健康检查
-   */
-  private startHealthChecks(): void {
-    const interval = 5 * 60 * 1000 // 5分钟
-
-    this.healthCheckInterval = setInterval(async () => {
-      await this.performHealthChecks()
-    }, interval)
-
-    logger.info('Health checks started')
-  }
-
-  /**
-   * 停止健康检查
-   */
-  private stopHealthChecks(): void {
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval)
-      this.healthCheckInterval = null
-      logger.info('Health checks stopped')
     }
   }
 

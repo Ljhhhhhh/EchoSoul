@@ -283,20 +283,20 @@ const Dashboard = (): React.ReactElement => {
                   >
                     <Card className="transition-all duration-300">
                       <CardHeader>
-                        <div className="h-5 bg-muted rounded animate-pulse"></div>
+                        <div className="h-5 rounded bg-muted animate-pulse"></div>
                         <div className="flex gap-4">
-                          <div className="w-20 h-3 bg-muted rounded animate-pulse"></div>
-                          <div className="w-16 h-3 bg-muted rounded animate-pulse"></div>
+                          <div className="w-20 h-3 rounded bg-muted animate-pulse"></div>
+                          <div className="w-16 h-3 rounded bg-muted animate-pulse"></div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <div className="h-3 bg-muted rounded animate-pulse"></div>
-                          <div className="w-3/4 h-3 bg-muted rounded animate-pulse"></div>
+                          <div className="h-3 rounded bg-muted animate-pulse"></div>
+                          <div className="w-3/4 h-3 rounded bg-muted animate-pulse"></div>
                         </div>
                         <div className="flex gap-2 mt-3">
-                          <div className="w-16 h-5 bg-muted rounded animate-pulse"></div>
-                          <div className="w-12 h-5 bg-muted rounded animate-pulse"></div>
+                          <div className="w-16 h-5 rounded bg-muted animate-pulse"></div>
+                          <div className="w-12 h-5 rounded bg-muted animate-pulse"></div>
                         </div>
                       </CardContent>
                     </Card>

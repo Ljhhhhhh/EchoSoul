@@ -13,6 +13,8 @@ asarUnpack:
   - resources/**
 win:
   executableName: EchoSoul
+  # 避免符号链接权限问题
+  requestedExecutionLevel: asInvoker
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

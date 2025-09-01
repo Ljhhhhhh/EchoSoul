@@ -2,7 +2,6 @@ import Store from 'electron-store'
 import { createLogger } from '../utils/logger'
 import type { UserSettings } from '@types'
 import * as path from 'path'
-import * as os from 'os'
 import { app } from 'electron'
 
 const logger = createLogger('ConfigService')
@@ -50,9 +49,7 @@ export class ConfigService {
     aiServices: [],
     preferences: {
       autoRetry: true,
-      enableUsageTracking: true,
-      enableHealthChecks: true,
-      healthCheckInterval: 300000 // 5分钟
+      enableUsageTracking: true
     }
   }
 

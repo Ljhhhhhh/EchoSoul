@@ -91,9 +91,7 @@ export const UserSettingsSchema = z.object({
     .object({
       defaultModel: z.string().optional(),
       autoRetry: z.boolean().default(true),
-      enableUsageTracking: z.boolean().default(true),
-      enableHealthChecks: z.boolean().default(true),
-      healthCheckInterval: z.number().positive().default(300000) // 5分钟
+      enableUsageTracking: z.boolean().default(false)
     })
     .default({})
 })

@@ -60,11 +60,11 @@ export function AppSidebar(): React.ReactElement {
       <SidebarHeader className="border-b border-border bg-secondary/50">
         <div className="flex items-center gap-3 px-4 py-4">
           <div className="flex items-center justify-center w-10 h-10 shadow-lg bg-primary rounded-xl">
-            <Heart className="text-primary-foreground" size={24} />
+            <img src="/icon.png" alt="" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-primary">EchoSoul</h1>
-            <p className="text-xs text-muted-foreground">AI 聊天洞察</p>
+            <p className="text-xs text-muted-foreground">每段对话，皆有回响</p>
           </div>
         </div>
       </SidebarHeader>
