@@ -9,7 +9,8 @@ import {
   SidebarMenuItem,
   SidebarHeader
 } from '@/components/ui/sidebar'
-import { Heart, Home, History, Settings, Sparkles, LogOut } from 'lucide-react'
+import { Home, History, Settings, Sparkles, LogOut } from 'lucide-react'
+import Logo from '@/assets/icon.png'
 
 export function AppSidebar(): React.ReactElement {
   const location = useLocation()
@@ -60,7 +61,7 @@ export function AppSidebar(): React.ReactElement {
       <SidebarHeader className="border-b border-border bg-secondary/50">
         <div className="flex items-center gap-3 px-4 py-4">
           <div className="flex items-center justify-center w-10 h-10 shadow-lg bg-primary rounded-xl">
-            <img src="/icon.png" alt="" />
+            <img src={Logo} alt="" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-primary">EchoSoul</h1>
@@ -114,7 +115,7 @@ export function AppSidebar(): React.ReactElement {
                         <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500/30 animate-ping"></div>
                       )}
                     </div>
-                    <span className="text-sm font-medium text-foreground">Chatlog 服务</span>
+                    <span className="text-sm font-medium text-foreground">微信服务</span>
                   </div>
                   <span className="text-xs text-muted-foreground">
                     {getStatusText(systemStatus.chatlogService)}

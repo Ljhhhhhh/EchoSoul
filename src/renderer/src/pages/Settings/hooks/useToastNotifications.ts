@@ -12,7 +12,7 @@ export const useToastNotifications = () => {
 
   const showChatlogTestSuccess = () => {
     toast({
-      title: '测试 Chatlog 连接',
+      title: '测试微信连接',
       description: '连接测试成功！'
     })
   }
