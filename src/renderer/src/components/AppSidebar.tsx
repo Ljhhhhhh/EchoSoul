@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarHeader
 } from '@/components/ui/sidebar'
-import { Star, Bug, Home, History, Settings, Sparkles, LogOut } from 'lucide-react'
+import { Github, Bug, Home, History, Settings, Sparkles, LogOut } from 'lucide-react'
 import Logo from '@/assets/icon.png'
 
 export function AppSidebar(): React.ReactElement {
@@ -136,7 +136,7 @@ export function AppSidebar(): React.ReactElement {
                   aria-label="前往 GitHub 为 EchoSoul 点亮 Star"
                 >
                   <div className="flex items-center justify-center w-8 h-8 transition-colors duration-200 rounded-md bg-muted group-hover:bg-primary/20">
-                    <Star className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                    <Github className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                   </div>
                   <div className="flex-1 text-left">
                     <div className="text-xs font-medium">给个 Star</div>

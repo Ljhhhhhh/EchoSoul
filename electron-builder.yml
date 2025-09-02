@@ -2,6 +2,7 @@ appId: com.echosoul.app
 productName: EchoSoul
 directories:
   buildResources: build
+icon: build/icon.png
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -13,6 +14,7 @@ asarUnpack:
   - resources/**
 win:
   executableName: EchoSoul
+  icon: build/icon.ico
   # 避免符号链接权限问题
   requestedExecutionLevel: asInvoker
 nsis:
@@ -20,6 +22,9 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  allowToChangeInstallationDirectory: true
+  oneClick: false
+  perMachine: false
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
