@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarHeader
 } from '@/components/ui/sidebar'
-import { Home, History, Settings, Sparkles, LogOut } from 'lucide-react'
+import { Star, Bug, Home, History, Settings, Sparkles, LogOut } from 'lucide-react'
 import Logo from '@/assets/icon.png'
 
 export function AppSidebar(): React.ReactElement {
@@ -125,6 +125,41 @@ export function AppSidebar(): React.ReactElement {
 
               {/* 简约分隔线 */}
               <div className="h-px bg-border"></div>
+
+              {/* GitHub 操作按钮 */}
+              <div className="space-y-3">
+                <a
+                  href="https://github.com/Ljhhhhhh/EchoSoul"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card transition-all duration-200 hover:bg-accent hover:text-accent-foreground active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  aria-label="前往 GitHub 为 EchoSoul 点亮 Star"
+                >
+                  <div className="flex items-center justify-center w-8 h-8 transition-colors duration-200 rounded-md bg-muted group-hover:bg-primary/20">
+                    <Star className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="text-xs font-medium">给个 Star</div>
+                    <div className="text-[10px] text-muted-foreground">支持项目</div>
+                  </div>
+                </a>
+
+                <a
+                  href="https://github.com/Ljhhhhhh/EchoSoul/issues/new/choose"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group relative w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card transition-all duration-200 hover:bg-accent hover:text-accent-foreground active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring/20"
+                  aria-label="前往 GitHub 提交 Issue"
+                >
+                  <div className="flex items-center justify-center w-8 h-8 transition-colors duration-200 rounded-md bg-muted group-hover:bg-primary/20">
+                    <Bug className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="text-xs font-medium">提交 Issue</div>
+                    <div className="text-[10px] text-muted-foreground">反馈问题</div>
+                  </div>
+                </a>
+              </div>
 
               {/* 退出应用 - 简约设计 */}
               <button
