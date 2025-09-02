@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import Logo from '@/assets/icon.png'
 
 // UI 组件导入
 import { Button } from '@/components/ui/button'
@@ -167,7 +168,7 @@ const InitializationPage: React.FC = () => {
         {/* Logo 和标题 */}
         <div className="space-y-4 text-center">
           <div className="flex items-center justify-center w-20 h-20 mx-auto shadow-lg rounded-2xl bg-primary">
-            <Sparkles className="w-10 h-10 text-primary-foreground" />
+            <img src={Logo} alt="" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">EchoSoul</h1>
