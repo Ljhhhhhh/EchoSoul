@@ -6,6 +6,7 @@ import { OpenRouterAdapter } from './OpenRouterAdapter'
 import { DeepSeekAdapter } from './DeepSeekAdapter'
 import { SiliconFlowAdapter } from './SiliconFlowAdapter'
 import { MoonshotAdapter } from './MoonshotAdapter'
+import { ZhipuAdapter } from './ZhipuAdapter'
 import { createLogger } from '../../utils/logger'
 
 const logger = createLogger('AIProviderFactory')
@@ -42,6 +43,7 @@ export class AIProviderFactory {
       'deepseek',
       'siliconflow',
       'moonshot',
+      'zhipu',
       'gemini',
       'local'
     ]
@@ -107,6 +109,9 @@ export class AIProviderFactory {
 
       case 'moonshot':
         return new MoonshotAdapter()
+
+      case 'zhipu':
+        return new ZhipuAdapter()
 
       case 'gemini':
         return new GeminiAdapter()

@@ -55,7 +55,14 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
     updateNewConfig,
     isTestingConfig,
     isTestPassed,
-    availableModels
+    availableModels,
+    // 多选相关状态和函数
+    isMultiSelect,
+    selectedModels,
+    toggleMultiSelect,
+    toggleModelSelection,
+    clearSelectedModels,
+    removeSelectedModel
   } = useAiConfig({
     onAddConfig,
     onRemoveConfig,
@@ -118,6 +125,13 @@ export const AiServiceTab: React.FC<AiServiceTabProps> = ({
               isTestLoading={isTestingConfig}
               isTestPassed={isTestPassed}
               availableModels={availableModels}
+              // 多选相关props
+              isMultiSelect={isMultiSelect}
+              selectedModels={selectedModels}
+              onToggleMultiSelect={toggleMultiSelect}
+              onToggleModelSelection={toggleModelSelection}
+              onClearSelectedModels={clearSelectedModels}
+              onRemoveSelectedModel={removeSelectedModel}
             />
           )}
 

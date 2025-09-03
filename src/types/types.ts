@@ -9,6 +9,7 @@ export const AIProviderSchema = z.enum([
   'deepseek',
   'siliconflow',
   'moonshot',
+  'zhipu',
   'local'
 ])
 

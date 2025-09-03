@@ -81,9 +81,9 @@ const GenerateReport: React.FC = () => {
   return (
     <div className="flex bg-background">
       <main className="flex-1 p-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto max-w-4xl">
           {/* 页面标题 */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex gap-4 items-center mb-6">
             <SidebarTrigger />
             <div>
               <h1 className="text-2xl font-bold text-foreground">生成分析报告</h1>
@@ -94,7 +94,7 @@ const GenerateReport: React.FC = () => {
           {/* 快速选择区域已移除 */}
 
           {/* 主要配置区域 */}
-          <div className="max-w-4xl mx-auto">
+          <div className="mx-auto max-w-4xl">
             <Card className="shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl text-foreground">分析配置</CardTitle>
@@ -102,17 +102,6 @@ const GenerateReport: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-8">
                 <form onSubmit={handleSubmit} className="space-y-8">
-                  {/* 时间范围选择 */}
-                  <TimeRangeSelector
-                    timeRange={formState.formData.timeRange}
-                    customStartDate={formState.formData.customStartDate}
-                    customEndDate={formState.formData.customEndDate}
-                    timeRanges={formState.timeRanges}
-                    onTimeRangeChange={(value) => formState.updateField('timeRange', value)}
-                    onStartDateChange={(value) => formState.updateField('customStartDate', value)}
-                    onEndDateChange={(value) => formState.updateField('customEndDate', value)}
-                  />
-
                   {/* 联系人选择 */}
                   <ContactSelector
                     personalContacts={contactsData.personalContacts}
@@ -122,6 +111,17 @@ const GenerateReport: React.FC = () => {
                       formState.updateField('selectedContacts', value)
                       formState.updateField('selectedContactName', contactName)
                     }}
+                  />
+
+                  {/* 时间范围选择 */}
+                  <TimeRangeSelector
+                    timeRange={formState.formData.timeRange}
+                    customStartDate={formState.formData.customStartDate}
+                    customEndDate={formState.formData.customEndDate}
+                    timeRanges={formState.timeRanges}
+                    onTimeRangeChange={(value) => formState.updateField('timeRange', value)}
+                    onStartDateChange={(value) => formState.updateField('customStartDate', value)}
+                    onEndDateChange={(value) => formState.updateField('customEndDate', value)}
                   />
 
                   {/* AI模型选择 */}
@@ -154,12 +154,12 @@ const GenerateReport: React.FC = () => {
                     >
                       {formState.isGenerating ? (
                         <>
-                          <Wand2 className="w-4 h-4 mr-2 animate-spin" />
+                          <Wand2 className="mr-2 w-4 h-4 animate-spin" />
                           正在生成报告...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4 mr-2" />
+                          <Sparkles className="mr-2 w-4 h-4" />
                           生成分析报告
                         </>
                       )}

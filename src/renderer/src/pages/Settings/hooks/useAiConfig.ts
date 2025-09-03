@@ -39,6 +39,9 @@ export const useAiConfig = ({
       pricing?: { prompt: number; completion: number }
     }>
   >([])
+  // 多选模型相关状态
+  const [isMultiSelect, setIsMultiSelect] = useState(false)
+  const [selectedModels, setSelectedModels] = useState<string[]>([])
   const {
     showAiTestSuccess,
     showConfigSwitchSuccess,
@@ -117,6 +120,20 @@ export const useAiConfig = ({
     }
   }
 
+  // 检查配置名称是否冲突并生成唯一名称
+  const generateUniqueConfigName = (baseName: string, existingConfigs: AIServiceConfig[]): string => {
+    const existingNames = existingConfigs.map(config => config.name.toLowerCase())
+    let uniqueName = baseName
+    let counter = 1
+    
+    while (existingNames.includes(uniqueName.toLowerCase())) {
+      uniqueName = `${baseName} (${counter})`
+      counter++
+    }
+    
+    return uniqueName
+  }
+
   const handleAddConfig = async () => {
     if (!newConfig.name.trim()) {
       showConfigNameError()
@@ -127,28 +144,84 @@ export const useAiConfig = ({
       return
     }
 
+    // 检查多选模式下是否有选中的模型
+    if (isMultiSelect && selectedModels.length === 0) {
+      // 可以添加一个提示用户选择模型的toast
+      return
+    }
+
     setIsAddingConfig(true)
     try {
       const template = PROVIDER_TEMPLATES[newConfig.provider]
-      const configId = Date.now().toString()
-
-      const aiConfig = createAIServiceConfig(
-        {
-          name: newConfig.name,
-          provider: newConfig.provider as any,
-          apiKey: newConfig.apiKey,
-          model: newConfig.model || template.defaultModel,
-          baseUrl: newConfig.baseUrl || template.baseUrl,
-          isEnabled: true
-        },
-        configId
-      )
-
-      onAddConfig(aiConfig)
-      showConfigAddSuccess(newConfig.name)
+      
+      if (isMultiSelect && selectedModels.length > 0) {
+        // 批量创建配置
+        const baseTime = Date.now()
+        const baseName = newConfig.name.trim()
+        const createdConfigs: AIServiceConfig[] = []
+        
+        for (let i = 0; i < selectedModels.length; i++) {
+          const modelId = selectedModels[i]
+          const model = availableModels.find(m => m.id === modelId)
+          const configId = (baseTime + i).toString()
+          
+          // 生成配置名称：如果只有一个模型，使用原名称；多个模型时添加模型名称后缀
+          const baseConfigName = selectedModels.length === 1 
+            ? baseName 
+            : `${baseName} - ${model?.name || modelId}`
+          
+          // 检查名称冲突并生成唯一名称
+          const uniqueName = generateUniqueConfigName(baseConfigName, [...aiConfigs, ...createdConfigs])
+          
+          const aiConfig = createAIServiceConfig(
+            {
+              name: uniqueName,
+              provider: newConfig.provider as any,
+              apiKey: newConfig.apiKey,
+              model: modelId,
+              baseUrl: newConfig.baseUrl || template.baseUrl,
+              isEnabled: true
+            },
+            configId
+          )
+          
+          createdConfigs.push(aiConfig)
+          onAddConfig(aiConfig)
+        }
+        
+        showConfigAddSuccess(`批量添加了 ${selectedModels.length} 个配置`)
+      } else {
+        // 单个配置创建（原有逻辑）- 检查名称冲突
+        const configId = Date.now().toString()
+        const uniqueName = generateUniqueConfigName(newConfig.name, aiConfigs)
+        
+        const aiConfig = createAIServiceConfig(
+          {
+            name: uniqueName,
+            provider: newConfig.provider as any,
+            apiKey: newConfig.apiKey,
+            model: newConfig.model || template.defaultModel,
+            baseUrl: newConfig.baseUrl || template.baseUrl,
+            isEnabled: true
+          },
+          configId
+        )
+        
+        onAddConfig(aiConfig)
+        
+        if (uniqueName !== newConfig.name) {
+          showConfigAddSuccess(`配置添加成功，名称已调整为: ${uniqueName}`)
+        } else {
+          showConfigAddSuccess(newConfig.name)
+        }
+      }
+      
+      // 重置状态
       setShowAddConfig(false)
       setNewConfig(DEFAULT_NEW_CONFIG)
       setIsTestPassed(false)
+      setSelectedModels([])
+      setIsMultiSelect(false)
     } catch (error) {
       console.error('Failed to add config:', error)
     } finally {
@@ -200,6 +273,35 @@ export const useAiConfig = ({
     }
   }
 
+  // 多选模式相关函数
+  const toggleMultiSelect = () => {
+    setIsMultiSelect(!isMultiSelect)
+    // 切换模式时清空已选择的模型
+    setSelectedModels([])
+    // 如果切换到单选模式，保持当前选中的模型
+    if (isMultiSelect && selectedModels.length > 0) {
+      setNewConfig((prev) => ({ ...prev, model: selectedModels[0] }))
+    }
+  }
+
+  const toggleModelSelection = (modelId: string) => {
+    setSelectedModels((prev) => {
+      if (prev.includes(modelId)) {
+        return prev.filter((id) => id !== modelId)
+      } else {
+        return [...prev, modelId]
+      }
+    })
+  }
+
+  const clearSelectedModels = () => {
+    setSelectedModels([])
+  }
+
+  const removeSelectedModel = (modelId: string) => {
+    setSelectedModels((prev) => prev.filter((id) => id !== modelId))
+  }
+
   return {
     showAddConfig,
     setShowAddConfig,
@@ -216,6 +318,13 @@ export const useAiConfig = ({
     handleTestConnection,
     handleTestConfig,
     updateNewConfig,
-    onUpdateConfig
+    onUpdateConfig,
+    // 多选相关
+    isMultiSelect,
+    selectedModels,
+    toggleMultiSelect,
+    toggleModelSelection,
+    clearSelectedModels,
+    removeSelectedModel
   }
 }

@@ -3,19 +3,12 @@
  */
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Users, Search, X, UserCheck, Users as GroupIcon } from 'lucide-react'
+import { Users, Search, X, UserCheck, User, Target } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandItem,
-  CommandEmpty,
-  CommandGroup
-} from '@renderer/components/ui/command'
+import { Command, CommandInput, CommandList } from '@renderer/components/ui/command'
 import { Avatar, AvatarFallback } from '@renderer/components/ui/avatar'
 import type { Contact, ChatRoom } from '@types'
 
@@ -108,9 +101,9 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
     return (
       <Avatar className="w-8 h-8">
         <AvatarFallback
-          className={isGroup ? 'text-primary bg-primary/10' : 'text-primary bg-primary/10'}
+          className={isGroup ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100'}
         >
-          {isGroup ? <GroupIcon className="w-4 h-4" /> : initial}
+          {isGroup ? <Users className="w-4 h-4" /> : <User className="w-4 h-4" />}
         </AvatarFallback>
       </Avatar>
     )
@@ -142,7 +135,7 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
         {/* 分析对象类型选择 */}
         <div className="flex gap-4 items-center">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-foreground">
-            <Users className="w-5 h-5 text-primary" />
+            <Target className="w-5 h-5 text-primary" />
             分析对象
           </Label>
           <div className="flex-1">
@@ -155,11 +148,11 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
               className="justify-start"
             >
               <ToggleGroupItem value="personal" className="flex gap-2 items-center">
-                <Users className="w-4 h-4" />
+                <User className="w-4 h-4" />
                 好友聊天
               </ToggleGroupItem>
               <ToggleGroupItem value="chatroom" className="flex gap-2 items-center">
-                <GroupIcon className="w-4 h-4" />
+                <Users className="w-4 h-4" />
                 群聊
               </ToggleGroupItem>
             </ToggleGroup>
@@ -169,7 +162,17 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
         {/* 联系人选择 */}
         <div className="flex gap-4 items-start">
           <Label className="text-base font-medium min-w-[100px] flex items-center gap-2 text-foreground mt-2">
-            选择{targetType === 'personal' ? '好友' : '群聊'}
+            {targetType === 'personal' ? (
+              <>
+                <User className="w-5 h-5 text-orange-600" />
+                选择好友
+              </>
+            ) : (
+              <>
+                <Users className="w-5 h-5 text-orange-600" />
+                选择群聊
+              </>
+            )}
           </Label>
           <div className="flex-1">
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>

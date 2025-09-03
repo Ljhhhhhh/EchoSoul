@@ -43,6 +43,12 @@ export const PROVIDER_TEMPLATES: ProviderTemplates = {
     baseUrl: 'https://api.moonshot.cn/v1',
     requiresBaseUrl: true
   },
+  zhipu: {
+    name: '智谱AI (GLM)',
+    defaultModel: 'glm-4',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    requiresBaseUrl: true
+  },
   local: {
     name: '本地模型 (Ollama)',
     defaultModel: 'llama3',

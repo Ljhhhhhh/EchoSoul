@@ -26,21 +26,20 @@ export const ShareReport: React.FC<ShareReportProps> = ({
   disabled = false
 }) => {
   const [isGenerating, setIsGenerating] = useState(false)
-  const posterRef = useRef<HTMLDivElement>(null)
+  const posterRef = useRef<React.ElementRef<typeof Md2Poster>>(null)
 
   // 生成海报图片的通用方法
-  const generatePosterImage = async (): Promise<HTMLCanvasElement | null> => {
+  const generatePosterImage = async (): Promise<any> => {
     if (!posterRef.current) return null
 
-    const html2canvas = await import('html2canvas')
-    return html2canvas.default(posterRef.current, {
-      backgroundColor: '#ffffff',
-      scale: 2, // 提高图片质量
-      useCORS: true,
-      allowTaint: true,
-      width: posterRef.current.offsetWidth,
-      height: posterRef.current.offsetHeight
-    })
+    try {
+      // 使用 markdown-to-image 的 handleCopy 方法生成图片
+      const blob = await posterRef.current.handleCopy()
+      return blob
+    } catch (error) {
+      console.error('生成图片失败:', error)
+      return null
+    }
   }
 
   // 处理图片下载
@@ -49,14 +48,20 @@ export const ShareReport: React.FC<ShareReportProps> = ({
       setIsGenerating(true)
       toast.info('正在生成分享图片...')
 
-      const canvas = await generatePosterImage()
-      if (!canvas) return
+      const blob = await generatePosterImage()
+      if (!blob) {
+        toast.error('生成图片失败，请重试')
+        return
+      }
 
       // 创建下载链接
       const link = document.createElement('a')
       link.download = `echosoul-report-${reportId}-${Date.now()}.png`
-      link.href = canvas.toDataURL('image/png', 1.0)
+      link.href = URL.createObjectURL(blob)
       link.click()
+
+      // 清理 URL 对象
+      URL.revokeObjectURL(link.href)
 
       toast.success('图片已下载到本地')
     } catch (error) {
@@ -73,24 +78,19 @@ export const ShareReport: React.FC<ShareReportProps> = ({
       setIsGenerating(true)
       toast.info('正在生成分享图片...')
 
-      const canvas = await generatePosterImage()
-      if (!canvas) return
+      const blob = await generatePosterImage()
+      if (!blob) {
+        toast.error('生成图片失败，请重试')
+        return
+      }
 
-      canvas.toBlob(
-        async (blob) => {
-          if (blob) {
-            try {
-              await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-              toast.success('图片已复制到剪贴板')
-            } catch (error) {
-              console.error('复制图片失败:', error)
-              toast.error('复制图片失败，请重试')
-            }
-          }
-        },
-        'image/png',
-        1.0
-      )
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        toast.success('图片已复制到剪贴板')
+      } catch (error) {
+        console.error('复制图片失败:', error)
+        toast.error('复制图片失败，请重试')
+      }
     } catch (error) {
       console.error('生成图片失败:', error)
       toast.error('生成图片失败，请重试')
@@ -124,23 +124,24 @@ export const ShareReport: React.FC<ShareReportProps> = ({
   return (
     <>
       {/* 隐藏的海报生成区域 */}
-      <div
-        ref={posterRef}
-        className="fixed -top-[9999px] -left-[9999px] w-[600px]"
-        style={{ aspectRatio: '9/16' }}
-      >
-        <Md2Poster theme="SpringGradientWave" size="desktop" className="w-full h-full">
+      <div className="fixed -top-[9999px] -left-[9999px] w-[600px]" style={{ aspectRatio: '9/16' }}>
+        <Md2Poster
+          ref={posterRef}
+          theme="SpringGradientWave"
+          size="desktop"
+          className="w-full h-full"
+        >
           <Md2PosterHeader className="flex justify-between items-center px-8 py-6">
-            <div className="flex items-center gap-3">
+            <div className="flex gap-3 items-center">
               <Brain className="w-6 h-6 text-white" />
-              <span className="font-bold text-white text-lg">EchoSoul</span>
+              <span className="text-lg font-bold text-white">EchoSoul</span>
             </div>
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-3 py-1">
+            <Badge variant="secondary" className="px-3 py-1 text-white bg-white/20 border-white/30">
               AI分析报告
             </Badge>
           </Md2PosterHeader>
 
-          <Md2PosterContent className="text-sm leading-relaxed px-8">
+          <Md2PosterContent className="px-8 text-sm leading-relaxed">
             {processContent(content || '暂无内容')}
           </Md2PosterContent>
 
@@ -158,7 +159,7 @@ export const ShareReport: React.FC<ShareReportProps> = ({
             variant="outline"
             size="sm"
             disabled={disabled || !content || isGenerating}
-            className="flex items-center gap-2"
+            className="flex gap-2 items-center"
           >
             <Share2 className="w-4 h-4" />
             {isGenerating ? '生成中...' : '分享报告'}
@@ -168,7 +169,7 @@ export const ShareReport: React.FC<ShareReportProps> = ({
           <DropdownMenuItem
             onClick={handleDownloadImage}
             disabled={isGenerating || !content}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex gap-2 items-center cursor-pointer"
           >
             <Download className="w-4 h-4" />
             下载到本地
@@ -176,7 +177,7 @@ export const ShareReport: React.FC<ShareReportProps> = ({
           <DropdownMenuItem
             onClick={handleCopyImage}
             disabled={isGenerating || !content}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex gap-2 items-center cursor-pointer"
           >
             <Copy className="w-4 h-4" />
             复制到剪贴板

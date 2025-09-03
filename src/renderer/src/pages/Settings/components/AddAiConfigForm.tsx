@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -10,6 +13,17 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+  CommandGroup
+} from '@/components/ui/command'
+import { Check, ChevronsUpDown, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Eye, EyeOff } from 'lucide-react'
 import { SimpleAiConfig } from '../types'
 import { PROVIDER_TEMPLATES } from '../constants'
@@ -30,6 +44,13 @@ interface AddAiConfigFormProps {
     contextLength?: number
     pricing?: { prompt: number; completion: number }
   }>
+  // 多选相关props
+  isMultiSelect?: boolean
+  selectedModels?: string[]
+  onToggleMultiSelect?: () => void
+  onToggleModelSelection?: (modelId: string) => void
+  onClearSelectedModels?: () => void
+  onRemoveSelectedModel?: (modelId: string) => void
 }
 
 export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
@@ -42,18 +63,29 @@ export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
   onTest,
   isTestLoading = false,
   isTestPassed = false,
-  availableModels = []
+  availableModels = [],
+  // 多选相关props
+  isMultiSelect = false,
+  selectedModels = [],
+  onToggleMultiSelect,
+  onToggleModelSelection,
+  onClearSelectedModels,
+  onRemoveSelectedModel
 }) => {
   const [modelSearchQuery, setModelSearchQuery] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isModelPopoverOpen, setIsModelPopoverOpen] = useState(false)
   const currentTemplate = PROVIDER_TEMPLATES[newConfig.provider]
 
-  // 过滤模型列表
-  const filteredModels = availableModels.filter(
-    (model) =>
-      model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
-      model.id.toLowerCase().includes(modelSearchQuery.toLowerCase())
-  )
+  // 过滤模型列表 - 使用useMemo优化性能，避免每次渲染都重新计算
+  const filteredModels = useMemo(() => {
+    if (!modelSearchQuery) return availableModels
+    return availableModels.filter(
+      (model) =>
+        model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+        model.id.toLowerCase().includes(modelSearchQuery.toLowerCase())
+    )
+  }, [availableModels, modelSearchQuery])
 
   return (
     <Card className="border-primary/20 bg-secondary/30">
@@ -126,53 +158,151 @@ export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-4 items-center">
-          <Label htmlFor="model" className="w-20 text-right">
-            模型
-          </Label>
-          {availableModels.length > 0 ? (
-            <Select
-              value={newConfig.model}
-              onValueChange={(value) => onConfigChange('model', value)}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder={`选择模型（默认：${currentTemplate?.defaultModel}）`} />
-              </SelectTrigger>
-              <SelectContent>
-                <div className="p-2 border-b">
-                  <Input
-                    placeholder="搜索模型..."
-                    value={modelSearchQuery}
-                    onChange={(e) => setModelSearchQuery(e.target.value)}
-                    className="h-8"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-                <div className="overflow-y-auto max-h-60">
-                  {filteredModels.length > 0 ? (
-                    filteredModels.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        <div className="flex flex-col">
-                          <span>{model.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="p-2 text-sm text-center text-muted-foreground">
-                      未找到匹配的模型
-                    </div>
-                  )}
-                </div>
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input
-              id="model"
-              value={newConfig.model}
-              onChange={(e) => onConfigChange('model', e.target.value)}
-              placeholder={`默认：${currentTemplate?.defaultModel}`}
-              className="flex-1"
+        {/* 模型选择模式切换 */}
+        {availableModels.length > 1 && (
+          <div className="flex justify-between items-center p-3 space-x-2 rounded-lg bg-muted/50">
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="multi-select-mode" className="text-sm font-medium">
+                批量创建模式
+              </Label>
+              <span className="text-xs text-muted-foreground">
+                {isMultiSelect ? '选择多个模型批量创建配置' : '单个模型创建配置'}
+              </span>
+            </div>
+            <Switch
+              id="multi-select-mode"
+              checked={isMultiSelect}
+              onCheckedChange={onToggleMultiSelect}
             />
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="flex gap-4 items-center">
+            <Label htmlFor="model" className="w-20 text-right">
+              模型
+            </Label>
+            {availableModels.length > 0 ? (
+              <Popover open={isModelPopoverOpen} onOpenChange={setIsModelPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isModelPopoverOpen}
+                    className="flex-1 justify-between"
+                  >
+                    {isMultiSelect
+                      ? '选择模型...'
+                      : newConfig.model
+                        ? availableModels.find((model) => model.id === newConfig.model)?.name
+                        : `选择模型（默认：${currentTemplate?.defaultModel}）`}
+                    <ChevronsUpDown className="ml-2 w-4 h-4 opacity-50 shrink-0" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="搜索模型..."
+                      value={modelSearchQuery}
+                      onValueChange={setModelSearchQuery}
+                    />
+                    <CommandList>
+                      <CommandEmpty>未找到匹配的模型</CommandEmpty>
+                      <CommandGroup>
+                        {filteredModels.map((model) => (
+                          <CommandItem
+                            key={`model-${model.id}`}
+                            value={model.name}
+                            onSelect={() => {
+                              if (isMultiSelect) {
+                                onToggleModelSelection?.(model.id)
+                              } else {
+                                onConfigChange('model', model.id)
+                                setIsModelPopoverOpen(false)
+                                setModelSearchQuery('')
+                              }
+                            }}
+                          >
+                            {isMultiSelect ? (
+                              <Checkbox
+                                checked={selectedModels.includes(model.id)}
+                                className="mr-2"
+                              />
+                            ) : (
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  newConfig.model === model.id ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                            )}
+                            <div className="flex flex-col">
+                              <span>{model.name}</span>
+                              {model.contextLength && (
+                                <div className="text-xs text-muted-foreground">
+                                  上下文长度: {model.contextLength.toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Input
+                id="model"
+                value={newConfig.model}
+                onChange={(e) => onConfigChange('model', e.target.value)}
+                placeholder={`默认：${currentTemplate?.defaultModel}`}
+                className="flex-1"
+              />
+            )}
+          </div>
+
+          {/* 已选择模型标签显示 */}
+          {isMultiSelect && selectedModels.length > 0 && (
+            <div className="ml-24 space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-sm text-muted-foreground">
+                  已选择的模型 ({selectedModels.length})
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClearSelectedModels}
+                  className="px-2 h-6 text-xs"
+                >
+                  清空
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedModels.map((modelId) => {
+                  const model = availableModels.find((m) => m.id === modelId)
+                  return (
+                    <Badge
+                      key={modelId}
+                      variant="secondary"
+                      className="flex gap-1 items-center pr-1"
+                    >
+                      <span>{model?.name || modelId}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemoveSelectedModel?.(modelId)}
+                        className="p-0 w-4 h-4 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </Badge>
+                  )
+                })}
+              </div>
+            </div>
           )}
         </div>
 
@@ -195,8 +325,18 @@ export const AddAiConfigForm: React.FC<AddAiConfigFormProps> = ({
           <Button variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
             取消
           </Button>
-          <Button onClick={onAdd} className="flex-1" disabled={isLoading || !isTestPassed}>
-            {isLoading ? '添加中...' : '添加'}
+          <Button
+            onClick={onAdd}
+            className="flex-1"
+            disabled={isLoading || !isTestPassed || (isMultiSelect && selectedModels.length === 0)}
+          >
+            {isLoading
+              ? isMultiSelect && selectedModels.length > 1
+                ? `创建中... (${selectedModels.length}个配置)`
+                : '添加中...'
+              : isMultiSelect && selectedModels.length > 0
+                ? `批量创建 (${selectedModels.length}个配置)`
+                : '添加'}
           </Button>
         </div>
       </CardContent>
