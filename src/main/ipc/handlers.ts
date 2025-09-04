@@ -165,14 +165,18 @@ export function setupIpcHandlers(services: AppServices) {
     }
   })
 
-  ipcMain.handle('report:generate-report', async (_, config: AnalysisConfig): Promise<string> => {
-    try {
-      return await services.report.generateReport(config)
-    } catch (error) {
-      logger.error('Failed to generate report:', error)
-      throw error
+  ipcMain.handle(
+    'report:generate-report',
+    async (_, config: AnalysisConfig & { reportId?: string }): Promise<string> => {
+      try {
+        const { reportId, ...analysisConfig } = config
+        return await services.report.generateReport(analysisConfig, reportId)
+      } catch (error) {
+        logger.error('Failed to generate report:', error)
+        throw error
+      }
     }
-  })
+  )
 
   // 任务状态管理
   ipcMain.handle('task:status', async (_, taskId: string) => {

@@ -12,14 +12,28 @@ import {
   Brain,
   RefreshCw,
   Wifi,
-  Sparkles
+  Sparkles,
+  RotateCcw,
+  Users,
+  Calendar,
+  FileText
 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import type { ReportMeta } from '@types'
 
 // 新的hooks和组件
 import { useStreamingReport } from '@/hooks/useStreamingReport'
 import { useReportFile } from '@/hooks/useReportFile'
 import { StreamingMarkdown } from '@/components/StreamingMarkdown'
 import { ShareReport } from '@/components/ShareReport'
+
+// 工具函数
+import {
+  extractAnalysisConfigFromReportMeta,
+  canRegenerateReport,
+  getRegenerateDescription
+} from '@/utils/reportUtils'
 
 /**
  * 报告详情页面
@@ -34,6 +48,10 @@ const ReportDetail = (): React.ReactElement => {
 
   // 判断是否为生成模式
   const isGeneratingMode = searchParams.get('mode') === 'generating'
+
+  // 重新生成相关状态
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [reportMeta, setReportMeta] = useState<ReportMeta | null>(null)
 
   // 流式报告生成状态（仅在生成模式下启用）
   const streamingReport = useStreamingReport({
@@ -50,6 +68,55 @@ const ReportDetail = (): React.ReactElement => {
         streamingReport.status === 'completed' ||
         streamingReport.status === 'failed')
   })
+
+  // 获取报告元数据用于重新生成
+  useEffect(() => {
+    const fetchReportMeta = async () => {
+      if (!reportId || isGeneratingMode) return
+
+      try {
+        const meta = await window.api.report.getReport(reportId)
+        setReportMeta(meta)
+      } catch (error) {
+        console.error('Failed to fetch report meta:', error)
+      }
+    }
+
+    fetchReportMeta()
+  }, [reportId, isGeneratingMode])
+
+  // 重新生成报告处理函数
+  const handleRegenerateReport = async () => {
+    if (!reportMeta || !canRegenerateReport(reportMeta)) {
+      toast.error('无法重新生成此报告，缺少必要的配置信息')
+      return
+    }
+
+    try {
+      setIsRegenerating(true)
+
+      // 提取原始配置
+      const analysisConfig = extractAnalysisConfigFromReportMeta(reportMeta)
+
+      // 删除旧报告
+      await window.api.report.deleteReport(reportId!)
+
+      // 生成新报告，使用相同的reportId
+      await window.api.report.generateReport({
+        ...analysisConfig,
+        reportId: reportId // 使用相同的ID来替换旧报告
+      })
+
+      // 跳转到生成页面
+      navigate(`/report/${reportId}?mode=generating&streaming=true`)
+
+      toast.success('开始重新生成报告')
+    } catch (error) {
+      console.error('Failed to regenerate report:', error)
+      toast.error('重新生成报告失败，请稍后重试')
+      setIsRegenerating(false)
+    }
+  }
 
   // 判断是否正在生成（仅在生成模式下判断）
   const isGenerating =
@@ -91,9 +158,17 @@ const ReportDetail = (): React.ReactElement => {
         badge: { text: '生成中', variant: 'default' as const }
       }
     } else {
+      const reportTitle = reportMeta?.title || '分析报告'
+      const promptName =
+        reportMeta?.metadata?.prompt?.name ||
+        reportMeta?.metadata?.prompt?.generatedName ||
+        '自定义提示词'
+      const messageCount = reportMeta?.metadata?.messageCount || 0
+      const chatPartner = reportMeta?.metadata?.chatPartner || '未知'
+
       return {
-        title: '分析报告',
-        description: '基于微信聊天数据的深度AI分析报告',
+        title: reportTitle,
+        description: `使用「${promptName}」分析了与 ${chatPartner} 的 ${messageCount} 条消息`,
         badge: { text: '已完成', variant: 'secondary' as const }
       }
     }
@@ -109,21 +184,30 @@ const ReportDetail = (): React.ReactElement => {
   ) {
     const params = new URLSearchParams(searchParams)
     params.delete('mode')
+    // 重置重新生成状态
+    setIsRegenerating(false)
     navigate(`/report/${reportId}?${params.toString()}`, { replace: true })
   }
+
+  // 当页面模式改变时重置重新生成状态
+  useEffect(() => {
+    if (isGeneratingMode) {
+      setIsRegenerating(false)
+    }
+  }, [isGeneratingMode])
 
   // 操作按钮
   const renderActions = () => {
     if (isGenerating) {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate('/history')}
             disabled={isLoading}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 w-4 h-4" />
             返回列表
           </Button>
           {status === 'streaming' && (
@@ -133,7 +217,7 @@ const ReportDetail = (): React.ReactElement => {
               onClick={() => streamingReport.reset()}
               disabled={isLoading}
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="mr-2 w-4 h-4" />
               重新生成
             </Button>
           )}
@@ -141,9 +225,9 @@ const ReportDetail = (): React.ReactElement => {
       )
     } else {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 w-4 h-4" />
             返回列表
           </Button>
           <Button
@@ -169,10 +253,20 @@ const ReportDetail = (): React.ReactElement => {
             }}
             disabled={!content}
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="mr-2 w-4 h-4" />
             下载报告
           </Button>
           <ShareReport content={content || ''} reportId={reportId || ''} disabled={!content} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRegenerateReport}
+            disabled={!reportMeta || !canRegenerateReport(reportMeta) || isRegenerating}
+            title={reportMeta ? getRegenerateDescription(reportMeta) : '无法重新生成'}
+          >
+            <RotateCcw className={`w-4 h-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
+            {isRegenerating ? '重新生成中...' : '重新生成'}
+          </Button>
         </div>
       )
     }
@@ -183,9 +277,9 @@ const ReportDetail = (): React.ReactElement => {
       <div className="flex flex-col flex-1">
         {/* 头部 */}
         <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
-          <div className="flex items-center gap-4 px-6 h-14">
+          <div className="flex gap-4 items-center px-6 h-14">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <Brain className="w-5 h-5 text-primary" />
               <span className="font-semibold text-foreground">EchoSoul</span>
             </div>
@@ -195,8 +289,8 @@ const ReportDetail = (): React.ReactElement => {
         </div>
 
         {/* 主要内容区域 */}
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-4xl p-6 mx-auto space-y-6">
+        <div className="overflow-auto flex-1">
+          <div className="p-6 mx-auto space-y-6 max-w-4xl">
             {/* 报告头部信息 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -205,18 +299,43 @@ const ReportDetail = (): React.ReactElement => {
             >
               <Card>
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex gap-2 items-center">
                         <CardTitle>{pageInfo.title}</CardTitle>
                         <Badge variant={pageInfo.badge.variant}>{pageInfo.badge.text}</Badge>
                       </div>
                       <CardDescription>{pageInfo.description}</CardDescription>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>{new Date().toLocaleString()}</span>
-                    </div>
+                    {!isGenerating && reportMeta && (
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        <div className="flex gap-2 items-center">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {new Date(reportMeta.metadata.timeRange.start).toLocaleDateString()} -{' '}
+                            {new Date(reportMeta.metadata.timeRange.end).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <Users className="w-4 h-4" />
+                          <span>{reportMeta.metadata.chatPartner}</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <FileText className="w-4 h-4" />
+                          <span>
+                            {reportMeta.metadata.prompt.name ||
+                              reportMeta.metadata.prompt.generatedName ||
+                              '自定义提示词'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {isGenerating && (
+                      <div className="flex gap-2 items-center text-sm text-muted-foreground">
+                        <Clock className="w-4 h-4" />
+                        <span>{new Date().toLocaleString()}</span>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
 
@@ -226,24 +345,24 @@ const ReportDetail = (): React.ReactElement => {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          <MessageCircle className="w-6 h-6 mx-auto mb-1" />
+                          <MessageCircle className="mx-auto mb-1 w-6 h-6" />
                         </div>
                         <div className="text-sm text-muted-foreground">分析消息</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          <Brain className="w-6 h-6 mx-auto mb-1" />
+                          <Brain className="mx-auto mb-1 w-6 h-6" />
                         </div>
                         <div className="text-sm text-muted-foreground">AI分析</div>
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-primary">
-                          <Wifi className="w-6 h-6 mx-auto mb-1" />
+                          <Wifi className="mx-auto mb-1 w-6 h-6" />
                         </div>
                         <div className="text-sm text-muted-foreground">实时流式</div>
                       </div>
                       {streamingReport.status === 'naming' && (
-                        <div className="col-span-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                        <div className="flex col-span-3 gap-2 justify-center items-center text-sm text-center text-muted-foreground">
                           <Sparkles className="w-4 h-4" /> 正在为提示词命名
                           {streamingReport.promptName ? `：${streamingReport.promptName}` : '…'}
                         </div>

@@ -158,16 +158,17 @@ ${promptContent}
   /**
    * 生成报告
    * @param config 分析配置
+   * @param customReportId 可选的自定义报告ID，用于替换现有报告
    * @returns 报告ID
    */
-  async generateReport(config: AnalysisConfig): Promise<string> {
+  async generateReport(config: AnalysisConfig, customReportId?: string): Promise<string> {
     try {
       // 确保主窗口可用
       this.ensureMainWindow()
 
       logger.info('Starting report generation...')
 
-      const reportId = uuidv4()
+      const reportId = customReportId || uuidv4()
 
       // 如果是临时提示词且没有名称，先生成名称
       if (config.prompt.isTemporary && !config.prompt.name) {
@@ -368,10 +369,8 @@ ${promptContent}
       // 生成报告内容
       const reportContent = `${analysisResult}
 
-      ---
-
-      *此报告由 EchoSoul 自动生成*
-      `
+---
+*此报告由 EchoSoul 自动生成*`
 
       // 写入文件
       await fs.writeFile(filePath, reportContent, 'utf-8')
