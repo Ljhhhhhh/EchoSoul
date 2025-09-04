@@ -15,6 +15,7 @@ import {
   ERROR_MESSAGES,
   USER_ACTION_MESSAGES
 } from '../types/initialization'
+import { LogEntry } from '@types'
 
 const logger = createLogger('InitializationOrchestrator')
 
@@ -39,6 +40,58 @@ export class InitializationOrchestrator extends EventEmitter {
     this.services = services
     this.state = this.createInitialState()
     this.setupServiceListeners()
+    this.setupLogCapture()
+  }
+
+  /**
+   * 发送日志到前端
+   */
+  private emitLog(level: LogEntry['level'], message: string, step?: string, details?: any): void {
+    const logEntry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      step,
+      details
+    }
+
+    // 发送到前端
+    this.emit('log', logEntry)
+  }
+
+  /**
+   * 设置日志捕获
+   */
+  private setupLogCapture(): void {
+    // 捕获原始logger的输出
+    const originalLog = logger.info
+    const originalWarn = logger.warn
+    const originalError = logger.error
+    const originalDebug = logger.debug
+
+    logger.info = (...args: any[]) => {
+      const result = originalLog.apply(logger, args)
+      this.emitLog('info', args.join(' '), this.state?.currentStep)
+      return result
+    }
+
+    logger.warn = (...args: any[]) => {
+      const result = originalWarn.apply(logger, args)
+      this.emitLog('warn', args.join(' '), this.state?.currentStep)
+      return result
+    }
+
+    logger.error = (...args: any[]) => {
+      const result = originalError.apply(logger, args)
+      this.emitLog('error', args.join(' '), this.state?.currentStep)
+      return result
+    }
+
+    logger.debug = (...args: any[]) => {
+      const result = originalDebug.apply(logger, args)
+      this.emitLog('debug', args.join(' '), this.state?.currentStep)
+      return result
+    }
   }
 
   /**

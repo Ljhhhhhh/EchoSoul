@@ -51,6 +51,20 @@ export function registerInitializationHandlers(): void {
             window.webContents.send('initialization:error', error)
           })
         })
+
+        // 监听日志事件 - 新增日志转发功能
+        initializationManager.on('log', (logEntry: any) => {
+          BrowserWindow.getAllWindows().forEach((window) => {
+            window.webContents.send('initialization:log', logEntry)
+          })
+        })
+
+        // 监听步骤进度事件
+        initializationManager.on('stepProgress', (progress: any) => {
+          BrowserWindow.getAllWindows().forEach((window) => {
+            window.webContents.send('initialization:stepProgress', progress)
+          })
+        })
       }
 
       await initializationManager.startInitialization()
@@ -115,6 +129,26 @@ export function registerInitializationHandlers(): void {
     } catch (error: any) {
       logger.error('Failed to clear config:', error)
       return { success: false, error: error.message }
+    }
+  })
+
+  // 获取日志
+  ipcMain.handle('initialization:getLogs', async () => {
+    try {
+      return initializationManager.getLogs()
+    } catch (error) {
+      logger.error('Failed to get logs:', error)
+      throw error
+    }
+  })
+
+  // 清空日志
+  ipcMain.handle('initialization:clearLogs', async () => {
+    try {
+      return initializationManager.clearLogs()
+    } catch (error) {
+      logger.error('Failed to clear logs:', error)
+      throw error
     }
   })
 

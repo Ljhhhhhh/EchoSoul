@@ -16,6 +16,9 @@ interface InitializationAPI {
   onCompleted: (callback: () => void) => void
   onError: (callback: (error: any) => void) => void
   removeAllListeners: () => void
+
+  onLog: (callback: (logEntry: any) => void) => void
+  onStepProgress: (callback: (progressData: any) => void) => void
 }
 
 interface ChatlogAPI {

@@ -3,6 +3,7 @@ import { createLogger } from '../utils/logger'
 import { ConfigService } from './ConfigService'
 import { createServiceContainer, ServiceContainer } from './ServiceFactory'
 import { InitializationState } from '../types/initialization'
+import { LogEntry } from '@types'
 
 const logger = createLogger('InitializationManager')
 
@@ -16,14 +17,15 @@ export class InitializationManager extends EventEmitter {
   private serviceContainer: ServiceContainer
   private configService: ConfigService
   private isInitialized = false
+  private logs: LogEntry[] = []
 
   constructor(configService: ConfigService) {
     super()
     this.configService = configService
     this.serviceContainer = createServiceContainer()
-
     this.setupEventForwarding()
-    logger.info('InitializationManager adapter initialized')
+    this.setupLogCapture()
+    this.emitLog('info', 'InitializationManager adapter initialized')
   }
 
   /**
@@ -176,22 +178,115 @@ export class InitializationManager extends EventEmitter {
   private setupEventForwarding(): void {
     // 转发 InitializationOrchestrator 的事件，保持原有格式
     this.serviceContainer.initializationOrchestrator.on('stateChanged', (state) => {
+      this.emitLog('info', `状态变更: ${state.currentStep}`, state.currentStep, state)
       this.emit('stateChanged', this.convertStateFormat(state))
     })
 
     this.serviceContainer.initializationOrchestrator.on('completed', () => {
       this.isInitialized = true
+      this.emitLog('info', '初始化流程完成')
       this.emit('completed')
     })
 
     this.serviceContainer.initializationOrchestrator.on('error', (error) => {
+      this.emitLog(
+        'error',
+        `初始化错误: ${error.error || error.message || error}`,
+        error.step,
+        error
+      )
       this.emit('error', error)
     })
 
     // 转发其他可能的事件
     this.serviceContainer.initializationOrchestrator.on('stepProgress', (progress) => {
+      this.emitLog('info', `步骤进度更新`, progress.step, progress)
       this.emit('stepProgress', progress)
     })
+
+    // 转发日志事件
+    this.serviceContainer.initializationOrchestrator.on('log', (logEntry) => {
+      // 将日志添加到内存中
+      this.logs.push(logEntry)
+      // 限制日志数量，防止内存泄漏
+      if (this.logs.length > 1000) {
+        this.logs = this.logs.slice(-500)
+      }
+      // 转发到前端
+      this.emit('log', logEntry)
+    })
+  }
+
+  /**
+   * 设置日志捕获
+   */
+  private setupLogCapture(): void {
+    // 捕获原始logger的输出
+    const originalLog = logger.info
+    const originalWarn = logger.warn
+    const originalError = logger.error
+    const originalDebug = logger.debug
+
+    logger.info = (...args: any[]) => {
+      const result = originalLog.apply(logger, args)
+      this.emitLog('info', args.join(' '))
+      return result
+    }
+
+    logger.warn = (...args: any[]) => {
+      const result = originalWarn.apply(logger, args)
+      this.emitLog('warn', args.join(' '))
+      return result
+    }
+
+    logger.error = (...args: any[]) => {
+      const result = originalError.apply(logger, args)
+      this.emitLog('error', args.join(' '))
+      return result
+    }
+
+    logger.debug = (...args: any[]) => {
+      const result = originalDebug.apply(logger, args)
+      this.emitLog('debug', args.join(' '))
+      return result
+    }
+  }
+
+  /**
+   * 发送日志到前端
+   */
+  private emitLog(level: LogEntry['level'], message: string, step?: string, details?: any): void {
+    const logEntry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      step,
+      details
+    }
+
+    // 保存到内存中（限制数量避免内存泄漏）
+    this.logs.push(logEntry)
+    if (this.logs.length > 1000) {
+      this.logs = this.logs.slice(-500) // 保留最新的500条
+    }
+
+    // 发送到前端
+    this.emit('log', logEntry)
+  }
+
+  /**
+   * 获取所有日志
+   */
+  getLogs(): LogEntry[] {
+    return [...this.logs]
+  }
+
+  /**
+   * 清空日志
+   */
+  clearLogs(): void {
+    this.logs = []
+    this.emitLog('info', '日志已清空')
   }
 
   /**

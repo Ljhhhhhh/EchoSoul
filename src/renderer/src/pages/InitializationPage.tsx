@@ -7,6 +7,7 @@ import Logo from '@/assets/icon.png'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { LogEntry } from '@types'
 
 // 图标导入
 import {
@@ -20,11 +21,16 @@ import {
   Key,
   MessageSquare,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Info,
+  X
 } from 'lucide-react'
 
 // 工具函数导入
 import { setInitializationCompleted } from '@/utils/initializationStorage'
+
+// 组件导入
+import InitializationLogs from '@/components/InitializationLogs'
 
 // 使用主进程定义的类型
 interface InitializationStep {
@@ -51,6 +57,10 @@ const InitializationPage: React.FC = () => {
   const [state, setState] = useState<InitializationState | null>(null)
   const [isRetrying, setIsRetrying] = useState(false)
   const [showAllSteps, setShowAllSteps] = useState(false)
+  const [showCompatibilityWarning, setShowCompatibilityWarning] = useState(true)
+  const [showLogs, setShowLogs] = useState(false)
+  // TODO: log 类型定义
+  const [logs, setLogs] = useState<LogEntry[]>([])
   const navigate = useNavigate()
 
   // 检查是否有错误
@@ -140,6 +150,24 @@ const InitializationPage: React.FC = () => {
       console.error('初始化错误:', error)
     })
 
+    // 监听日志事件
+    const unsubscribeLog = window.api.initialization.onLog((logEntry) => {
+      setLogs((prevLogs) => {
+        const newLogs = [...prevLogs, logEntry]
+        // 限制日志数量，防止内存泄漏
+        if (newLogs.length > 500) {
+          return newLogs.slice(-250)
+        }
+        return newLogs
+      })
+    })
+
+    // 监听步骤进度事件
+    const unsubscribeStepProgress = window.api.initialization.onStepProgress((progressData) => {
+      // 可以在这里处理步骤进度更新
+      console.log('Step progress:', progressData)
+    })
+
     // 启动初始化
     const startInitialization = async (): Promise<void> => {
       try {
@@ -163,11 +191,11 @@ const InitializationPage: React.FC = () => {
   const completedSteps = getCompletedStepsCount()
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 bg-background">
-      <div className="w-full max-w-lg space-y-8">
+    <div className="flex justify-center items-center p-4 min-h-screen bg-background">
+      <div className="space-y-8 w-full max-w-lg">
         {/* Logo 和标题 */}
         <div className="space-y-4 text-center">
-          <div className="flex items-center justify-center w-20 h-20 mx-auto shadow-lg rounded-2xl bg-primary">
+          <div className="flex justify-center items-center mx-auto w-20 h-20 rounded-2xl shadow-lg bg-primary">
             <img src={Logo} alt="" />
           </div>
           <div>
@@ -175,6 +203,44 @@ const InitializationPage: React.FC = () => {
             <p className="mt-2 text-muted-foreground">正在初始化应用环境</p>
           </div>
         </div>
+
+        {/* 兼容性提示 */}
+        {showCompatibilityWarning && (
+          <Card className="relative bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex-shrink-0 mt-0.5">
+                  <Info className="w-4 h-4" />
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="text-sm font-semibold text-amber-800">兼容性提示</h3>
+                  <div className="space-y-1 text-sm text-amber-700">
+                    <p className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2 flex-shrink-0"></span>
+                      <span>
+                        <strong>微信版本：</strong>本软件不适用于微信 4.0 及以上版本
+                      </span>
+                    </p>
+                    <p className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full mr-2 flex-shrink-0"></span>
+                      <span>
+                        <strong>Mac 用户：</strong>需要关闭 SIP（系统完整性保护）才能正常使用
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCompatibilityWarning(false)}
+                  className="flex-shrink-0 p-0 w-6 h-6 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* 当前步骤卡片 */}
         {currentStep && (
@@ -216,7 +282,7 @@ const InitializationPage: React.FC = () => {
 
               {/* 错误信息 */}
               {currentStep.status === 'error' && currentStep.error && (
-                <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                   <p className="text-sm text-red-700">{currentStep.error}</p>
                 </div>
               )}
@@ -249,7 +315,7 @@ const InitializationPage: React.FC = () => {
             onClick={() => setShowAllSteps(true)}
             className="w-full text-muted-foreground"
           >
-            <ChevronDown className="w-4 h-4 mr-2" />
+            <ChevronDown className="mr-2 w-4 h-4" />
             查看所有步骤 ({totalSteps})
           </Button>
         )}
@@ -258,7 +324,7 @@ const InitializationPage: React.FC = () => {
         {showAllSteps && state?.steps && (
           <Card className="p-4">
             <CardContent className="p-0 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <h3 className="font-medium text-foreground">所有步骤</h3>
                 <Button variant="ghost" size="sm" onClick={() => setShowAllSteps(false)}>
                   <ChevronUp className="w-4 h-4" />
@@ -275,7 +341,7 @@ const InitializationPage: React.FC = () => {
                       stepInfo.status === 'error' && 'bg-red-50'
                     )}
                   >
-                    <div className="flex items-center justify-center flex-shrink-0 w-6 h-6">
+                    <div className="flex flex-shrink-0 justify-center items-center w-6 h-6">
                       {stepInfo.status === 'success' ? (
                         <CheckCircle2 className="w-4 h-4 text-green-500" />
                       ) : stepInfo.status === 'error' ? (
@@ -298,6 +364,15 @@ const InitializationPage: React.FC = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* 初始化日志 */}
+        <InitializationLogs
+          isExpanded={showLogs}
+          onToggle={() => setShowLogs(!showLogs)}
+          logs={logs}
+          onClearLogs={() => setLogs([])}
+          className="w-full"
+        />
       </div>
     </div>
   )

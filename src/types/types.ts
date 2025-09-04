@@ -285,6 +285,15 @@ export const AIServiceEventSchema = z.object({
 
 export type AIServiceEvent = z.infer<typeof AIServiceEventSchema>
 
+// 日志条目接口
+export interface LogEntry {
+  timestamp: string
+  level: 'info' | 'warn' | 'error' | 'debug'
+  message: string
+  step?: string
+  details?: any
+}
+
 // IPC事件类型（扩展）
 export interface IPCEvents {
   'task:progress': (taskId: string, progress: number, message: string) => void

@@ -10,8 +10,8 @@ const api = {
     retryFromStep: (step: string) => ipcRenderer.invoke('initialization:retryFromStep', step),
     getDiagnostics: () => ipcRenderer.invoke('initialization:getDiagnostics'),
     hasDecryptedData: () => ipcRenderer.invoke('initialization:hasDecryptedData'),
-
-    // 事件监听
+    getLogs: () => ipcRenderer.invoke('initialization:getLogs'),
+    clearLogs: () => ipcRenderer.invoke('initialization:clearLogs'),
     onStateChanged: (callback: (state: any) => void) => {
       ipcRenderer.on('initialization:stateChanged', (_, state) => callback(state))
     },
@@ -21,7 +21,12 @@ const api = {
     onError: (callback: (error: any) => void) => {
       ipcRenderer.on('initialization:error', (_, error) => callback(error))
     },
-
+    onLog: (callback: (logEntry: any) => void) => {
+      ipcRenderer.on('initialization:log', (_, logEntry) => callback(logEntry))
+    },
+    onStepProgress: (callback: (progress: any) => void) => {
+      ipcRenderer.on('initialization:stepProgress', (_, progress) => callback(progress))
+    },
     // 移除事件监听器
     removeAllListeners: () => {
       ipcRenderer.removeAllListeners('initialization:stateChanged')

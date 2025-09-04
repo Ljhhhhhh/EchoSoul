@@ -366,7 +366,12 @@ ${promptContent}
       const filePath = path.join(this.reportsDir, fileName)
 
       // 生成报告内容
-      const reportContent = this.generateReportContent(config, analysisResult, messageCount)
+      const reportContent = `${analysisResult}
+
+      ---
+
+      *此报告由 EchoSoul 自动生成*
+      `
 
       // 写入文件
       await fs.writeFile(filePath, reportContent, 'utf-8')
@@ -400,36 +405,6 @@ ${promptContent}
       logger.error('Failed to generate report file:', error)
       throw error
     }
-  }
-
-  /**
-   * 生成报告内容
-   */
-  private generateReportContent(
-    config: AnalysisConfig,
-    analysisResult: string,
-    messageCount: number
-  ): string {
-    const participantNames = config.chatPartner
-    const timeRange = `${config.timeRange.start} 至 ${config.timeRange.end}`
-
-    return `# ${this.generateReportTitle(config)}
-
-## 报告信息
-
-- **生成时间**: ${new Date().toLocaleString('zh-CN')}
-- **分析时间范围**: ${timeRange}
-- **聊天对象**: ${participantNames}
-- **消息数量**: ${messageCount} 条
-
-## 分析结果
-
-${analysisResult}
-
----
-
-*此报告由 EchoSoul 自动生成*
-`
   }
 
   /**
