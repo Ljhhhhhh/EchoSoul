@@ -44,8 +44,8 @@ const appServices = new AppServices()
 function createWindow(): BrowserWindow {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1440,
+    height: 850,
     show: false,
     autoHideMenuBar: true,
     // titleBarStyle: 'hidden',

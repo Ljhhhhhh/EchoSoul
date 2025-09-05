@@ -137,17 +137,18 @@ export const ShareReport: React.FC<ShareReportProps> = ({
               <span className="text-lg font-bold text-white">EchoSoul</span>
             </div>
             <Badge variant="secondary" className="px-3 py-1 text-white bg-white/20 border-white/30">
-              AI分析报告
+              每段对话，皆有回响
             </Badge>
           </Md2PosterHeader>
 
           <Md2PosterContent className="px-8 text-sm leading-relaxed">
-            {processContent(content || '暂无内容')}
+            {content || '暂无内容'}
           </Md2PosterContent>
 
           <Md2PosterFooter className="flex justify-between items-center px-8 py-6 text-white/80">
-            <span className="text-sm font-medium">© EchoSoul - 智能聊天分析</span>
-            <span className="text-sm">{getCurrentDate()}</span>
+            <span className="text-sm font-medium">
+              GitHub: https://github.com/Ljhhhhhh/EchoSoul
+            </span>
           </Md2PosterFooter>
         </Md2Poster>
       </div>
