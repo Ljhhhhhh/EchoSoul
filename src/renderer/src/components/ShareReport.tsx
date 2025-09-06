@@ -7,8 +7,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Download, Copy, Share2, Brain } from 'lucide-react'
+import { Download, Copy, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
+import Logo from '@/assets/icon.png'
 
 // 导入 markdown-to-image 组件
 import 'markdown-to-image/dist/style.css'
@@ -133,7 +134,7 @@ export const ShareReport: React.FC<ShareReportProps> = ({
         >
           <Md2PosterHeader className="flex justify-between items-center px-8 py-6">
             <div className="flex gap-3 items-center">
-              <Brain className="w-6 h-6 text-white" />
+              <img src={Logo} alt="EchoSoul" className="w-6 h-6" />
               <span className="text-lg font-bold text-white">EchoSoul</span>
             </div>
             <Badge variant="secondary" className="px-3 py-1 text-white bg-white/20 border-white/30">
