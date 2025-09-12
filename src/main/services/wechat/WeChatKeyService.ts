@@ -97,6 +97,8 @@ export class WeChatKeyService extends EventEmitter implements IWeChatKeyService 
         const text = data.toString()
         output += text
 
+        logger.info(`Key extraction stdout: ${text.trim()}`)
+
         // 发射进度事件
         this.emit('progress', {
           step: 'extracting',
@@ -166,7 +168,7 @@ export class WeChatKeyService extends EventEmitter implements IWeChatKeyService 
             error: 'Key extraction process timed out after 30 seconds'
           })
         }
-      }, 30000)
+      }, 60000)
 
       this.activeKeyProcess.on('close', () => {
         clearTimeout(timeout)

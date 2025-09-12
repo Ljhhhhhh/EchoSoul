@@ -186,16 +186,16 @@ export class WindowsWeChatDetector extends WeChatDetector {
   private async isV4Subprocess(pid: number): Promise<boolean> {
     try {
       // 使用 wmic 获取进程命令行
-      const { stdout } = await execa('wmic', [
-        'process',
-        'where',
-        `ProcessId=${pid}`,
-        'get',
-        'CommandLine',
-        '/format:value'
-      ])
+      const { stdout } = await execa(
+        'powershell',
+        [
+          '-Command',
+          `(Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = ${pid}").CommandLine`
+        ],
+        { timeout: 5000 }
+      )
 
-      return stdout.includes('--')
+      return stdout.trim().includes('--')
     } catch (error) {
       this.logger.debug(`Failed to get command line for PID ${pid}:`, error)
       return false
