@@ -1,7 +1,6 @@
 import { BaseAIProviderAdapter } from './AIProviderAdapter'
 import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '@types'
 import { createLogger } from '../../utils/logger'
-import axios from 'axios'
 
 const logger = createLogger('OpenAIAdapter')
 
@@ -12,44 +11,12 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
   readonly provider: AIProvider = 'openai'
   readonly name = 'OpenAI'
   readonly description = 'OpenAI official API for GPT models'
-  readonly supportedModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo']
+  readonly supportedModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4']
   readonly defaultModel = 'gpt-4o-mini'
   readonly requiresApiKey = true
   readonly supportsCustomBaseUrl = true
 
   private readonly defaultBaseUrl = 'https://api.openai.com/v1'
-
-  private async makeRequestWithAxios(
-    url: string,
-    config: AIServiceConfig,
-    requestBody: any,
-    timeoutMs: number = 30000
-  ): Promise<any> {
-    logger.info(`Trying axios request to: ${url}`)
-
-    try {
-      const response = await axios.post(url, requestBody, {
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'EchoSoul/1.0.0'
-        },
-        timeout: timeoutMs,
-        validateStatus: () => true
-      })
-
-      logger.info(`Axios response status: ${response.status}`)
-      return {
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        statusText: response.statusText,
-        json: async () => response.data
-      }
-    } catch (error) {
-      logger.error('Axios request failed:', error)
-      throw error
-    }
-  }
 
   async testConnection(config: AIServiceConfig): Promise<AIServiceTestResult> {
     const startTime = Date.now()
@@ -248,23 +215,7 @@ export class OpenAIAdapter extends BaseAIProviderAdapter {
       logger.info(`Response status: ${response.status}`)
     } catch (error: any) {
       clearTimeout(timeoutId)
-      logger.error('Fetch request failed:', error)
-
-      if (
-        error.code === 'ETIMEDOUT' ||
-        error.name === 'AbortError' ||
-        error.message?.includes('fetch failed')
-      ) {
-        logger.info('Trying axios as fallback...')
-        try {
-          response = await this.makeRequestWithAxios(url, config, requestBody, 30000)
-        } catch (axiosError) {
-          logger.error('Axios fallback also failed:', axiosError)
-          throw new Error(`Both fetch and axios failed. Original error: ${error.message}`)
-        }
-      } else {
-        throw error
-      }
+      throw error
     }
 
     if (!response.ok) {

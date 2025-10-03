@@ -1,7 +1,6 @@
 import { BaseAIProviderAdapter } from './AIProviderAdapter'
 import type { AIProvider, AIServiceConfig, AIServiceTestResult } from '@types'
 import { createLogger } from '../../utils/logger'
-import axios from 'axios'
 
 const logger = createLogger('ZhipuAdapter')
 
@@ -15,7 +14,7 @@ export class ZhipuAdapter extends BaseAIProviderAdapter {
   readonly description = '智谱AI GLM系列大语言模型'
   readonly supportedModels = [
     'glm-4-plus',
-    'glm-4-0520', 
+    'glm-4-0520',
     'glm-4',
     'glm-4-air',
     'glm-4-airx',
@@ -27,38 +26,6 @@ export class ZhipuAdapter extends BaseAIProviderAdapter {
   readonly supportsCustomBaseUrl = true
 
   private readonly defaultBaseUrl = 'https://open.bigmodel.cn/api/paas/v4'
-
-  private async makeRequestWithAxios(
-    url: string,
-    config: AIServiceConfig,
-    requestBody: any,
-    timeoutMs: number = 30000
-  ): Promise<any> {
-    logger.info(`Trying axios request to: ${url}`)
-
-    try {
-      const response = await axios.post(url, requestBody, {
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'EchoSoul/1.0.0'
-        },
-        timeout: timeoutMs,
-        validateStatus: () => true
-      })
-
-      logger.info(`Axios response status: ${response.status}`)
-      return {
-        ok: response.status >= 200 && response.status < 300,
-        status: response.status,
-        statusText: response.statusText,
-        json: async () => response.data
-      }
-    } catch (error) {
-      logger.error('Axios request failed:', error)
-      throw error
-    }
-  }
 
   async testConnection(config: AIServiceConfig): Promise<AIServiceTestResult> {
     const startTime = Date.now()
@@ -256,23 +223,7 @@ export class ZhipuAdapter extends BaseAIProviderAdapter {
       logger.info(`Response status: ${response.status}`)
     } catch (error: any) {
       clearTimeout(timeoutId)
-      logger.error('Fetch request failed:', error)
-
-      if (
-        error.code === 'ETIMEDOUT' ||
-        error.name === 'AbortError' ||
-        error.message?.includes('fetch failed')
-      ) {
-        logger.info('Trying axios as fallback...')
-        try {
-          response = await this.makeRequestWithAxios(url, config, requestBody, 30000)
-        } catch (axiosError) {
-          logger.error('Axios fallback also failed:', axiosError)
-          throw new Error(`Both fetch and axios failed. Original error: ${error.message}`)
-        }
-      } else {
-        throw error
-      }
+      throw new Error(`Fetch request failed: ${error.message}`)
     }
 
     if (!response.ok) {
