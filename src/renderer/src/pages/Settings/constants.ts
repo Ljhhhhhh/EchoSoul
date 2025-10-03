@@ -21,7 +21,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplates = {
   },
   openrouter: {
     name: 'OpenRouter',
-    defaultModel: 'openai/gpt-3.5-turbo',
+    defaultModel: 'openai/gpt-4o',
     baseUrl: 'https://openrouter.ai/api/v1',
     requiresBaseUrl: true
   },
@@ -33,7 +33,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplates = {
   },
   siliconflow: {
     name: 'SiliconFlow (硅基流动)',
-    defaultModel: 'Qwen/Qwen2.5-7B-Instruct',
+    defaultModel: 'deepseek-ai/DeepSeek-V3.1',
     baseUrl: 'https://api.siliconflow.cn/v1',
     requiresBaseUrl: true
   },
