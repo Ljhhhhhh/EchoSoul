@@ -1,55 +1,30 @@
-import { resolve } from 'path';
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
-import react from '@vitejs/plugin-react';
+import { resolve } from 'path'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
-    build: {
-      outDir: 'dist/main',
-      rollupOptions: {
-        input: {
-          main: resolve(__dirname, 'apps/electron/src/main.ts'),
-        },
-      },
-    },
+    publicDir: resolve('resources'), // 配置公共资源目录
     resolve: {
       alias: {
-        '@echosoul/common': resolve(__dirname, 'packages/common/src'),
-      },
-    },
+        '@types': resolve('src/types'),
+        '@resources': resolve('resources') // 添加资源目录别名
+      }
+    }
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
-    build: {
-      outDir: 'dist/preload',
-      rollupOptions: {
-        input: {
-          index: resolve(__dirname, 'apps/electron/src/preload.ts'),
-        },
-      },
-    },
-    resolve: {
-      alias: {
-        '@echosoul/common': resolve(__dirname, 'packages/common/src'),
-      },
-    },
+    publicDir: resolve('resources') // 为预加载脚本也配置公共资源目录
   },
   renderer: {
-    root: 'apps/renderer',
-    plugins: [react()],
     resolve: {
       alias: {
-        '@': resolve(__dirname, 'apps/renderer/src'),
-        '@echosoul/common': resolve(__dirname, 'packages/common/src'),
-      },
+        '@renderer': resolve('src/renderer/src'),
+        '@': resolve('src/renderer/src'),
+        '@types': resolve('src/types')
+      }
     },
-    build: {
-      rollupOptions: {
-        input: {
-          index: resolve(__dirname, 'apps/renderer/index.html'),
-        },
-      },
-    },
-  },
-});
+    plugins: [react()]
+  }
+})

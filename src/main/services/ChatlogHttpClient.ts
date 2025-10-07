@@ -1,0 +1,261 @@
+import { HttpClient, RequestOptions } from '../utils/HttpClient'
+import { createLogger } from '../utils/logger'
+import type { ChatMessage, Contact, ChatRoom } from '@types'
+import { QueryParam } from './api/ChatlogApiService'
+
+const logger = createLogger('ChatlogHttpClient')
+
+export interface ChatlogApiResponse<T = any> {
+  success: boolean
+  data: T
+  message?: string
+  error?: string
+}
+
+export interface GetMessagesParams {
+  startDate: string
+  endDate: string
+  talker?: string
+  limit?: number
+  offset?: number
+  format?: 'json'
+}
+
+export interface SessionInfo {
+  id: string
+  talker: string
+  lastMessageTime: number
+  messageCount: number
+  unreadCount?: number
+}
+
+/**
+ * Chatlog HTTP API 客户端
+ * 封装所有与 chatlog 服务相关的 HTTP 请求
+ */
+export class ChatlogHttpClient {
+  private httpClient: HttpClient
+  private readonly defaultRetries = 3
+  private readonly defaultRetryDelay = 1000
+
+  constructor(baseUrl: string = 'http://127.0.0.1:5030') {
+    this.httpClient = new HttpClient({
+      baseURL: baseUrl,
+      timeout: 10000,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+
+    logger.info(`ChatlogHttpClient initialized with base URL: ${baseUrl}`)
+  }
+
+  /**
+   * 检查 Chatlog 服务状态
+   */
+  async checkServiceStatus(): Promise<boolean> {
+    try {
+      // 使用联系人 API 作为健康检查
+      await this.httpClient.get('/api/v1/contact', {
+        timeout: 3000,
+        retries: 0 // 不重试，快速失败
+      })
+      return true
+    } catch (error: any) {
+      if (error.code === 'ECONNREFUSED') {
+        logger.debug('Chatlog service is not running on', this.httpClient.getBaseURL())
+      } else {
+        logger.debug('Chatlog service health check failed:', error.message)
+      }
+      return false
+    }
+  }
+
+  /**
+   * 获取联系人列表
+   */
+  async getContacts(params?: QueryParam): Promise<Contact[]> {
+    try {
+      const queryParams = new URLSearchParams()
+      queryParams.set('format', 'json')
+
+      if (params?.keyword) {
+        queryParams.set('keyword', params?.keyword)
+      }
+
+      const url = `/api/v1/contact${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+
+      logger.debug(`GET request to ${url}`)
+
+      const data = await this.httpClient.get<{ items: any[] }>(url, {
+        retries: this.defaultRetries,
+        retryDelay: this.defaultRetryDelay
+      })
+
+      // 只返回真实的好友列表
+      const result = data.items.filter(
+        (item) =>
+          !!item.userName &&
+          !item.userName.endsWith('@chatroom') &&
+          item.isFriend &&
+          !item.userName.startsWith('gh_')
+      )
+
+      return result.map((item) => ({
+        ...item,
+        id: item.userName
+      }))
+    } catch (error) {
+      logger.error('Failed to get contacts:', error)
+      throw new Error(`获取联系人失败: ${this.getErrorMessage(error)}`)
+    }
+  }
+
+  async getChatroomList(params?: QueryParam): Promise<ChatRoom[]> {
+    try {
+      const queryParams = new URLSearchParams()
+      queryParams.set('format', 'json')
+
+      if (params?.keyword) {
+        queryParams.set('keyword', params?.keyword)
+      }
+
+      const url = `/api/v1/chatroom${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const data = await this.httpClient.get<{ items: any[] }>(url, {
+        retries: this.defaultRetries,
+        retryDelay: this.defaultRetryDelay
+      })
+      const items = data.items
+      return items
+        .filter((item) => !!item.nickName)
+        .map((item) => {
+          const { users, ...restItem } = item
+          return {
+            ...restItem,
+            id: item.name,
+            userCount: users.length
+          }
+        })
+    } catch (error) {
+      logger.error('Failed to get chatroom list:', error)
+      throw new Error(`获取群聊列表失败: ${this.getErrorMessage(error)}`)
+    }
+  }
+
+  /**
+   * 获取聊天消息
+   */
+  async getMessages(params: GetMessagesParams): Promise<ChatMessage[]> {
+    try {
+      const queryParams = new URLSearchParams()
+      queryParams.set('time', `${params.startDate}~${params.endDate}`)
+
+      queryParams.set('format', 'json')
+
+      if (params.talker) {
+        queryParams.set('talker', params.talker)
+      }
+      if (params.limit) {
+        queryParams.set('limit', params.limit.toString())
+      }
+      if (params.offset) {
+        queryParams.set('offset', params.offset.toString())
+      }
+
+      const url = `/api/v1/chatlog?${queryParams.toString()}`
+
+      return await this.httpClient.get<any[]>(url, {
+        retries: this.defaultRetries,
+        retryDelay: this.defaultRetryDelay
+      })
+    } catch (error) {
+      logger.error('Failed to get messages:', error)
+      throw new Error(`获取聊天记录失败: ${this.getErrorMessage(error)}`)
+    }
+  }
+
+  /**
+   * 获取会话列表
+   */
+  async getSessions(): Promise<SessionInfo[]> {
+    try {
+      const data = await this.httpClient.get<any[]>('/api/v1/session', {
+        retries: this.defaultRetries,
+        retryDelay: this.defaultRetryDelay
+      })
+
+      return data.map((item) => ({
+        id: item.id || `${item.talker}-${item.lastMessageTime}`,
+        talker: item.talker,
+        lastMessageTime: item.lastMessageTime || 0,
+        messageCount: item.messageCount || 0,
+        unreadCount: item.unreadCount || 0
+      }))
+    } catch (error) {
+      logger.error('Failed to get sessions:', error)
+      throw new Error(`获取会话列表失败: ${this.getErrorMessage(error)}`)
+    }
+  }
+
+  /**
+   * 标准化消息类型
+   */
+  private normalizeMessageType(type: any): 'text' | 'image' | 'voice' | 'video' | 'file' {
+    if (typeof type === 'string') {
+      switch (type.toLowerCase()) {
+        case 'image':
+        case 'img':
+          return 'image'
+        case 'voice':
+        case 'audio':
+          return 'voice'
+        case 'video':
+          return 'video'
+        case 'file':
+          return 'file'
+        default:
+          return 'text'
+      }
+    }
+    return 'text'
+  }
+
+  /**
+   * 提取错误信息
+   */
+  private getErrorMessage(error: any): string {
+    if (error.response?.data?.message) {
+      return error.response.data.message
+    }
+    if (error.response?.statusText) {
+      return error.response.statusText
+    }
+    if (error.message) {
+      return error.message
+    }
+    return '未知错误'
+  }
+
+  /**
+   * 更新服务地址
+   */
+  updateBaseUrl(baseUrl: string): void {
+    this.httpClient.updateBaseURL(baseUrl)
+    logger.info(`Chatlog service URL updated to: ${baseUrl}`)
+  }
+
+  /**
+   * 获取当前服务地址
+   */
+  getBaseUrl(): string {
+    return this.httpClient.getBaseURL()
+  }
+
+  /**
+   * 通用 GET 请求方法（用于诊断等场景）
+   */
+  async get<T = any>(url: string, options?: RequestOptions): Promise<T> {
+    return this.httpClient.get<T>(url, options)
+  }
+}
